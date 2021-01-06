@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <ListPreference
+        android:id="@+id/language"
+        android:defaultValue="system"
+        android:entries="@array/languages_entries"
+        android:entryValues="@array/languages_values"
+        android:key="language"
+        android:title="Language"
+        android:icon="@drawable/ic_translate"
+        app:useSimpleSummaryProvider="true" />
+    
+    <SwitchPreference
+        android:id="@+id/helper"
+        android:defaultValue="false"
+        android:key="helper"
+        android:title="Helper" />
+    
+    <EditTextPreference
+        android:defaultValue="Default value"
+        android:key="edit_text_preference_1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Edit text preference" />
+    
+    <PreferenceCategory
+        android:id="@+id/category_converter"
+        app:title="@string/converter"
+        style="@style/CustomPreferenceCategory" >
+    
+        <com.martin.carcharge.ui.NumberPickerPreference
+            android:key="refreshrate"
+            android:title="Update frequency"
+            android:defaultValue="20"
+            speedreader:vnt_maxValue="300"
+            speedreader:vnt_minValue="3"/>
+        
+    </PreferenceCategory>
+    
+    
+    
+    
+    <PreferenceCategory
+        android:id="@+id/category_about"
+        android:title="About"
+        style="@style/CustomPreferenceCategory" >
+        <Preference
+            android:id="@+id/about"
+            android:selectable="false"
+            android:enabled="false"
+            android:title="@string/app_about"
+            style="@style/CustomPreference" />
+        
+        <Preference
+            android:id="@+id/version"
+            android:summary="@string/app_version"
+            android:key="version"
+            android:title="@string/title_version"
+            style="@style/CustomPreference" />
+        
+        <Preference
+            android:id="@+id/github"
+            android:title="@string/browse_github"
+            style="@style/CustomPreference">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/m4rtin195/Reciper" />
+        </Preference>
+        
+        <Preference
+            android:id="@+id/contact"
+            android:title="@string/contact_developer"
+            android:summary="@string/contact_developer_2"
+            android:key="contact_developer"
+            style="@style/CustomPreference" >
+            <!-- resp static intent-->
+        </Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

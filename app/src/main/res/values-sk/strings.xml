@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="title_home">Domov</string>
+    <string name="title_history">História</string>
+    <string name="title_preferences">Nastavenia</string>
+</resources>

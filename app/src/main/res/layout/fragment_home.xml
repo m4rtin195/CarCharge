@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment" >
+    
+    <TextView
+        android:id="@+id/text_vehicleName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintStart_toStartOf="@+id/image_vehicle"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Tesla Model 3" />
+    
+    <TextView
+        android:id="@+id/text_regNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="@+id/text_vehicleName"
+        app:layout_constraintTop_toBottomOf="@+id/text_vehicleName"
+        tools:text="ZA-987MT" />
+    
+    <ImageView
+        android:id="@+id/image_vehicle"
+        android:layout_width="0dp"
+        android:layout_height="191dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:contentDescription="@string/desc_vehicle_picture"
+        android:src="@drawable/car"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_regNumber" />
+    
+    <TextView
+        android:id="@+id/textView_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="@+id/progress_charge"
+        app:layout_constraintTop_toBottomOf="@+id/image_vehicle"
+        tools:text="Charging..." />
+    
+    <TextView
+        android:id="@+id/text_charge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@+id/progress_charge"
+        app:layout_constraintTop_toTopOf="@+id/textView_state"
+        tools:text="85%" />
+    
+    <ProgressBar
+        android:id="@+id/progress_charge"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:max="100"
+        tools:progress="85"
+        android:progressTint="@color/ic_launcher_background"
+        android:scaleY="0.5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_state" />
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/progress_charge"
+        tools:visibility="gone">
+
+    </LinearLayout>
+    
+    <androidx.constraintlayout.utils.widget.MockView
+        android:id="@+id/mockView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="gone" />
+</androidx.constraintlayout.widget.ConstraintLayout>

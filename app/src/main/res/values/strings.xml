@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name" translatable="false">CarCharge</string>
+    
+    <string name="title_home">Home</string>
+    <string name="title_history">History</string>
+    <string name="title_preferences">Preferences</string>
+    <string name="desc_vehicle_picture">Vehicle Picture</string>
+
+</resources>
