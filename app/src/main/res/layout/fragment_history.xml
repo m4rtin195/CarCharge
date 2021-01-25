@@ -5,18 +5,111 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.history.HistoryFragment">
-
+    
+    
     <TextView
-        android:id="@+id/text_dashboard"
-        android:layout_width="match_parent"
+        android:id="@+id/text_history"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="32dp"
+        android:fontFamily="sans-serif-black"
+        android:text="@string/history_title"
+        android:textSize="@dimen/tile_textsize_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+    
+    
+    <TableLayout
+        android:id="@+id/layout_period"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="40dp"
+        android:stretchColumns="*"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_history">
+        
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+    
+            <TextView
+                android:id="@+id/text_periodFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:labelFor="@id/edit_periodFrom"
+                android:text="@string/history_period_from" />
+    
+            <EditText
+                android:id="@+id/edit_periodFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/tile_gray"
+                android:ems="10"
+                android:inputType="date"
+                android:textColor="@color/white_shade" />
+        </TableRow>
+        
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+    
+            <TextView
+                android:id="@+id/text_periodTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:labelFor="@id/edit_periodTo"
+                android:text="@string/history_period_to" />
+    
+            <EditText
+                android:id="@+id/edit_periodTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/tile_gray"
+                android:ems="10"
+                android:inputType="date"
+                android:textColor="@color/white_shade" />
+        </TableRow>
+    
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="center_horizontal">
+        
+            <Button
+                android:id="@+id/button_load"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/history_button_load" />
+        
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:visibility="gone" />
+        </TableRow>
+
+    </TableLayout>
+    
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart_history"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/home_tile"
+        android:padding="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_period" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

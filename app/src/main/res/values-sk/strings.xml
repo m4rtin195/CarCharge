@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <string name="title_home">Domov</string>
-    <string name="title_history">História</string>
-    <string name="title_preferences">Nastavenia</string>
+    <string name="app_home">Domov</string>
+    <string name="app_history">História</string>
+    <string name="app_preferences">Nastavenia</string>
+    <string name="preferences_unloaded">nenačítané</string>
+    <string name="preferences_version">Verzia</string>
+    <string name="preferences_language">Jazyk</string>
+    <string name="preferences_choose_email_client">Vyberte emailového klienta</string>
+    <string name="home_vehicle_picture_desc">Obrázok vozidla</string>
+    <string name="preferences_browse_github">Prejsť na GitHub repozitár</string>
+    <string name="preferences_contact_developer">Kontaktovať vývojára</string>
+    <string name="preferences_contact_developer_summary">Neváhajte mi napísať!</string>
 </resources>

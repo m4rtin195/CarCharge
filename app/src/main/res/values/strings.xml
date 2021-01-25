@@ -1,9 +1,44 @@
 <resources>
+    <!-- App Basics -->
     <string name="app_name" translatable="false">CarCharge</string>
+    <string name="app_home">Home</string>
+    <string name="app_history">History</string>
+    <string name="app_preferences">Preferences</string>
+    <string name="appbar_refresh">Refresh</string>
+    <string name="appbar_preferences">Preferences</string>
+    <string name="appbar_history">History</string>
     
-    <string name="title_home">Home</string>
-    <string name="title_history">History</string>
-    <string name="title_preferences">Preferences</string>
-    <string name="desc_vehicle_picture">Vehicle Picture</string>
+    <!-- Home -->
+    <string name="home_vehicle_picture_desc">Vehicle Picture</string>
+    <string name="home_voltage">Voltage</string>
+    <string name="home_targetVoltage">Target Voltage</string>
+    <string name="home_current">Current</string>
+    <string name="home_max_current">Max. Current</string>
+    <string name="home_charging_time">Charging Time</string>
+    <string name="home_remaining_time">Remaining Time</string>
+    <string name="home_location">Vehicle Location</string>
+    <string name="home_approach">Approach</string>
+    <string name="home_fuel">Fuel</string>
+    <string name="home_outdoor_temperature">Outdoor Temperature</string>
+    <string name="home_indoor_temperature">Indoor Temperature</string>
+    <string name="home_desired_temperature">Desired Temperature</string>
+    
+    <!-- History -->
+    <string name="home_state_loading">Loading…</string>
+    <string name="history_period_from">Period from:</string>
+    <string name="history_period_to">Period to:</string>
+    <string name="history_button_load">Load</string>
+    
+    <!-- Preferences -->
+    <string name="preferences_language">Language</string>
+    <string name="preferences_about" translatable="false">This application is client for eCar IoT Kit</string>
+    <string name="preferences_version">Version</string>
+    <string name="preferences_unloaded">unloaded</string>
+    <string name="preferences_easter_egg" translatable="false">You found my Easter Egg! 😮♥</string>
+    <string name="preferences_browse_github">Browse GitHub</string>
+    <string name="preferences_contact_developer">Contact developer</string>
+    <string name="preferences_contact_developer_summary">Feel free to contact me!</string>
+    <string name="preferences_choose_email_client">Choose an email client</string>
+    <string name="history_title">Charging history</string>
 
 </resources>

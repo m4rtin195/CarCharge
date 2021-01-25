@@ -1,6 +1,8 @@
-package com.martin.carcharge;
+package com.martin.carcharge.models;
 
-public class CarStatus
+import android.util.Log;
+
+public class VehicleStatus
 {
     private String _id;
     private String _rev;
@@ -8,7 +10,7 @@ public class CarStatus
     private int state;              //enum?
     private int current_charge;
     private int target_charge;
-    private int current;
+    public int current; //todo change
     private int elapsed_time;
     private int remain_time;
     private int range;
@@ -76,6 +78,21 @@ public class CarStatus
     public boolean isParsed()
     {
         return parsed;
+    }
+    
+    public void print()
+    {
+        Log.i("daco", "_id: " + _id);
+        Log.i("daco", "_rev: " + _rev);
+        Log.i("daco", "state: " + state);
+        Log.i("daco", "current_charge: " + current_charge);
+        Log.i("daco", "target_charge: " + target_charge);
+        Log.i("daco", "current: " + current);
+        Log.i("daco", "elapsed_time: " + elapsed_time);
+        Log.i("daco", "remain_time: " + remain_time);
+        Log.i("daco", "range: " + range);
+        Log.i("daco", "elec_consumption: " + elec_consumption);
+        Log.i("daco", "indoor_temperature: " + indoor_temperature);
     }
 }
 

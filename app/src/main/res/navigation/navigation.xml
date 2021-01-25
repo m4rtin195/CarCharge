@@ -9,18 +9,25 @@
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.martin.carcharge.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        android:label="@string/app_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/navigation_action_home_to_history"
+            app:destination="@id/navigation_history" />
+        <action
+            android:id="@+id/navigation_action_home_to_preferences"
+            app:destination="@id/navigation_preferences" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_history"
         android:name="com.martin.carcharge.ui.history.HistoryFragment"
-        android:label="@string/title_history"
+        android:label="@string/app_history"
         tools:layout="@layout/fragment_history" />
 
     <fragment
         android:id="@+id/navigation_preferences"
         android:name="com.martin.carcharge.ui.PreferencesFragment"
-        android:label="@string/title_preferences"
+        android:label="@string/app_preferences"
         tools:layout="@xml/preferences" />
 </navigation>
