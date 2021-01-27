@@ -3,77 +3,141 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
-    <ListPreference
-        android:id="@+id/language"
-        android:defaultValue="system"
-        android:entries="@array/languages_entries"
-        android:entryValues="@array/languages_values"
-        android:key="language"
-        android:title="@string/preferences_language"
-        android:icon="@drawable/ic_translate"
-        app:useSimpleSummaryProvider="true" />
-    
-    <SwitchPreference
-        android:id="@+id/helper"
-        android:defaultValue="false"
-        android:key="helper"
-        android:title="Helper" />
-    
-    <EditTextPreference
-        android:defaultValue="5"
-        android:key="edit_text_preference_1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="Update frequency"
-        app:useSimpleSummaryProvider="true"/>
-    
+    <!-- todo naco su im id?? -->
     <PreferenceCategory
-        android:id="@+id/category_converter"
-        app:title="Category">
-    
-        <!--<com.martin.carcharge.ui.NumberPickerPreference
-            android:key="refreshrate"
-            android:title="Update frequency"
-            android:defaultValue="20"
-            app:maxValue="300"
-            app:minValue="3"/>-->
+        android:title="@string/preferences_user"
+        app:iconSpaceReserved="false">
+
+    <EditTextPreference
+            android:id="@+id/preference_nickname"
+            android:key="nickname"
+            android:title="Martin Timko"
+            android:dialogTitle="@string/preferences_nickname"
+            android:summary="@string/preferences_unloaded"
+            app:positiveButtonText="@string/preferences_save" />
         
+        <Preference
+            android:id="@+id/preference_logout"
+            android:key="logout"
+            android:title="@string/preferences_logout"
+            android:icon="@drawable/ic_logout">
+        </Preference>
     </PreferenceCategory>
     
+    <PreferenceCategory
+        app:title="@string/preferences_category_general"
+        app:iconSpaceReserved="false">
+
+    <ListPreference
+            android:id="@+id/preference_language"
+            android:key="language"
+            android:title="@string/preferences_language"
+            android:icon="@drawable/ic_language"
+            android:entries="@array/languages_entries"
+            android:entryValues="@array/languages_values"
+            android:defaultValue="system"
+            app:useSimpleSummaryProvider="true" />
     
+        <SwitchPreference
+            android:id="@+id/preference_helper"
+            android:key="use_fcm"
+            android:title="@string/preferences_use_FCM"
+            android:icon="@drawable/ic_send"
+            android:disableDependentsState="true"
+            android:defaultValue="true" />
+        
+        <SeekBarPreference
+            android:id="@+id/preference_updateFrequency"
+            android:key="update_frequency"
+            android:title="@string/preferences_update_frequency"
+            android:icon="@drawable/ic_refresh"
+            android:min="1"
+            android:max="60"
+            android:defaultValue="5"
+            android:dependency="use_fcm"
+            app:showSeekBarValue="true" />
     
+        <Preference
+            android:id="@+id/preference_invalidateCache"
+            android:key="invalidate_cache"
+            android:title="@string/preferences_invalidate_cache"
+            android:icon="@drawable/ic_database_delete" />
+    </PreferenceCategory>
     
     <PreferenceCategory
-        android:id="@+id/category_about"
-        android:title="About">
+        app:title="@string/preferences_category_vehicle"
+        app:iconSpaceReserved="false">
+
+    <!-- todo handle first launch-->
+    <EditTextPreference
+            android:id="@+id/preference_vehicleName"
+            android:key="vehicle_name"
+            android:title="@string/preferences_vehicle_name"
+            android:icon="@drawable/ic_vehicle"
+            app:positiveButtonText="@string/preferences_save"
+            app:useSimpleSummaryProvider="true" />
+    
+        <EditTextPreference
+            android:id="@+id/preference_vehicleRegplate"
+            android:key="vehicle_regplate"
+            android:title="@string/preferences_vehicle_regplate"
+            android:icon="@drawable/ic_regplate"
+            app:positiveButtonText="@string/preferences_save"
+            app:useSimpleSummaryProvider="true" />
+    
+        <EditTextPreference
+            android:id="@+id/preference_vehicleCapacity"
+            android:key="vehicle_capacity"
+            android:title="Battery capacity"
+            android:icon="@drawable/ic_battery"
+            app:positiveButtonText="@string/preferences_save"
+            app:useSimpleSummaryProvider="true"
+            android:enabled="false" />
+    
+        <Preference
+            android:id="@+id/preference_vehicleImage"
+            android:key="vehicle_image"
+            android:title="@string/preferences_image"
+            android:icon="@drawable/ic_image"
+            android:summary="@string/preferences_unloaded" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory
+        android:title="@string/preferences_category_about"
+        app:iconSpaceReserved="false">
         
         <Preference
-            android:id="@+id/about"
-            android:selectable="false"
+            android:id="@+id/preference_about"
+            android:title="@string/preferences_about"
             android:enabled="false"
-            android:title="@string/preferences_about" />
+            app:iconSpaceReserved="false" />
         
         <Preference
-            android:id="@+id/version"
+            android:id="@+id/preference_version"
+            android:key="version"
             android:title="@string/preferences_version"
             android:summary="@string/preferences_unloaded"
-            android:key="version" />
+            app:iconSpaceReserved="false" />
         
         <Preference
-            android:id="@+id/github"
-            android:title="@string/preferences_browse_github">
+            android:id="@+id/preference_github"
+            android:title="@string/preferences_browse_github"
+            app:iconSpaceReserved="false">
+            
             <intent
                 android:action="android.intent.action.VIEW"
                 android:data="https://github.com/m4rtin195/Reciper" />
         </Preference>
         
         <Preference
-            android:id="@+id/contact"
+            android:id="@+id/preference_contact"
+            android:key="contact_developer"
             android:title="@string/preferences_contact_developer"
             android:summary="@string/preferences_contact_developer_summary"
-            android:key="contact_developer">
-            <!-- resp static intent-->
+            app:iconSpaceReserved="false">
         </Preference>
+    
+        <Preference android:selectable="false" />
     </PreferenceCategory>
 
 </PreferenceScreen>

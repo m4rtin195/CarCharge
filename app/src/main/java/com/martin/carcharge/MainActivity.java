@@ -1,20 +1,23 @@
 package com.martin.carcharge;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -24,19 +27,22 @@ import androidx.preference.PreferenceManager;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 import java.util.Objects;
+import java.util.StringTokenizer;
 
 
 public class MainActivity extends AppCompatActivity
 {
-    private AppDatabase db = AppActivity.getDatabase();
-    private SharedPreferences settings;
+    private AppDatabase db;
+    private SharedPreferences pref;
     private MainViewModel vm;
     
     NavController navController;
@@ -51,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setTheme(R.style.Theme_CarCharge);
+        getWindow().setStatusBarColor(getResources().getColor(R.color.google_background, getTheme()));
         getWindow().setNavigationBarColor(getResources().getColor(R.color.google_background, getTheme()));
         getWindow().setNavigationBarDividerColor(getResources().getColor(R.color.tile_gray, getTheme()));
         setContentView(R.layout.activity_main);
@@ -61,7 +68,8 @@ public class MainActivity extends AppCompatActivity
         getWindow().getInsetsController().setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         getWindow().getInsetsController().hide(WindowInsets.Type.navigationBars());
     
-        settings = PreferenceManager.getDefaultSharedPreferences(this);
+        db = AppActivity.getDatabase();
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
         vm = new ViewModelProvider(this).get(MainViewModel.class);
         
         layout_root = findViewById(R.id.layout_root);
@@ -77,9 +85,10 @@ public class MainActivity extends AppCompatActivity
         Downloader downloader = new Downloader(this);
         //downloader.start();
         
-        updateVehicle();
+        loadVehicle();
         //updateStatus();
-    }
+        
+    } //onCreate
     
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu)
@@ -100,27 +109,66 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
     
-    void updateVehicle()
+    @Override
+    protected void attachBaseContext(Context newBase)
     {
-        long lastVehicleId = settings.getLong("last_vehicle_id", 0);
+        super.attachBaseContext(newBase);
+        pref = PreferenceManager.getDefaultSharedPreferences(this); //bezi pred onCreate
+        if(!pref.getString("language", "system").equals("system"))
+            applyOverrideConfiguration(updateConfigurationLanguage(new Configuration()));
+    }
+    
+    private Configuration updateConfigurationLanguage(@NotNull Configuration config)
+    {
+        if(!config.getLocales().isEmpty()) return config;
+        
+        String languageStr = pref.getString("language", "system");
+        Locale newLocale = stringToLocale(languageStr);
+        if(newLocale != null)
+            config.setLocale(newLocale);
+        return config;
+    }
+    
+    private Locale stringToLocale(String s)
+    {
+        StringTokenizer tempStringTokenizer = new StringTokenizer(s,"_");
+        String language = new String();
+        String country = new String();
+        if(tempStringTokenizer.hasMoreTokens())
+            language = (String) tempStringTokenizer.nextElement();
+        if(tempStringTokenizer.hasMoreTokens())
+            country = (String) tempStringTokenizer.nextElement();
+        return new Locale(language, country);
+    }
+    
+    /**********/
+    
+    void loadVehicle()
+    {
+        long lastVehicleId = pref.getLong("last_vehicle_id", 0);
         if(lastVehicleId == 0)
         {
             Vehicle temp = new Vehicle();
+            temp.setName("New vehicle");
             lastVehicleId = db.dao().insert(temp);
-            settings.edit().putLong("last_vehicle_id", lastVehicleId).apply();
+            pref.edit().putLong("last_vehicle_id", lastVehicleId).apply();
+        }
+        if(db.dao().getVehicle(lastVehicleId) == null)
+        {
+            Log.i("daco","dlt");
+            pref.edit().remove("last_vehicle_id").apply();
+            loadVehicle();
+            return;
         }
     
-        Vehicle vh = new Vehicle();
-        vh.setName("Volkswagen ID.4");
-        vh.setRegNumber("PO-111AA");
-//        vh.setName("Tesla Model 3");
-//        vh.setRegNumber("ZA-987MT");
-        //vm.setVehicle(new MutableLiveData<>(vh));
-        //vm.setVehicle(new MutableLiveData<>(db.dao().getVehicle(lastVehicleId)));
-//        VehicleStatus vs = new VehicleStatus();
-//        vs.current = 322;
-//        //vs.print();
-//        vm.setVehicleStatus(new MutableLiveData<>(vs));
+        Vehicle vehicle = db.dao().getVehicle(lastVehicleId);
+        vm.Vehicle().postValue(vehicle);
+        pref.edit()
+                .putString("vehicle_name", vehicle.getName())
+                .putString("vehicle_regplate", vehicle.getRegNumber())
+                .putString("vehicle_capacity", vehicle.getBatteryCapacity() > 0 ?
+                        String.valueOf(vehicle.getBatteryCapacity()) : "")
+                .apply();
     }
     
     void updateStatus()

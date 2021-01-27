@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Basics -->
     <string name="app_name" translatable="false">CarCharge</string>
@@ -19,19 +20,20 @@
     <string name="home_location">Vehicle Location</string>
     <string name="home_approach">Approach</string>
     <string name="home_fuel">Fuel</string>
-    <string name="home_outdoor_temperature">Outdoor Temperature</string>
-    <string name="home_indoor_temperature">Indoor Temperature</string>
-    <string name="home_desired_temperature">Desired Temperature</string>
+    <string name="home_outdoor_temperature">Outdoor\nTemperature</string>
+    <string name="home_indoor_temperature">Indoor\nTemperature</string>
+    <string name="home_desired_temperature">Desired\nTemperature</string>
+    <string name="home_state_loading">Loading…</string>
     
     <!-- History -->
-    <string name="home_state_loading">Loading…</string>
+    <string name="history_title">Charging history</string>
     <string name="history_period_from">Period from:</string>
     <string name="history_period_to">Period to:</string>
     <string name="history_button_load">Load</string>
     
     <!-- Preferences -->
     <string name="preferences_language">Language</string>
-    <string name="preferences_about" translatable="false">This application is client for eCar IoT Kit</string>
+    <string name="preferences_about" translatable="false">This application is a client side for eCar IoT Kit\nMartin Timko\nGlobalLogic Slovakia s.r.o.\nKMIKT FEIT UNIZA\n© 2021</string>
     <string name="preferences_version">Version</string>
     <string name="preferences_unloaded">unloaded</string>
     <string name="preferences_easter_egg" translatable="false">You found my Easter Egg! 😮♥</string>
@@ -39,6 +41,18 @@
     <string name="preferences_contact_developer">Contact developer</string>
     <string name="preferences_contact_developer_summary">Feel free to contact me!</string>
     <string name="preferences_choose_email_client">Choose an email client</string>
-    <string name="history_title">Charging history</string>
+    <string name="preferences_category_general">General</string>
+    <string name="preferences_invalidate_cache">Invalidate cache</string>
+    <string name="preferences_category_vehicle">Vehicle</string>
+    <string name="preferences_vehicle_name">Vehicle name</string>
+    <string name="preferences_vehicle_regplate">Registration plate</string>
+    <string name="preferences_image">Image</string>
+    <string name="preferences_user">User</string>
+    <string name="preferences_logout">Logout</string>
+    <string name="preferences_update_frequency">Update frequency (mins)</string>
+    <string name="preferences_save">Save</string>
+    <string name="preferences_category_about">About</string>
+    <string name="preferences_nickname">User name</string>
+    <string name="preferences_use_FCM">Use Firebase Cloud Messaging</string>
 
 </resources>

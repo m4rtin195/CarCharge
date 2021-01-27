@@ -25,9 +25,7 @@ import com.martin.carcharge.models.VehicleStatus;
 
 public class HomeFragment extends Fragment
 {
-    
     private MainViewModel vm;
-    SharedPreferences settings;
     
     TextView text_vehicleName, text_regNumber, text_state, text_charge;
     ImageView image_vehicle;
@@ -47,8 +45,8 @@ public class HomeFragment extends Fragment
         findViews(root);
         fab_action.setOnClickListener(actionOnClickListener);
     
-        vm.getVehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
-        vm.getVehicleStatus().observeForever(new Observer<VehicleStatus>()
+        vm.Vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
+        vm.VehicleStatus().observeForever(new Observer<VehicleStatus>()
         {
             @Override
             public void onChanged(VehicleStatus vehicleStatus)
@@ -125,11 +123,6 @@ public class HomeFragment extends Fragment
         return (days>0 ? (days + " days, ") : "") + (hours>0 ? (hours + " hours, ") : "") + minutes + " mins";
     }
     
-    void updateImage()
-    {
-        //image_vehicle.setImageURI(mediaURI);
-    }
-    
     View.OnClickListener actionOnClickListener = view ->
     {
         /*Vehicle vehicle = vm.getVehicle().getValue();
@@ -146,10 +139,6 @@ public class HomeFragment extends Fragment
         //vs.print();
         vm.setVehicleStatus(new MutableLiveData<>(vs));
     
-        Vehicle vh = new Vehicle();
-        vh.setName("CCCC");
-        vh.setRegNumber("dd");
-        vm.setVehicle(new MutableLiveData<>(vh));
         Log.i("daco", "click");
     };
 }

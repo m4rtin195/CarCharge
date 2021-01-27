@@ -3,6 +3,7 @@ package com.martin.carcharge;
 import android.app.Application;
 import android.util.Log;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
@@ -30,11 +31,12 @@ public class AppActivity extends Application
     public void onCreate()
     {
         super.onCreate();
-        
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+    
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "CarCharge_db")
                 .allowMainThreadQueries()
                 //.addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-                //.fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration()
                 .build();
     
         Retrofit retrofit = new Retrofit.Builder()

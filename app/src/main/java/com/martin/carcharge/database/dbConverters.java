@@ -4,11 +4,10 @@ import android.net.Uri;
 
 import androidx.room.TypeConverter;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.models.VehicleStatus.State;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 
 public class dbConverters
 {
@@ -29,15 +28,38 @@ public class dbConverters
     }*/
     
     @TypeConverter
+    public static String UriToString(Uri value)
+    {
+        if(value == null) return new String();
+        else return value.toString();
+    }
+    @TypeConverter
     public static Uri StringToUri(String value)
     {
         return Uri.parse(value);
     }
     
+    
     @TypeConverter
-    public static String UriToString(Uri value)
+    public static long TimestampToLong(Timestamp value)
     {
-        if(value == null) return new String();
-        else return value.toString();
+        return value.getTime();
+    }
+    @TypeConverter
+    public static Timestamp LongToTimestamp(long value)
+    {
+        return new Timestamp(value);
+    }
+    
+    
+    @TypeConverter
+    public static int fromStatus(State value)
+    {
+        return value.ordinal();
+    }
+    @TypeConverter
+    public static State toState(int value)
+    {
+        return State.values()[value];
     }
 }
