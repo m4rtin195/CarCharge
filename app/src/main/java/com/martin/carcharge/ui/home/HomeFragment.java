@@ -18,6 +18,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.martin.carcharge.G;
 import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.R;
 import com.martin.carcharge.models.Vehicle;
@@ -51,42 +52,41 @@ public class HomeFragment extends Fragment
             @Override
             public void onChanged(VehicleStatus vehicleStatus)
             {
-                Log.i("daco", "changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                updateStatusFields(vehicleStatus);
             }
         });
-        Log.i("daco", "registering observer to vm id: " + vm.toString());
     
         return root;
     }
     
     void updateVehicleFields(Vehicle vehicle)
     {
-        Log.i("daco", "observed vehicle.");
+        Log.i(G.tag, "observed vehicle.");
         text_vehicleName.setText(vehicle.getName());
         text_regNumber.setText(vehicle.getRegNumber());
-        image_vehicle.setVisibility(vehicle.getImageUri() == null ? View.VISIBLE : View.GONE);
-        image_vehicle.setImageURI(vehicle.getImageUri());
+        //image_vehicle.setVisibility(vehicle.getImageUri() == null ? View.VISIBLE : View.GONE);
+        //image_vehicle.setImageURI(vehicle.getImageUri());
     }
     
     @SuppressLint("DefaultLocale") //todo prec
     void updateStatusFields(VehicleStatus vs)
     {
-        Log.i("daco", "observed status.");
-        //text_state.setText(vs.getState());
+        Log.i(G.tag, "observed status.");
+        if(vs.getState() != null) text_state.setText(vs.getState().text);
         text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));
         progress_charge.setProgress(vs.getCurrent_charge(),true);
         progress_charge.setSecondaryProgress(vs.getTarget_charge());
         
         //text_voltage.setText("648.2V");
         //text_tVoltage.setText("800V");
-        text_current.setText(vs.getCurrent());
+        text_current.setText(String.format("%+dA", vs.getCurrent())); //todo a minus?
         //text_maxCurrent.setText(vs.g);
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
-        text_approach.setText(vs.getRange());
+        text_approach.setText(String.format("%dkm", vs.getRange()));
         //text_location.setText("49°12’32”N  18°45’36”E");
         //text_outdoorTemp.setText("13.2°C");
-        text_indoorTemp.setText(String.format("%.1f%%", vs.getIndoor_temperature()));
+        text_indoorTemp.setText(String.format("%.1f°C", vs.getIndoor_temperature()));
         //text_desiredTemp.setText("20.0°C");
     }
     
@@ -120,7 +120,7 @@ public class HomeFragment extends Fragment
         hours = mins/60; mins -= hours*60;
         minutes = mins;
         
-        return (days>0 ? (days + " days, ") : "") + (hours>0 ? (hours + " hours, ") : "") + minutes + " mins";
+        return (days>0 ? (days + "d ") : "") + (hours>0 ? (hours + "h ") : "") + minutes + "m";
     }
     
     View.OnClickListener actionOnClickListener = view ->
@@ -135,10 +135,11 @@ public class HomeFragment extends Fragment
         progress_charge.setIndeterminate(true);*/
     
         VehicleStatus vs = new VehicleStatus();
-        vs.current = 322;
+        vs.setState(VehicleStatus.State.Idle);
+        vs.setCurrent(0);
         //vs.print();
-        vm.setVehicleStatus(new MutableLiveData<>(vs));
+        vm.VehicleStatus().postValue(vs);
     
-        Log.i("daco", "click");
+        Log.i(G.tag, "click");
     };
 }

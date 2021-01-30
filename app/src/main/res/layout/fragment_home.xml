@@ -259,6 +259,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="fill_horizontal"
                     android:layout_weight="1"
+                    android:elevation="50dp"
                     android:background="@drawable/home_tile_div"
                     app:columnCount="2">
             

@@ -4,6 +4,7 @@ import android.net.Uri;
 
 import androidx.room.TypeConverter;
 
+import com.google.gson.Gson;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.models.VehicleStatus.State;
 

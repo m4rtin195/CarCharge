@@ -1,7 +1,9 @@
 package com.martin.carcharge;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -16,7 +18,6 @@ import android.view.WindowInsetsController;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -28,12 +29,17 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
+import com.martin.carcharge.models.VehicleStatus;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Type;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.StringTokenizer;
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setTheme(R.style.Theme_CarCharge);
-        getWindow().setStatusBarColor(getResources().getColor(R.color.google_background, getTheme()));
+        getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
         getWindow().setNavigationBarColor(getResources().getColor(R.color.google_background, getTheme()));
         getWindow().setNavigationBarDividerColor(getResources().getColor(R.color.tile_gray, getTheme()));
         setContentView(R.layout.activity_main);
@@ -104,9 +110,22 @@ public class MainActivity extends AppCompatActivity
             navController.navigate(R.id.navigation_action_home_to_history);
         if(item.getItemId() == R.id.menu_refresh)
             navController.navigate(R.id.navigation_action_home_to_preferences);
-    
-        updateStatus();
+        
         return true;
+    }
+    
+    @Override
+    protected void onResume() //todo presun
+    {
+        super.onResume();
+        registerReceiver(myReceiver, new IntentFilter("custom-update"));
+    }
+    
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        unregisterReceiver(myReceiver);
     }
     
     @Override
@@ -155,7 +174,7 @@ public class MainActivity extends AppCompatActivity
         }
         if(db.dao().getVehicle(lastVehicleId) == null)
         {
-            Log.i("daco","dlt");
+            Log.i(G.tag,"dlt");
             pref.edit().remove("last_vehicle_id").apply();
             loadVehicle();
             return;
@@ -171,11 +190,31 @@ public class MainActivity extends AppCompatActivity
                 .apply();
     }
     
-    void updateStatus()
+    public void updateStatus()
     {
+        Log.i(G.tag, "updateStatus()");
         //Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show();
         Snackbar.make(getWindow().getDecorView().getRootView(), "Updating...", Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).setAction("Znova!!", null).show();
     }
+    
+    public BroadcastReceiver myReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            String json = intent.getStringExtra("json");
+            Type type = new TypeToken<VehicleStatus>() {}.getType();
+            VehicleStatus vs = new Gson().fromJson(json, type);
+            vs.setState(VehicleStatus.State.Charging);
+            vm.VehicleStatus().postValue(vs);
+            Snackbar.make(getWindow().getDecorView().getRootView(), "Received FCM update. " +
+                    Calendar.getInstance().getTime().getHours() + ":" +
+                    Calendar.getInstance().getTime().getMinutes() + ":" +
+                    Calendar.getInstance().getTime().getSeconds(), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).setAction("Znova!!", null).show();
+        }
+    };
+    
+    
     
     public void setFabVisible(boolean v)
     {

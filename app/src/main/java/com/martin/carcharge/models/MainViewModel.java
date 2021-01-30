@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
+import com.martin.carcharge.G;
+
 public class MainViewModel extends ViewModel
 {
     //todo mutable vs livedata????
@@ -15,7 +17,7 @@ public class MainViewModel extends ViewModel
     
     public MainViewModel()
     {
-        Log.i("daco", "Creating new viewmodel, id: " + this.toString());
+        Log.i(G.tag, "Creating new viewmodel, id: " + this.toString());
         vehicle = new MutableLiveData<>();
         vehicleStatus = new MutableLiveData<>(); //move to dec
         
@@ -34,7 +36,7 @@ public class MainViewModel extends ViewModel
     @Deprecated
     public void setVehicleStatus(MutableLiveData<VehicleStatus> vs)
     {
-        Log.i("daco", "updating viewmodel, id: " + this.toString());
+        Log.i(G.tag, "updating viewmodel, id: " + this.toString());
         vehicleStatus = vs;
     }
 }

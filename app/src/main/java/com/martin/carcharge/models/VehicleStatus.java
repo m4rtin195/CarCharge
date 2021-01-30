@@ -5,7 +5,10 @@ import android.util.Log;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
+import com.martin.carcharge.G;
 
 import java.sql.Timestamp;
 
@@ -14,46 +17,39 @@ import java.sql.Timestamp;
                                 childColumns = "vehicleId", onDelete = ForeignKey.CASCADE))
 public class VehicleStatus
 {
-    public enum State {Off, Charging, Idle, Driving};
-    
     @PrimaryKey(autoGenerate = true)
     private long id;
     
     private String _id; //todo merge with id
+    
+    @Ignore
     private String _rev;
     
-    @ColumnInfo(name = "vehicleId", index = true)
+    @ColumnInfo(index = true)
     private long vehicleId;
-    
-    @ColumnInfo(name = "timestamp")
     private Timestamp timestamp;
     
-    @ColumnInfo(name = "state")
     private State state;
-    
-    @ColumnInfo(name = "current_charge")
     private int current_charge;
-    
-    @ColumnInfo(name = "target_charge")
     private int target_charge;
-    
-    @ColumnInfo(name = "current")
-    public int current; //todo change private
-    
-    @ColumnInfo(name = "elapsed_time")
+    private int current;
     private int elapsed_time;
-    
-    @ColumnInfo(name = "remain_time")
     private int remain_time;
-    
-    @ColumnInfo(name = "range")
     private int range;
-    
-    @ColumnInfo(name = "elec_consumption")
     private float elec_consumption;
-    
-    @ColumnInfo(name = "indoor_temperature")
     private float indoor_temperature;
+    
+    
+    public enum State
+    {
+        Off("Off"),
+        Charging("Charging..."),
+        Idle("Idle"),
+        Driving("Driving");
+        
+        public final String text;
+        State(String label) {this.text = label;}
+    }
     
     public long getId()
     {
@@ -197,17 +193,17 @@ public class VehicleStatus
     
     public void print()
     {
-        Log.i("daco", "_id: " + _id);
-        Log.i("daco", "_rev: " + _rev);
-        Log.i("daco", "state: " + state);
-        Log.i("daco", "current_charge: " + current_charge);
-        Log.i("daco", "target_charge: " + target_charge);
-        Log.i("daco", "current: " + current);
-        Log.i("daco", "elapsed_time: " + elapsed_time);
-        Log.i("daco", "remain_time: " + remain_time);
-        Log.i("daco", "range: " + range);
-        Log.i("daco", "elec_consumption: " + elec_consumption);
-        Log.i("daco", "indoor_temperature: " + indoor_temperature);
+        Log.i(G.tag, "_id: " + _id);
+        Log.i(G.tag, "_rev: " + _rev);
+        Log.i(G.tag, "state: " + state);
+        Log.i(G.tag, "current_charge: " + current_charge);
+        Log.i(G.tag, "target_charge: " + target_charge);
+        Log.i(G.tag, "current: " + current);
+        Log.i(G.tag, "elapsed_time: " + elapsed_time);
+        Log.i(G.tag, "remain_time: " + remain_time);
+        Log.i(G.tag, "range: " + range);
+        Log.i(G.tag, "elec_consumption: " + elec_consumption);
+        Log.i(G.tag, "indoor_temperature: " + indoor_temperature);
     }
 }
 

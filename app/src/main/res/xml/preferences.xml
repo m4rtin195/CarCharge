@@ -39,12 +39,13 @@
             app:useSimpleSummaryProvider="true" />
     
         <SwitchPreference
-            android:id="@+id/preference_helper"
-            android:key="use_fcm"
+            android:id="@+id/preference_useFcm"
+            android:key="fcm_enabled"
             android:title="@string/preferences_use_FCM"
+            android:iconSpaceReserved="true"
             android:icon="@drawable/ic_send"
-            android:disableDependentsState="true"
-            android:defaultValue="true" />
+            android:defaultValue="true"
+            android:disableDependentsState="true" />
         
         <SeekBarPreference
             android:id="@+id/preference_updateFrequency"
@@ -54,7 +55,7 @@
             android:min="1"
             android:max="60"
             android:defaultValue="5"
-            android:dependency="use_fcm"
+            android:dependency="fcm_enabled"
             app:showSeekBarValue="true" />
     
         <Preference
@@ -68,7 +69,6 @@
         app:title="@string/preferences_category_vehicle"
         app:iconSpaceReserved="false">
 
-    <!-- todo handle first launch-->
     <EditTextPreference
             android:id="@+id/preference_vehicleName"
             android:key="vehicle_name"
@@ -100,6 +100,7 @@
             android:title="@string/preferences_image"
             android:icon="@drawable/ic_image"
             android:summary="@string/preferences_unloaded" />
+        
     </PreferenceCategory>
     
     <PreferenceCategory
@@ -117,6 +118,14 @@
             android:key="version"
             android:title="@string/preferences_version"
             android:summary="@string/preferences_unloaded"
+            app:iconSpaceReserved="false" />
+    
+        <Preference
+            android:id="@+id/preference_fcmToken"
+            android:key="fcm_token"
+            android:title="@string/preferences_fcm_token"
+            android:summary="@string/preferences_unloaded"
+            android:enabled="false"
             app:iconSpaceReserved="false" />
         
         <Preference

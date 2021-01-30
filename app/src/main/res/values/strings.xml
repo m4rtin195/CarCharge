@@ -54,5 +54,6 @@
     <string name="preferences_category_about">About</string>
     <string name="preferences_nickname">User name</string>
     <string name="preferences_use_FCM">Use Firebase Cloud Messaging</string>
+    <string name="preferences_fcm_token" translatable="false">FCM token</string>
 
 </resources>

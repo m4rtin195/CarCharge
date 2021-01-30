@@ -8,6 +8,16 @@ import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.facebook.flipper.android.AndroidFlipperClient;
+import com.facebook.flipper.android.utils.FlipperUtils;
+import com.facebook.flipper.core.FlipperClient;
+import com.facebook.flipper.plugins.crashreporter.CrashReporterPlugin;
+import com.facebook.flipper.plugins.databases.DatabasesFlipperPlugin;
+import com.facebook.flipper.plugins.inspector.DescriptorMapping;
+import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin;
+import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
+import com.facebook.soloader.SoLoader;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.martin.carcharge.database.AppDatabase;
 
 import retrofit2.Retrofit;
@@ -32,10 +42,21 @@ public class AppActivity extends Application
     {
         super.onCreate();
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-    
+        
+        SoLoader.init(this, false);
+        if(BuildConfig.DEBUG)
+        {
+            final FlipperClient client = AndroidFlipperClient.getInstance(this);
+            client.addPlugin(CrashReporterPlugin.getInstance());
+            client.addPlugin(new InspectorFlipperPlugin(this, DescriptorMapping.withDefaults()));
+            client.addPlugin(new DatabasesFlipperPlugin(this));
+            client.addPlugin(new SharedPreferencesFlipperPlugin(this, "com.martin.carcharge_preferences"));
+            client.start();
+        }
+
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "CarCharge_db")
                 .allowMainThreadQueries()
-                //.addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                //.addMigrations(MIGRATION_1_2)
                 .fallbackToDestructiveMigration()
                 .build();
     

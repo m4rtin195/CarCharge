@@ -12,16 +12,9 @@ public class Vehicle
     @PrimaryKey(autoGenerate = true)
     private long id;
     
-    @ColumnInfo(name = "name")
     private String name;
-    
-    @ColumnInfo(name = "regNumber")
     private String regNumber;
-    
-    @ColumnInfo(name = "batteryCapacity")
     private int batteryCapacity;
-    
-    @ColumnInfo(name = "imageUri")
     private Uri imageUri;
     
     public Vehicle()

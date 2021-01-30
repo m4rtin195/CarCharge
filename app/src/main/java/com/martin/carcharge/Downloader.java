@@ -43,25 +43,25 @@ public class Downloader
         @Override
         public void run()
         {
-            Log.i("daco", "zaciatok thready");
+            Log.i(G.tag, "zaciatok thready");
             Call<VehicleStatus> call = cloud_api.getActual();
             try
             {
                 Response<VehicleStatus> response = call.execute();
                 if(response.isSuccessful())
                 {
-                    Log.i("daco", "poziadavka uspesna, HTTP: " + response.code());
+                    Log.i(G.tag, "poziadavka uspesna, HTTP: " + response.code());
                     VehicleStatus vs = response.body();
                     //vs.print();
                     vm.setVehicleStatus(new MutableLiveData<>(vs));
                 } else
                 {
-                    Log.i("daco", "poziadavka zlyhala, HTTP: " + response.code());
+                    Log.i(G.tag, "poziadavka zlyhala, HTTP: " + response.code());
                 }
             }
             catch(IOException e)
             {
-                Log.i("daco", "error in Retrofit callback: " + e.getMessage());
+                Log.i(G.tag, "error in Retrofit callback: " + e.getMessage());
                 e.printStackTrace();
             }
         }
