@@ -5,19 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -29,6 +25,7 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.martin.carcharge.database.AppDatabase;
@@ -36,20 +33,17 @@ import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Type;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.StringTokenizer;
 
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends BaseActivity
 {
     private AppDatabase db;
     private SharedPreferences pref;
     private MainViewModel vm;
+    private FirebaseAuth auth;
     
     NavController navController;
     
@@ -62,22 +56,14 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setTheme(R.style.Theme_CarCharge);
-        getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
-        getWindow().setNavigationBarColor(getResources().getColor(R.color.google_background, getTheme()));
-        getWindow().setNavigationBarDividerColor(getResources().getColor(R.color.tile_gray, getTheme()));
+        this.setupUI();
         setContentView(R.layout.activity_main);
-    
-        //View decorView = getWindow().getDecorView();
-        //int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-        //decorView.setSystemUiVisibility(uiOptions);
-        getWindow().getInsetsController().setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-        getWindow().getInsetsController().hide(WindowInsets.Type.navigationBars());
-    
+        
         db = AppActivity.getDatabase();
         pref = PreferenceManager.getDefaultSharedPreferences(this);
         vm = new ViewModelProvider(this).get(MainViewModel.class);
-        
+        auth = FirebaseAuth.getInstance();
+    
         layout_root = findViewById(R.id.layout_root);
         fab_action = findViewById(R.id.fab_action);
         bottomAppBar = findViewById(R.id.bottomAppBar);
@@ -97,6 +83,20 @@ public class MainActivity extends AppCompatActivity
     } //onCreate
     
     @Override
+    protected void onResume() //todo presun
+    {
+        super.onResume();
+        registerReceiver(myReceiver, new IntentFilter("custom-update"));
+    }
+    
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        unregisterReceiver(myReceiver);
+    }
+    
+    @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu)
     {
         getMenuInflater().inflate(R.menu.bottom_appbar, menu);
@@ -112,52 +112,6 @@ public class MainActivity extends AppCompatActivity
             navController.navigate(R.id.navigation_action_home_to_preferences);
         
         return true;
-    }
-    
-    @Override
-    protected void onResume() //todo presun
-    {
-        super.onResume();
-        registerReceiver(myReceiver, new IntentFilter("custom-update"));
-    }
-    
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-        unregisterReceiver(myReceiver);
-    }
-    
-    @Override
-    protected void attachBaseContext(Context newBase)
-    {
-        super.attachBaseContext(newBase);
-        pref = PreferenceManager.getDefaultSharedPreferences(this); //bezi pred onCreate
-        if(!pref.getString("language", "system").equals("system"))
-            applyOverrideConfiguration(updateConfigurationLanguage(new Configuration()));
-    }
-    
-    private Configuration updateConfigurationLanguage(@NotNull Configuration config)
-    {
-        if(!config.getLocales().isEmpty()) return config;
-        
-        String languageStr = pref.getString("language", "system");
-        Locale newLocale = stringToLocale(languageStr);
-        if(newLocale != null)
-            config.setLocale(newLocale);
-        return config;
-    }
-    
-    private Locale stringToLocale(String s)
-    {
-        StringTokenizer tempStringTokenizer = new StringTokenizer(s,"_");
-        String language = new String();
-        String country = new String();
-        if(tempStringTokenizer.hasMoreTokens())
-            language = (String) tempStringTokenizer.nextElement();
-        if(tempStringTokenizer.hasMoreTokens())
-            country = (String) tempStringTokenizer.nextElement();
-        return new Locale(language, country);
     }
     
     /**********/
@@ -179,7 +133,7 @@ public class MainActivity extends AppCompatActivity
             loadVehicle();
             return;
         }
-    
+        
         Vehicle vehicle = db.dao().getVehicle(lastVehicleId);
         vm.Vehicle().postValue(vehicle);
         pref.edit()

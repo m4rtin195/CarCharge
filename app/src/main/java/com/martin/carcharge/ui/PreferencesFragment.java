@@ -2,9 +2,9 @@ package com.martin.carcharge.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +17,11 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.martin.carcharge.AppActivity;
 import com.martin.carcharge.BuildConfig;
-import com.martin.carcharge.MainActivity;
+import com.martin.carcharge.G;
+import com.martin.carcharge.LoginActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.models.MainViewModel;
@@ -30,11 +32,12 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     private AppDatabase db;
     private SharedPreferences pref;
     private MainViewModel vm;
+    private FirebaseAuth auth;
     
     Toolbar toolbar;
     Preference preference_language, preference_version, preference_fcmToken, preference_contactDeveloper;
-    Preference preference_nickname, preference_vehicleName, preference_vehicleRegplate,
-            preference_vehicleCapacity, preference_vehicleImage;
+    Preference preference_nickname, preference_logout,
+            preference_vehicleName, preference_vehicleRegplate, preference_vehicleCapacity, preference_vehicleImage;
     
     int eggCounter = 0;
     
@@ -46,7 +49,8 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         db = AppActivity.getDatabase();
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext());
         vm = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-    
+        auth = FirebaseAuth.getInstance();
+        
         toolbar = view.findViewById(R.id.toolbar);
             toolbar.setBackgroundColor(getResources().getColor(R.color.background, requireActivity().getTheme()));
             toolbar.setTitle(getString(R.string.app_preferences));
@@ -87,6 +91,9 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 return true;
             });
             
+        preference_logout = findPreference("logout");
+            preference_logout.setOnPreferenceClickListener(this::onLogoutClick);
+            
         preference_vehicleName = findPreference("vehicle_name");
             preference_vehicleName.setOnPreferenceChangeListener(vehicleChanged);
     
@@ -101,6 +108,41 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         
             
         return view;
+    }
+    
+    private boolean onLogoutClick(Preference preference)
+    {
+        auth.signOut();
+        FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener()
+        {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth)
+            {
+                //Log.i(G.tag, "user: " + firebaseAuth.getCurrentUser().toString());
+                Intent intent = new Intent(PreferencesFragment.this.requireContext(), LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                PreferencesFragment.this.startActivity(intent);
+    
+                try
+                {
+                    Thread.sleep(100);
+                }
+                catch(InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                System.exit(0);
+                //Runtime.getRuntime().exit(0);
+            }
+        });
+        
+        /*Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        this.finish(); // if the activity running has it's own context
+        requireContext().finish();*/
+        
+        return true;
     }
     
     @Override

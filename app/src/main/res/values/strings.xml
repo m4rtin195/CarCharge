@@ -9,6 +9,13 @@
     <string name="appbar_preferences">Preferences</string>
     <string name="appbar_history">History</string>
     
+    <!-- Login -->
+    <string name="login_email">E-mail:</string>
+    <string name="login_password">Password:</string>
+    <string name="login_button_log_in">Log in</string>
+    <string name="login_title_login">CarCharge Login</string>
+    <string name="login_or">or</string>
+    
     <!-- Home -->
     <string name="home_vehicle_picture_desc">Vehicle Picture</string>
     <string name="home_voltage">Voltage</string>
@@ -55,5 +62,6 @@
     <string name="preferences_nickname">User name</string>
     <string name="preferences_use_FCM">Use Firebase Cloud Messaging</string>
     <string name="preferences_fcm_token" translatable="false">FCM token</string>
+    <string name="login_error_hint">Cannot be empty</string>
 
 </resources>

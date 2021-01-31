@@ -53,13 +53,6 @@ public class FcmService extends FirebaseMessagingService
             myIntent.putExtra("json", object.toString());
             this.sendBroadcast(myIntent);
         }
-        
-
-        if(remoteMessage.getNotification() != null)
-        {
-            Log.d(G.tag, "Message Notification Id: " + remoteMessage.getMessageId());
-            Log.d(G.tag, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-        }
     }
     
     @Override

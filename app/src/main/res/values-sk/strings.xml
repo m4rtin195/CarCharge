@@ -45,4 +45,8 @@
     <string name="preferences_category_about">O aplikácii</string>
     <string name="preferences_nickname">Meno používateľa</string>
     <string name="preferences_use_FCM">Použiť Firebase Cloud Messaging</string>
+    <string name="login_password">Heslo:</string>
+    <string name="login_button_log_in">Prihlásiť</string>
+    <string name="login_title_login">CarCharge\nPrihlásenie</string>
+    <string name="login_or">alebo</string>
 </resources>
