@@ -49,4 +49,13 @@
     <string name="login_button_log_in">Prihlásiť</string>
     <string name="login_title_login">CarCharge\nPrihlásenie</string>
     <string name="login_or">alebo</string>
+    <string name="not_set" msgid="6573031135582639649">"nenastavené"</string>
+    <string name="login_error_hint">Nemôže byť prázdne</string>
+    <string name="preferences_nickname_update_failed">Užívateľské meno úspešne zmenené online.</string>
+    <string name="preferences_nickname_update_success">Zmena užívateľského mena online zlyhala.</string>
+    <string name="yes">Áno</string>
+    <string name="no">Nie</string>
+    <string name="preferences_logout_dialog">Naozaj sa chcete odhlásiť?</string>
+    <string name="preferences_invalidate_cache_dialog">Medzipamäť úspešne vymazaná.</string>
+
 </resources>

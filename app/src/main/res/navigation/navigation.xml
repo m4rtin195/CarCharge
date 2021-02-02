@@ -27,7 +27,7 @@
 
     <fragment
         android:id="@+id/navigation_preferences"
-        android:name="com.martin.carcharge.ui.PreferencesFragment"
+        android:name="com.martin.carcharge.ui.preferences.PreferencesFragment"
         android:label="@string/app_preferences"
         tools:layout="@xml/preferences" />
 </navigation>

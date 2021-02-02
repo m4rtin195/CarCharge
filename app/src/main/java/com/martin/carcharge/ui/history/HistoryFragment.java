@@ -8,9 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
@@ -41,6 +43,8 @@ public class HistoryFragment extends Fragment
     EditText edit_periodFrom, edit_periodTo;
     private LineChart chart;
     
+    Toolbar toolbar;
+    ProgressBar progressbar;
     Date dateFrom, dateTo;
     Button button_load;
     
@@ -58,6 +62,12 @@ public class HistoryFragment extends Fragment
             {
             }
         });
+    
+        toolbar = root.findViewById(R.id.toolbar_history);
+            toolbar.setBackgroundColor(Color.TRANSPARENT);
+            toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
+            
+        progressbar = root.findViewById(R.id.progress_history);
         
         edit_periodFrom = root.findViewById(R.id.edit_periodFrom);
             edit_periodFrom.setShowSoftInputOnFocus(false);

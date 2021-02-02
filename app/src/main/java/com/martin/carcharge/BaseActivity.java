@@ -1,10 +1,8 @@
 package com.martin.carcharge;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;

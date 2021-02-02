@@ -174,6 +174,10 @@ public class MainActivity extends BaseActivity
     {
         fab_action.setVisibility(v ? View.VISIBLE : View.GONE);
     }
+    public void setBottomBarVisible(boolean v)
+    {
+        bottomAppBar.setVisibility(v ? View.VISIBLE : View.GONE);
+    }
     
     public View getRootLayout()
     {

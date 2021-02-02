@@ -47,5 +47,4 @@ public interface dbDAO
     
     @Query("DELETE FROM vehicle_statuses")
     void deleteAllStatuses();
-    
 }

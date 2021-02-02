@@ -50,27 +50,31 @@ android
 
 dependencies
 {
+    implementation platform('com.google.firebase:firebase-bom:26.3.0')
+
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
-    implementation 'androidx.navigation:navigation-fragment:2.3.3'
-    implementation 'androidx.navigation:navigation-ui:2.3.3'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
+    implementation 'androidx.navigation:navigation-fragment:2.3.3'
+    implementation 'androidx.navigation:navigation-ui:2.3.3'
+    implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.room:room-runtime:2.2.6'
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     implementation 'com.github.florent37:singledateandtimepicker:2.2.7'
-    implementation 'com.google.firebase:firebase-messaging:21.0.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
 
-    api "androidx.preference:preference:1.1.1"
-    implementation 'com.google.firebase:firebase-auth:19.3.1'
     testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    annotationProcessor 'androidx.room:room-compiler:2.2.6'
     debugImplementation 'com.facebook.flipper:flipper:0.72.0'
     debugImplementation 'com.facebook.soloader:soloader:0.9.0'
+    annotationProcessor 'androidx.room:room-compiler:2.2.6'
 }

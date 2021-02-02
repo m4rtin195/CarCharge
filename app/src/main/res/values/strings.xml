@@ -10,7 +10,7 @@
     <string name="appbar_history">History</string>
     
     <!-- Login -->
-    <string name="login_email">E-mail:</string>
+    <string name="login_email" translatable="false">E-mail:</string>
     <string name="login_password">Password:</string>
     <string name="login_button_log_in">Log in</string>
     <string name="login_title_login">CarCharge Login</string>
@@ -63,5 +63,13 @@
     <string name="preferences_use_FCM">Use Firebase Cloud Messaging</string>
     <string name="preferences_fcm_token" translatable="false">FCM token</string>
     <string name="login_error_hint">Cannot be empty</string>
+    <string name="preferences_nickname_update_failed">Updating nickname online failed.</string>
+    <string name="preferences_nickname_update_success">Nickname successfully updated online.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="preferences_logout_dialog">Are you sure you want to log-out?</string>
+    <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
+    <string name="not_set">Not set</string>
+
 
 </resources>

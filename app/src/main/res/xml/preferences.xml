@@ -4,13 +4,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
     <!-- todo naco su im id?? -->
-    <PreferenceCategory
+    <com.martin.carcharge.ui.overrides.FirstPreferenceCategory
         android:title="@string/preferences_user"
         app:iconSpaceReserved="false">
 
     <EditTextPreference
-            android:id="@+id/preference_nickname"
-            android:key="nickname"
+            android:id="@+id/preference_user"
+            android:key="user_nickname"
             android:title="Martin Timko"
             android:dialogTitle="@string/preferences_nickname"
             android:summary="@string/preferences_unloaded"
@@ -22,7 +22,7 @@
             android:title="@string/preferences_logout"
             android:icon="@drawable/ic_logout">
         </Preference>
-    </PreferenceCategory>
+    </com.martin.carcharge.ui.overrides.FirstPreferenceCategory>
     
     <PreferenceCategory
         app:title="@string/preferences_category_general"
@@ -39,12 +39,12 @@
             app:useSimpleSummaryProvider="true" />
     
         <SwitchPreference
-            android:id="@+id/preference_useFcm"
+            android:id="@+id/preference_fcmEnabled"
             android:key="fcm_enabled"
             android:title="@string/preferences_use_FCM"
             android:iconSpaceReserved="true"
             android:icon="@drawable/ic_send"
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:disableDependentsState="true" />
         
         <SeekBarPreference
@@ -56,6 +56,7 @@
             android:max="60"
             android:defaultValue="5"
             android:dependency="fcm_enabled"
+            app:isPreferenceVisible="true"
             app:showSeekBarValue="true" />
     
         <Preference
