@@ -39,7 +39,7 @@ import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.databinding.FragmentPreferencesBinding;
-import com.martin.carcharge.models.MainViewModel;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 
 import java.io.File;
@@ -228,7 +228,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         return true;
     }
     
-    private void logout()
+    private void logout() //todo move all to vm
     {
         //remove user icon and vehicles files
         deleteFiles();
@@ -304,7 +304,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     
     OnPreferenceChangeListener vehicleModified = (preference, newValue) ->
     {
-        Vehicle vehicle = vm.Vehicle().getValue();
+        Vehicle vehicle = vm.vehicle().getValue();
         if(vehicle != null)
         {
             if(preference.equals(preference_vehicleName))
@@ -317,14 +317,13 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 vehicle.setImageFile((String)newValue);
         }
         
-        vm.Vehicle().postValue(vehicle);
-        db.dao().updateVehicle(vehicle);
+        vm.postVehicle(vehicle);
         return true;
     };
     
     OnPreferenceClickListener invalidateCache = preference ->
     {
-        db.dao().deleteAllStatuses();
+        db.dao().deleteAllStatuses(); //todo to viewmodel
         Snackbar.make(root, getString(R.string.preferences_invalidate_cache_dialog), Snackbar.LENGTH_SHORT).show();
         return true;
     };

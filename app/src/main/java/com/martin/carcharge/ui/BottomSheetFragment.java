@@ -28,11 +28,9 @@ import com.martin.carcharge.AppActivity;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
-import com.martin.carcharge.models.MainViewModel;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
-
-import java.util.ArrayList;
 
 public class BottomSheetFragment extends BottomSheetDialogFragment
 {
@@ -75,23 +73,15 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         ibutton_preferences = root.findViewById(R.id.ibutton_settings);
             ibutton_preferences.setOnClickListener(v ->
             {
-                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_nav_host);
                 navController.navigate(R.id.navigation_action_home_to_preferences);
             });
         
-        vehiclesAdapter = new VehiclesAdapter(requireContext(), (ArrayList<Vehicle>) db.dao().getAllVehicles());
+        vehiclesAdapter = new VehiclesAdapter(requireContext(), db.dao().getAllVehicles());
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
                 Vehicle currentVehicle = vehiclesAdapter.get(position);
-                pref.edit()
-                        .putLong("last_vehicle_id", currentVehicle.getId())
-                        .putString("vehicle_name", currentVehicle.getName())
-                        .putString("vehicle_regplate", currentVehicle.getRegNumber())
-                        //.putInt("vehicle_capacity", currentVehicle.getBatteryCapacity())
-                        .putString("vehicle_image", currentVehicle.getImageFile())
-                        .apply();
-    
-                vm.Vehicle().postValue(currentVehicle);
+                vm.postVehicle(currentVehicle);
             });
         
         recycler_vehicles = root.findViewById(R.id.recycler_vehicles);
@@ -128,12 +118,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
             dialogPButton.setOnClickListener(view ->
             {
                 newVehicleDialog.dismiss();
-                
-                Vehicle newVehicle = new Vehicle();
-                newVehicle.setName(edit_name.getText().toString());
+                Vehicle newVehicle = vm.createVehicle(edit_name.getText().toString());
                 vehiclesAdapter.add(newVehicle);
-                long id = db.dao().insert(newVehicle);
-                newVehicle.setId(id);
             });
     
         }

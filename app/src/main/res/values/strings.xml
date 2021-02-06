@@ -78,5 +78,6 @@
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
     <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
+    <string name="home_initializing">Initializing...</string>
 
 </resources>

@@ -14,14 +14,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.martin.carcharge.G;
-import com.martin.carcharge.models.MainViewModel;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.R;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
@@ -48,8 +45,8 @@ public class HomeFragment extends Fragment
         
         findViews(root);
     
-        vm.Vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
-        vm.VehicleStatus().observeForever(this::updateStatusFields); //todo forever?
+        vm.vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
+        vm.vehicleStatus().observeForever(this::updateStatusFields); //todo forever?
     
         return root;
     }
@@ -72,6 +69,12 @@ public class HomeFragment extends Fragment
     void updateStatusFields(VehicleStatus vs)
     {
         Log.i(G.tag, "observed status change.");
+        if(vs.getState() == VehicleStatus.State.Initializing)
+        {
+            if(vs.getState() != null) text_state.setText(vs.getState().text);
+    
+        }
+        
         if(vs.getState() != null) text_state.setText(vs.getState().text);
         text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));
         progress_charge.setProgress(vs.getCurrent_charge(),true);
@@ -88,6 +91,12 @@ public class HomeFragment extends Fragment
         //text_outdoorTemp.setText("13.2°C");
         text_indoorTemp.setText(String.format("%.1f°C", vs.getIndoor_temperature()));
         //text_desiredTemp.setText("20.0°C");
+    }
+    
+    public void initState()
+    {
+        text_state.setText(getString(R.string.home_initializing));
+        progress_charge.setIndeterminate(true);
     }
     
     private void findViews(View root)

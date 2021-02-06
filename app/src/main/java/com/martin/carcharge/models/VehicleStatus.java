@@ -10,6 +10,8 @@ import androidx.room.PrimaryKey;
 
 import com.martin.carcharge.G;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.Timestamp;
 
 @Entity(tableName = "vehicle_statuses",
@@ -39,16 +41,21 @@ public class VehicleStatus
     private float elec_consumption;
     private float indoor_temperature;
     
-    
     public enum State
     {
         Off("Off"),
         Charging("Charging..."),
         Idle("Idle"),
-        Driving("Driving");
+        Driving("Driving"),
+        Initializing("Initializing...");
         
         public final String text;
         State(String label) {this.text = label;}
+    }
+    
+    public VehicleStatus()
+    {
+        this.state = State.Initializing;
     }
     
     public long getId()
@@ -191,19 +198,26 @@ public class VehicleStatus
         this.indoor_temperature = indoor_temperature;
     }
     
-    public void print()
+    @NotNull
+    @Override
+    public String toString()
     {
-        Log.i(G.tag, "_id: " + _id);
-        Log.i(G.tag, "_rev: " + _rev);
-        Log.i(G.tag, "state: " + state);
-        Log.i(G.tag, "current_charge: " + current_charge);
-        Log.i(G.tag, "target_charge: " + target_charge);
-        Log.i(G.tag, "current: " + current);
-        Log.i(G.tag, "elapsed_time: " + elapsed_time);
-        Log.i(G.tag, "remain_time: " + remain_time);
-        Log.i(G.tag, "range: " + range);
-        Log.i(G.tag, "elec_consumption: " + elec_consumption);
-        Log.i(G.tag, "indoor_temperature: " + indoor_temperature);
+        return "VehicleStatus{" +
+                "id=" + id +
+                ", _id='" + _id + '\'' +
+                ", _rev='" + _rev + '\'' +
+                ", vehicleId=" + vehicleId +
+                ", timestamp=" + timestamp +
+                ", state=" + state +
+                ", current_charge=" + current_charge +
+                ", target_charge=" + target_charge +
+                ", current=" + current +
+                ", elapsed_time=" + elapsed_time +
+                ", remain_time=" + remain_time +
+                ", range=" + range +
+                ", elec_consumption=" + elec_consumption +
+                ", indoor_temperature=" + indoor_temperature +
+                '}';
     }
 }
 

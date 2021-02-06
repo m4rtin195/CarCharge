@@ -13,6 +13,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
@@ -25,9 +26,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.databinding.ActivityMainBinding;
-import com.martin.carcharge.models.MainViewModel;
-import com.martin.carcharge.models.Vehicle;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.ui.BottomSheetFragment;
+import com.martin.carcharge.ui.home.HomeFragment;
 
 import java.util.Objects;
 
@@ -58,7 +59,7 @@ public class MainActivity extends BaseActivity
         root = binding.getRoot();
         setContentView(root);
         
-        db = AppActivity.getDatabase();
+        db = AppActivity.getDatabase(); //todo to appactivity ako static
         pref = PreferenceManager.getDefaultSharedPreferences(this);
         vm = new ViewModelProvider(this).get(MainViewModel.class);
         auth = FirebaseAuth.getInstance();
@@ -68,7 +69,7 @@ public class MainActivity extends BaseActivity
         bottomAppBar = binding.bottomAppBar;
         setSupportActionBar(bottomAppBar);
         
-        navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment))).getNavController();
+        navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_nav_host))).getNavController();
         
         pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         
@@ -82,8 +83,16 @@ public class MainActivity extends BaseActivity
     {
         super.onStart();
         
-        loadVehicle();
-        //updateStatus();
+        vm.loadLastVehicle();
+        
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_nav_host);
+        assert navHostFragment != null;
+        Fragment fragment = navHostFragment.getChildFragmentManager().getFragments().get(0);
+        assert fragment instanceof HomeFragment;
+        ((HomeFragment)fragment).initState();
+        
+        try {Thread.sleep(1000);} catch(InterruptedException e) {e.printStackTrace();}
+        //todo load last status
         
         if(!pref.getBoolean("fcm_enabled", false))
             downloader.start();
@@ -124,34 +133,6 @@ public class MainActivity extends BaseActivity
     
     /**********/
     
-    void loadVehicle()
-    {
-        long lastVehicleId = pref.getLong("last_vehicle_id", 0);
-        if(lastVehicleId == 0)
-        {
-            Vehicle temp = new Vehicle();
-            temp.setName("New vehicle");
-            lastVehicleId = db.dao().insert(temp);
-            pref.edit().putLong("last_vehicle_id", lastVehicleId).apply();
-        }
-        if(db.dao().getVehicle(lastVehicleId) == null)
-        {
-            Log.i(G.tag,"dlt");
-            pref.edit().remove("last_vehicle_id").apply();
-            loadVehicle();
-            return;
-        }
-        
-        Vehicle vehicle = db.dao().getVehicle(lastVehicleId);
-        vm.Vehicle().postValue(vehicle);
-        pref.edit()
-                .putString("vehicle_name", vehicle.getName())
-                .putString("vehicle_regplate", vehicle.getRegNumber())
-                .putString("vehicle_capacity", vehicle.getBatteryCapacity() > 0 ?
-                        String.valueOf(vehicle.getBatteryCapacity()) : "")
-                .putString("vehicle_image", vehicle.getImageFile())
-                .apply();
-    }
     
     public void updateStatus()
     {
@@ -163,21 +144,6 @@ public class MainActivity extends BaseActivity
     
     View.OnClickListener onActionClickListener = view ->
     {
-        /*Vehicle vehicle = vm.getVehicle().getValue();
-        assert vehicle != null : "Vehicle in viewmodel is null";
-        
-        text_vehicleName.setText(vehicle.getName()); //todo osetrenie ci vehicle existuje
-        text_regNumber.setText(vehicle.getRegNumber());
-        
-        text_state.setText(getString(R.string.home_state_loading));
-        progress_charge.setIndeterminate(true);*/
-        
-        /*VehicleStatus vs = new VehicleStatus();
-        vs.setState(VehicleStatus.State.Idle);
-        vs.setCurrent(0);
-        //vs.print();
-        vm.VehicleStatus().postValue(vs);*/
-        
         downloader.download();
     };
     

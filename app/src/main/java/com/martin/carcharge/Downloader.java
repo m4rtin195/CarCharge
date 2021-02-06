@@ -9,12 +9,11 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.preference.PreferenceManager;
 
-import com.martin.carcharge.models.MainViewModel;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -85,7 +84,7 @@ public class Downloader
                     Log.i(G.tag, "HTTP poziadavka uspesna");
     
                     VehicleStatus vs = response.body();
-                    vm.VehicleStatus().postValue(vs);
+                    vm.postVehicleStatus(vs);
                     
                     ((Activity)context).runOnUiThread(() ->
                             G.debug(context, context.getString(R.string.toast_refreshed), false));

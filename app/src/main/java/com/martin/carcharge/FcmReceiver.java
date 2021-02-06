@@ -12,7 +12,7 @@ import androidx.preference.PreferenceManager;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.martin.carcharge.models.MainViewModel;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 
 import java.lang.reflect.Type;
@@ -37,7 +37,7 @@ public class FcmReceiver extends BroadcastReceiver
         Type type = new TypeToken<VehicleStatus>() {}.getType();
         VehicleStatus vs = new Gson().fromJson(json, type);
         vs.setState(VehicleStatus.State.Charging);
-        vm.VehicleStatus().postValue(vs);
+        vm.postVehicleStatus(vs);
         
         G.debug(context, context.getString(R.string.toast_fcm_update));
     }
