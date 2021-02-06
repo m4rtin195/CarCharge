@@ -15,14 +15,14 @@ public class Vehicle
     private String name;
     private String regNumber;
     private int batteryCapacity;
-    private Uri imageUri;
+    private String imageFile;
     
     public Vehicle()
     {
         name = "";
         regNumber = "";
         batteryCapacity = 0;
-        imageUri = null;
+        imageFile = "";
     }
     public long getId() {return id;}
     public void setId(long id) {this.id = id;}
@@ -36,6 +36,6 @@ public class Vehicle
     public int getBatteryCapacity() {return batteryCapacity;}
     public void setBatteryCapacity(int batteryCapacity) {this.batteryCapacity = batteryCapacity;}
     
-    public Uri getImageUri() {return imageUri;}
-    public void setImageUri(Uri imageUri) {this.imageUri = imageUri;}
+    public String getImageFile() {return imageFile;}
+    public void setImageFile(String imageFile) {this.imageFile = imageFile;}
 }

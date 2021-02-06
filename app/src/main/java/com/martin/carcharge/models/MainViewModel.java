@@ -11,32 +11,31 @@ import com.martin.carcharge.G;
 
 public class MainViewModel extends ViewModel
 {
-    //todo mutable vs livedata????
-    private MutableLiveData<Vehicle> vehicle;
-    private MutableLiveData<VehicleStatus> vehicleStatus;
+    private final MutableLiveData<User> user;
+    private final MutableLiveData<Vehicle> vehicle;
+    private final MutableLiveData<VehicleStatus> vehicleStatus;
     
     public MainViewModel()
     {
-        Log.i(G.tag, "Creating new viewmodel, id: " + this.toString());
+        user = new MutableLiveData<>();
         vehicle = new MutableLiveData<>();
-        vehicleStatus = new MutableLiveData<>(); //move to dec
+        vehicleStatus = new MutableLiveData<>();
         
         //vehicle.observeForever(vehicle -> db.dao().updateVehicle(vehicle)); //todo moze byt?
     }
     
-    public MutableLiveData<Vehicle> Vehicle()
+    public MutableLiveData<User> user()
+    {
+        return user;
+    }
+    
+    public MutableLiveData<Vehicle> Vehicle() //todo lowercase
     {
         return vehicle;
     }
+    
     public MutableLiveData<VehicleStatus> VehicleStatus()
     {
         return vehicleStatus;
-    }
-    
-    @Deprecated
-    public void setVehicleStatus(MutableLiveData<VehicleStatus> vs)
-    {
-        Log.i(G.tag, "updating viewmodel, id: " + this.toString());
-        vehicleStatus = vs;
     }
 }

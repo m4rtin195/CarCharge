@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "109cf8de485a24e53522e8a289fd1727",
+    "identityHash": "667afce108770d91a290dc634df7b392",
     "entities": [
       {
         "tableName": "vehicles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `regNumber` TEXT, `batteryCapacity` INTEGER NOT NULL, `imageUri` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `regNumber` TEXT, `batteryCapacity` INTEGER NOT NULL, `imageFile` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -33,8 +33,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "imageUri",
-            "columnName": "imageUri",
+            "fieldPath": "imageFile",
+            "columnName": "imageFile",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -165,7 +165,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '109cf8de485a24e53522e8a289fd1727')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '667afce108770d91a290dc634df7b392')"
     ]
   }
 }

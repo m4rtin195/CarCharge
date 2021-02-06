@@ -28,7 +28,7 @@ public class dbConverters
         return gson.toJson(list);
     }*/
     
-    @TypeConverter
+    /*@TypeConverter
     public static String UriToString(Uri value)
     {
         if(value == null) return new String();
@@ -38,7 +38,7 @@ public class dbConverters
     public static Uri StringToUri(String value)
     {
         return Uri.parse(value);
-    }
+    }*/
     
     
     @TypeConverter

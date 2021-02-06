@@ -2,6 +2,7 @@ package com.martin.carcharge.ui.home;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.martin.carcharge.G;
@@ -26,6 +28,7 @@ import com.martin.carcharge.models.VehicleStatus;
 
 public class HomeFragment extends Fragment
 {
+    private SharedPreferences pref;
     private MainViewModel vm;
     
     TextView text_vehicleName, text_regNumber, text_state, text_charge;
@@ -35,43 +38,40 @@ public class HomeFragment extends Fragment
             text_chargingTime, text_remainTime,
             text_approach, text_fuel, text_location,
             text_indoorTemp, text_outdoorTemp, text_desiredTemp;
-    FloatingActionButton fab_action;
     
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
-        
+    
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext());
         vm = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         
         findViews(root);
-        fab_action.setOnClickListener(actionOnClickListener);
     
         vm.Vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
-        vm.VehicleStatus().observeForever(new Observer<VehicleStatus>()
-        {
-            @Override
-            public void onChanged(VehicleStatus vehicleStatus)
-            {
-                updateStatusFields(vehicleStatus);
-            }
-        });
+        vm.VehicleStatus().observeForever(this::updateStatusFields); //todo forever?
     
         return root;
     }
     
     void updateVehicleFields(Vehicle vehicle)
     {
-        Log.i(G.tag, "observed vehicle.");
+        Log.i(G.tag, "observed vehicle change.");
         text_vehicleName.setText(vehicle.getName());
         text_regNumber.setText(vehicle.getRegNumber());
-        //image_vehicle.setVisibility(vehicle.getImageUri() == null ? View.VISIBLE : View.GONE);
-        //image_vehicle.setImageURI(vehicle.getImageUri());
+        if(vehicle.getImageFile().isEmpty())
+            image_vehicle.setImageResource(R.drawable.vehicle_placeholder);
+        else
+        {
+            Uri uri = Uri.parse(requireActivity().getFilesDir() + "/media/" + vehicle.getImageFile());
+            image_vehicle.setImageURI(uri); //todo
+        }
     }
     
     @SuppressLint("DefaultLocale") //todo prec
     void updateStatusFields(VehicleStatus vs)
     {
-        Log.i(G.tag, "observed status.");
+        Log.i(G.tag, "observed status change.");
         if(vs.getState() != null) text_state.setText(vs.getState().text);
         text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));
         progress_charge.setProgress(vs.getCurrent_charge(),true);
@@ -110,7 +110,6 @@ public class HomeFragment extends Fragment
         text_indoorTemp = root.findViewById(R.id.text_indoorTemp);
         text_outdoorTemp = root.findViewById(R.id.text_outdoorTemp);
         text_desiredTemp = root.findViewById(R.id.text_desiredTemp);
-        fab_action = requireActivity().findViewById(R.id.fab_action);
     }
     
     private String minsToTime(int mins)
@@ -122,24 +121,4 @@ public class HomeFragment extends Fragment
         
         return (days>0 ? (days + "d ") : "") + (hours>0 ? (hours + "h ") : "") + minutes + "m";
     }
-    
-    View.OnClickListener actionOnClickListener = view ->
-    {
-        /*Vehicle vehicle = vm.getVehicle().getValue();
-        assert vehicle != null : "Vehicle in viewmodel is null";
-        
-        text_vehicleName.setText(vehicle.getName()); //todo osetrenie ci vehicle existuje
-        text_regNumber.setText(vehicle.getRegNumber());
-        
-        text_state.setText(getString(R.string.home_state_loading));
-        progress_charge.setIndeterminate(true);*/
-    
-        VehicleStatus vs = new VehicleStatus();
-        vs.setState(VehicleStatus.State.Idle);
-        vs.setCurrent(0);
-        //vs.print();
-        vm.VehicleStatus().postValue(vs);
-    
-        Log.i(G.tag, "click");
-    };
 }

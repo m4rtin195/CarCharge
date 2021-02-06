@@ -1,21 +1,12 @@
 package com.martin.carcharge.ui.preferences;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,35 +17,40 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
+import androidx.preference.Preference.OnPreferenceClickListener;
+import androidx.preference.Preference.OnPreferenceChangeListener;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.martin.carcharge.AppActivity;
 import com.martin.carcharge.BuildConfig;
+import com.martin.carcharge.G;
 import com.martin.carcharge.LoginActivity;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
+import com.martin.carcharge.databinding.FragmentPreferencesBinding;
 import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Objects;
+
+import static android.app.Activity.RESULT_OK;
 
 public class PreferencesFragment extends PreferenceFragmentCompat
 {
@@ -63,10 +59,12 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     private MainViewModel vm;
     private FirebaseAuth auth;
     
+    FragmentPreferencesBinding binding;
     View root;
     Toolbar toolbar;
     ProgressBar progressbar;
-    Preference preference_language, preference_fcmEnabled, preference_updateFrequency, preference_invalidateCache,
+    
+    Preference preference_language, preference_fcmEnabled, preference_updateInterval, preference_invalidateCache,
             preference_version, preference_fcmToken, preference_contactDeveloper;
     Preference preference_user, preference_logout,
             preference_vehicleName, preference_vehicleRegplate, preference_vehicleCapacity, preference_vehicleImage;
@@ -74,29 +72,31 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
     {
-        setPreferencesFromResource(R.xml.preferences, rootKey);
+        setPreferencesFromResource(R.xml.preferences_main, rootKey);
     }
     
     @SuppressWarnings("ConstantConditions")
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        root = super.onCreateView(inflater, container, savedInstanceState);
+        binding = FragmentPreferencesBinding.inflate(inflater, container, false);
+        root = binding.getRoot();
         
         db = AppActivity.getDatabase();
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext());
         vm = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         auth = FirebaseAuth.getInstance();
         
-        toolbar = root.findViewById(R.id.toolbar_preferences);
+        toolbar = binding.toolbarPreferences;
             toolbar.setBackgroundColor(Color.TRANSPARENT);
             toolbar.setTitle(getString(R.string.app_preferences));
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
     
-        ((MainActivity)requireActivity()).setFabVisible(false);
-        ((MainActivity)requireActivity()).setBottomBarVisible(false);
+        progressbar = binding.progressPreferences;
     
-        progressbar = root.findViewById(R.id.progress_preferences);
+        //((MainActivity)requireActivity()).setFabVisible(false);
+        //((MainActivity)requireActivity()).setBottomBarVisible(false);
+    
     
         /***/
     
@@ -110,11 +110,17 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         preference_fcmEnabled = findPreference("fcm_enabled");
             preference_fcmEnabled.setOnPreferenceChangeListener((preference, newValue) ->
             {
-                preference_updateFrequency.setVisible(!(boolean)newValue);
+                preference_updateInterval.setVisible(!(boolean)newValue);
                 return true;
             });
     
-        preference_updateFrequency = findPreference("update_frequency");
+        preference_updateInterval = findPreference("update_interval");
+            preference_updateInterval.setVisible(!pref.getBoolean("fcm_enabled", false));
+            preference_updateInterval.setOnPreferenceChangeListener((preference, newValue) ->
+            {
+                ((MainActivity)requireActivity()).restartDownloader();
+                return true;
+            });
         
         preference_invalidateCache = findPreference("invalidate_cache");
             preference_invalidateCache.setOnPreferenceClickListener(invalidateCache);
@@ -124,7 +130,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             preference_version.setOnPreferenceClickListener(easterEgg);
     
         preference_fcmToken = findPreference("fcm_token");
-            preference_fcmToken.setSummary(pref.getString("fcm_token", "unloaded"));
+            preference_fcmToken.setSummary(pref.getString("fcm_token", getString(R.string.preferences_unloaded)));
             
         preference_contactDeveloper = findPreference("contact_developer");
             preference_contactDeveloper.setOnPreferenceClickListener(contactDeveloper);
@@ -136,7 +142,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                     getString(R.string.preferences_nickname) : pref.getString("user_nickname", ""));
             preference_user.setTitle(title);
             preference_user.setSummary(pref.getString("user_email", ""));
-            preference_user.setIcon(getUserIcon(pref.getString("user_icon", "")));
+            preference_user.setIcon(((MainActivity)requireActivity()).getUserIcon(pref.getString("user_icon", "")));
             preference_user.setOnPreferenceChangeListener(nicknameChanged);
             ((EditTextPreference)preference_user).setOnBindEditTextListener(TextView::setSingleLine);
             
@@ -145,60 +151,134 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             
         preference_vehicleName = findPreference("vehicle_name");
             preference_vehicleName.setOnPreferenceChangeListener(vehicleModified);
+            ((EditTextPreference)preference_vehicleName).setOnBindEditTextListener(TextView::setSingleLine);
     
         preference_vehicleRegplate = findPreference("vehicle_regplate");
             preference_vehicleRegplate.setOnPreferenceChangeListener(vehicleModified);
-            
+            ((EditTextPreference)preference_vehicleRegplate).setOnBindEditTextListener(edit_regplate ->
+            {
+                edit_regplate.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
+                edit_regplate.setSingleLine();
+            });
+    
         preference_vehicleCapacity = findPreference("vehicle_capacity");
             preference_vehicleCapacity.setOnPreferenceChangeListener(vehicleModified);
             
         preference_vehicleImage = findPreference("vehicle_image");
-            preference_vehicleImage.setOnPreferenceClickListener(null); //todo implement
+            String summary = pref.getString("vehicle_image", "").isEmpty() ?
+                    getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
+            preference_vehicleImage.setSummary(summary);
+            preference_vehicleImage.setOnPreferenceClickListener(this::onVehicleImageClick);
     
         /***/
         
         return root;
     }
     
+    @Override
+    public void onDestroyView()
+    {
+        super.onDestroyView();
+        binding = null;
+    }
+    
+    public boolean onVehicleImageClick(Preference preference)
+    {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, G.RC_FILE_PICKER);
+        return true;
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        if(requestCode == G.RC_FILE_PICKER)
+        {
+            if(resultCode == RESULT_OK)
+            {
+                Uri uri = intent.getData();
+                try(InputStream is = requireActivity().getContentResolver().openInputStream(uri);)
+                {
+                    File path = new File(requireActivity().getFilesDir().toString() + "/media");
+                    if(!path.exists())
+                        if(!path.mkdir())
+                            throw new IOException();
+                        
+                    File file = File.createTempFile("vehicleimage_", ".aaa", path);
+                    Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    pref.edit().putString("vehicle_image", file.getName()).apply();
+                }
+                catch(IOException e) {e.printStackTrace();}
+            }
+    
+            vehicleModified.onPreferenceChange(preference_vehicleImage, pref.getString("vehicle_image", ""));
+            preference_vehicleImage.setSummary(getString(R.string.preferences_set));
+        }
+    }
+    
     private boolean onLogoutClick(Preference preference)
     {
-        DialogInterface.OnClickListener onPositive = (dialog, which) ->
-        {
-            pref.edit()
-                    .remove("user_nickname")
-                    .remove("user_email")
-                    .remove("user_icon")
-                    .apply();
-            
-            File file = new File();
-            file.delete();
-            
-            db.dao().deleteAllStatuses();
-            
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
-            GoogleSignIn.getClient(requireContext(), gso).signOut().addOnCompleteListener(task ->
-            {
-                auth.signOut();
-                Intent intent = new Intent(requireContext(), LoginActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                requireActivity().finish();
-                //pockat na dokoncenie IO na persistent
-                 try {Thread.sleep(100);} catch(InterruptedException e) {e.printStackTrace();}
-                Runtime.getRuntime().exit(0);
-            });
-        };
-        
         AlertDialog.Builder confirmDialog = new AlertDialog.Builder(requireContext());
         confirmDialog.setTitle(getString(R.string.preferences_logout_dialog));
-        confirmDialog.setPositiveButton(getString(R.string.yes), onPositive);
+        confirmDialog.setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> logout());
         confirmDialog.setNegativeButton(getString(R.string.no), null);
         confirmDialog.show();
         
         return true;
     }
     
-    Preference.OnPreferenceChangeListener nicknameChanged = (preference, newValue) ->
+    private void logout()
+    {
+        //remove user icon and vehicles files
+        deleteFiles();
+
+        //remove shared-pref
+        pref.edit()
+                .remove("last_vehicle_id")
+                .remove("user_nickname").remove("user_email").remove("user_icon")
+                .remove("vehicle_name").remove("vehicle_regplate").remove("vehicle_capacity").remove("vehicle_image")
+                .apply();
+        
+        //remove database tables
+        db.dao().deleteAllVehicles();
+        db.dao().deleteAllStatuses();
+        
+        //sign-out from google
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
+        GoogleSignIn.getClient(requireContext(), gso).signOut().addOnCompleteListener(task ->
+        {
+            //sign-out from firebase
+            auth.signOut();
+            Intent intent = new Intent(requireContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            requireActivity().finish();
+            //pockat na dokoncenie IO na persistent
+            try {Thread.sleep(100);} catch(InterruptedException e) {e.printStackTrace();}
+            Runtime.getRuntime().exit(0);
+        });
+    }
+    
+    private void deleteFiles()
+    {
+        if(!pref.getString("user_icon", "").isEmpty())
+        {
+            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + pref.getString("user_icon", ""));
+            if(file.exists())
+                file.delete();
+        }
+    
+        List<Vehicle> vehicles = db.dao().getAllVehicles(); //todo arraylist?
+        for(Vehicle vehicle : vehicles)
+        {
+            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + vehicle.getImageFile());
+            if(file.exists())
+                file.delete();
+        }
+    }
+    
+    OnPreferenceChangeListener nicknameChanged = (preference, newValue) ->
     {
         progressbar.setVisibility(View.VISIBLE);
         FirebaseUser user = Objects.requireNonNull(auth.getCurrentUser());
@@ -222,17 +302,19 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         return false;
     };
     
-    Preference.OnPreferenceChangeListener vehicleModified = (preference, newValue) ->
+    OnPreferenceChangeListener vehicleModified = (preference, newValue) ->
     {
         Vehicle vehicle = vm.Vehicle().getValue();
         if(vehicle != null)
         {
             if(preference.equals(preference_vehicleName))
-                vehicle.setName(newValue.toString());
+                vehicle.setName((String)newValue);
             if(preference.equals(preference_vehicleRegplate))
-                vehicle.setRegNumber(newValue.toString());
+                vehicle.setRegNumber((String)newValue);
             if(preference.equals(preference_vehicleCapacity))
-                vehicle.setBatteryCapacity(Integer.parseInt(newValue.toString())); //todo check format}
+                vehicle.setBatteryCapacity(Integer.parseInt((String)newValue)); //todo check format}
+            if(preference.equals(preference_vehicleImage))
+                vehicle.setImageFile((String)newValue);
         }
         
         vm.Vehicle().postValue(vehicle);
@@ -240,14 +322,14 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         return true;
     };
     
-    Preference.OnPreferenceClickListener invalidateCache = preference ->
+    OnPreferenceClickListener invalidateCache = preference ->
     {
         db.dao().deleteAllStatuses();
         Snackbar.make(root, getString(R.string.preferences_invalidate_cache_dialog), Snackbar.LENGTH_SHORT).show();
         return true;
     };
     
-    Preference.OnPreferenceClickListener contactDeveloper = preference ->
+    OnPreferenceClickListener contactDeveloper = preference ->
     {
         String body =
                 "\n\n-----------------------------" +
@@ -268,7 +350,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     };
     
     int eggCounter = 0;
-    Preference.OnPreferenceClickListener easterEgg = preference ->
+    OnPreferenceClickListener easterEgg = preference ->
     {
         eggCounter++;
         if(eggCounter >= 5)
@@ -278,43 +360,4 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         }
         return true;
     };
-    
-    Drawable getUserIcon(String uri)
-    {
-        Drawable icon = null;
-        
-        if(uri.isEmpty())
-            icon = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_user, requireActivity().getTheme());
-        else
-        {
-            try
-            {
-                InputStream ims = requireActivity().getContentResolver().openInputStream(Uri.parse(uri));
-                Bitmap raw = BitmapFactory.decodeStream(ims);
-                raw = getclip(raw);
-                
-                
-                icon = new BitmapDrawable(getResources(), raw);
-            }
-            catch(FileNotFoundException e) {e.printStackTrace();}
-        }
-        
-        return icon;
-    }
-    
-    public Bitmap getclip(Bitmap bitmap)
-    {
-        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        canvas.drawCircle(bitmap.getWidth() / 2.0f, bitmap.getHeight() / 2.0f, bitmap.getWidth() / 2.0f, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-        return output;
-    }
-    
 }

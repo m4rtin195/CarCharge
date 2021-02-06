@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".ui.home.HomeFragment"
+    tools:ignore="HardcodedText">
     
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -21,7 +22,6 @@
             android:fontFamily="sans-serif-black"
             android:text="Unknown"
             android:textSize="@dimen/tile_textsize_title"
-            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Tesla Model 3" />
@@ -33,7 +33,7 @@
             android:layout_marginStart="6dp"
             android:text="-"
             android:textAllCaps="true"
-            android:textColor="#AFAFAF"
+            android:textColor="@color/white_shade"
             android:textSize="@dimen/tile_textsize_big"
             app:layout_constraintStart_toStartOf="@+id/text_vehicleName"
             app:layout_constraintTop_toBottomOf="@+id/text_vehicleName"
@@ -60,7 +60,7 @@
             android:layout_marginTop="16dp"
             android:text="Not initializated."
             android:textColor="@color/white_shade"
-            android:textSize="@dimen/tile_textsize_medium"
+            android:textSize="@dimen/tile_textsize_normal"
             app:layout_constraintStart_toStartOf="@+id/progress_charge"
             app:layout_constraintTop_toBottomOf="@+id/image_vehicle"
             tools:text="Charging..." />
@@ -72,7 +72,7 @@
             android:layout_marginEnd="8dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/white_shade"
-            android:textSize="20sp"
+            android:textSize="@dimen/tile_textsize_big"
             app:layout_constraintBottom_toBottomOf="@+id/text_state"
             app:layout_constraintEnd_toEndOf="@+id/progress_charge"
             tools:text="85%" />
@@ -149,7 +149,7 @@
                             android:labelFor="@id/text_voltage"
                             android:text="@string/home_voltage"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
             
                     <LinearLayout
@@ -178,9 +178,9 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_horizontal"
                             android:labelFor="@id/text_tVoltage"
-                            android:text="@string/home_targetVoltage"
+                            android:text="@string/home_target_voltage"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
             
                     <LinearLayout
@@ -211,7 +211,7 @@
                             android:labelFor="@id/text_current"
                             android:text="@string/home_current"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
             
                     <LinearLayout
@@ -242,7 +242,7 @@
                             android:labelFor="@id/text_maxCurrent"
                             android:text="@string/home_max_current"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
                 </androidx.gridlayout.widget.GridLayout>
             </TableRow>
@@ -288,7 +288,7 @@
                             android:labelFor="@id/text_chargingTime"
                             android:text="@string/home_charging_time"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
             
                     <LinearLayout
@@ -317,7 +317,7 @@
                             android:labelFor="@id/text_chargingTime"
                             android:text="@string/home_remaining_time"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
                 </androidx.gridlayout.widget.GridLayout>
             </TableRow>
@@ -362,7 +362,7 @@
                             android:labelFor="@id/text_approach"
                             android:text="@string/home_approach"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
                 </androidx.gridlayout.widget.GridLayout>
             
@@ -399,7 +399,7 @@
                             android:labelFor="@id/text_fuel"
                             android:text="@string/home_fuel"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
                 </androidx.gridlayout.widget.GridLayout>
             </TableRow>
@@ -443,7 +443,7 @@
                             android:labelFor="@id/text_location"
                             android:text="@string/home_location"
                             android:textColor="@color/white_shade"
-                            android:textSize="@dimen/tile_textsize_medium" />
+                            android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>
                 </androidx.gridlayout.widget.GridLayout>
             </TableRow>

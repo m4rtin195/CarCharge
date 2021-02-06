@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +29,7 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
+import com.martin.carcharge.databinding.FragmentHistoryBinding;
 
 import java.util.Date;
 
@@ -37,21 +37,22 @@ import static java.text.DateFormat.getDateTimeInstance;
 
 public class HistoryFragment extends Fragment
 {
-    
     private HistoryViewModel historyViewModel;
     
-    EditText edit_periodFrom, edit_periodTo;
+    private FragmentHistoryBinding binding;
+    private View root;
+    private Toolbar toolbar;
+    private EditText edit_periodFrom, edit_periodTo;
+    private Button button_load;
     private LineChart chart;
     
-    Toolbar toolbar;
-    ProgressBar progressbar;
     Date dateFrom, dateTo;
-    Button button_load;
     
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        View root = inflater.inflate(R.layout.fragment_history, container, false);
+        binding = FragmentHistoryBinding.inflate(inflater, container, false);
+        root = binding.getRoot();
     
         historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
     
@@ -63,15 +64,13 @@ public class HistoryFragment extends Fragment
             }
         });
     
-        toolbar = root.findViewById(R.id.toolbar_history);
+        toolbar = binding.toolbarHistory;
             toolbar.setBackgroundColor(Color.TRANSPARENT);
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
             
-        progressbar = root.findViewById(R.id.progress_history);
-        
-        edit_periodFrom = root.findViewById(R.id.edit_periodFrom);
+        edit_periodFrom = binding.editPeriodFrom;
             edit_periodFrom.setShowSoftInputOnFocus(false);
-            edit_periodFrom.setOnFocusChangeListener((view, b) ->
+            edit_periodFrom.setOnFocusChangeListener((view1, b) ->
             {
                 if(!b) return;
                 new SingleDateAndTimePickerDialog.Builder(requireContext())
@@ -83,9 +82,9 @@ public class HistoryFragment extends Fragment
                         .display();
             });
             
-        edit_periodTo = root.findViewById(R.id.edit_periodTo);
+        edit_periodTo = binding.editPeriodTo;
             edit_periodTo.setShowSoftInputOnFocus(false);
-            edit_periodTo.setOnFocusChangeListener((view, b) ->
+            edit_periodTo.setOnFocusChangeListener((view1, b) ->
             {
                 if(!b) return;
                 new SingleDateAndTimePickerDialog.Builder(requireContext())
@@ -97,16 +96,21 @@ public class HistoryFragment extends Fragment
                         .display();
             });
             
-        button_load = root.findViewById(R.id.button_load);
+        button_load = binding.buttonLoad;
             button_load.setOnClickListener(onLoadClickListener);
-            
-        chart = root.findViewById(R.id.chart_history);
-        
-        initChart();
+    
+        chart =  binding.chartHistory; //todo over
+            initChart();
         
         return root;
     }
     
+    @Override
+    public void onDestroyView()
+    {
+        super.onDestroyView();
+        binding = null;
+    }
     
     private void initChart()
     {
@@ -214,19 +218,19 @@ public class HistoryFragment extends Fragment
     SingleDateAndTimePickerDialog.Listener datetimeFromPickerListener = date ->
     {
         dateFrom = date;
-        edit_periodFrom.setText(getDateTimeInstance().format(dateFrom));
+        binding.editPeriodFrom.setText(getDateTimeInstance().format(dateFrom));
     };
     
     SingleDateAndTimePickerDialog.Listener datetimeToPickerListener = date ->
     {
         dateTo = date;
-        edit_periodTo.setText(getDateTimeInstance().format(dateTo));
+        binding.editPeriodTo.setText(getDateTimeInstance().format(dateTo));
     };
     
     View.OnClickListener onLoadClickListener = view ->
     {
-        edit_periodFrom.clearFocus();
-        edit_periodTo.clearFocus();
+        binding.editPeriodFrom.clearFocus();
+        binding.editPeriodTo.clearFocus();
     
         int entries = 6;
         

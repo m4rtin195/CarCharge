@@ -1,15 +1,11 @@
 package com.martin.carcharge;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.facebook.flipper.android.AndroidFlipperClient;
-import com.facebook.flipper.android.utils.FlipperUtils;
 import com.facebook.flipper.core.FlipperClient;
 import com.facebook.flipper.plugins.crashreporter.CrashReporterPlugin;
 import com.facebook.flipper.plugins.databases.DatabasesFlipperPlugin;
@@ -17,7 +13,6 @@ import com.facebook.flipper.plugins.inspector.DescriptorMapping;
 import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin;
 import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
 import com.facebook.soloader.SoLoader;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.martin.carcharge.database.AppDatabase;
 
 import retrofit2.Retrofit;
@@ -26,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class AppActivity extends Application
 {
     static AppDatabase db;
-    static eCar_IoT_Kit_API api;
+    static KitCloudAPI api;
     
     /*static final Migration MIGRATION_1_2 = new Migration(1, 2)
     {
@@ -66,9 +61,9 @@ public class AppActivity extends Application
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
     
-        api = retrofit.create(eCar_IoT_Kit_API.class);
+        api = retrofit.create(KitCloudAPI.class);
     }
     
     public static AppDatabase getDatabase() {return db;}
-    public static eCar_IoT_Kit_API getApi() {return api;}
+    public static KitCloudAPI getApi() {return api;}
 }

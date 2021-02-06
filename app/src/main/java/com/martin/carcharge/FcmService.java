@@ -2,18 +2,14 @@ package com.martin.carcharge;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Binder;
-import android.os.IBinder;
 import android.util.Log;
 
-import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +20,15 @@ import java.util.Map;
 
 public class FcmService extends FirebaseMessagingService
 {
+    LocalBroadcastManager lbm;
+    
+    @Override
+    public void onCreate()
+    {
+        super.onCreate();
+        lbm = LocalBroadcastManager.getInstance(getApplicationContext());
+    }
+    
     @Override
     public void onNewToken(@NotNull String token)
     {
@@ -49,9 +54,9 @@ public class FcmService extends FirebaseMessagingService
             
             //VehicleStatus vs = new Gson().fromJson(object.toString(), type);
     
-            Intent myIntent = new Intent("custom-update");
-            myIntent.putExtra("json", object.toString());
-            this.sendBroadcast(myIntent);
+            Intent intent = new Intent(G.ACTION_BROAD_UPDATE);
+            intent.putExtra("json", object.toString());
+            lbm.sendBroadcast(intent);
         }
     }
     

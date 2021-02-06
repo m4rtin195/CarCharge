@@ -4,11 +4,6 @@ plugins
     id 'com.google.gms.google-services'
 }
 
-ext
-{
-    ltag = "daco"
-}
-
 android
 {
     compileSdkVersion 30
@@ -35,16 +30,31 @@ android
 
     buildTypes
     {
+        debug
+        {}
         release
         {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        buildTypes.each
+        {
+            /*it.resValue "String", "skuska_var", "toto je premenna"
+            it.resValue "boolean", "skuska_var2", "true"
+            it.buildConfigField "String", "FOO", "toto je konstanta"
+            it.buildConfigField "int", "skuska_const2", "42"*/
+        }
     }
+
     compileOptions
     {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures
+    {
+        viewBinding true
     }
 }
 

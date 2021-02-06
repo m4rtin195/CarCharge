@@ -18,6 +18,7 @@
         android:id="@+id/fab_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/appbar_fab_description"
         app:backgroundTint="@color/tint_blue"
         app:layout_anchor="@id/bottomAppBar"
         app:srcCompat="@drawable/ic_thunderbolt"
@@ -34,19 +35,7 @@
         app:fabAlignmentMode="center"
         app:fabCradleMargin="3dp"
         app:hideOnScroll="true"
-        app:menu="@menu/bottom_appbar"
+        app:menu="@menu/menu_appbar"
         app:navigationIcon="@drawable/ic_menu" />
-    
-    
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/navbar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

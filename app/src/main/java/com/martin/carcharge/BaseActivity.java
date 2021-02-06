@@ -2,6 +2,10 @@ package com.martin.carcharge;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -9,6 +13,7 @@ import android.view.WindowInsetsController;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +72,7 @@ public class BaseActivity extends AppCompatActivity
     
     private Locale stringToLocale(String s)
     {
+        //Locale.forLanguageTag(); //todo ???
         StringTokenizer tempStringTokenizer = new StringTokenizer(s,"_");
         String language = new String();
         String country = new String();
@@ -75,5 +81,20 @@ public class BaseActivity extends AppCompatActivity
         if(tempStringTokenizer.hasMoreTokens())
             country = (String) tempStringTokenizer.nextElement();
         return new Locale(language, country);
+    }
+    
+    public Drawable getUserIcon(String filename) //todo moze to byt tu?
+    {
+        Drawable icon = null;
+        
+        if(filename.isEmpty())
+            icon = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_user, getTheme());
+        else
+        {
+            Bitmap bitmap = BitmapFactory.decodeFile(getFilesDir().toString() + "/media/" + filename);
+            icon = new BitmapDrawable(getResources(), bitmap);
+        }
+        
+        return icon;
     }
 }

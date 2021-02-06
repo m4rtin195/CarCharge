@@ -3,8 +3,11 @@ package com.martin.carcharge;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,9 +17,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.content.FileProvider;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -25,16 +26,16 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.martin.carcharge.databinding.ActivityLoginBinding;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,6 +47,7 @@ public class LoginActivity extends BaseActivity
     private FirebaseAuth auth;
     private FirebaseUser user;
     
+    ActivityLoginBinding binding;
     View root;
     ProgressBar progressbar;
     EditText edit_username, edit_password;
@@ -67,15 +69,16 @@ public class LoginActivity extends BaseActivity
         
         super.onCreate(savedInstanceState);
         this.setupUI();
-        setContentView(R.layout.activity_login);
-    
-        root = findViewById(R.id.layout_root_login);
-        progressbar = findViewById(R.id.progress_login);
-        edit_username = findViewById(R.id.edit_username);
-        edit_password = findViewById(R.id.edit_password);
-        button_signin_mail = findViewById(R.id.button_signin_mail);
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        root = binding.getRoot();
+        setContentView(root);
+        
+        progressbar = binding.progressLogin;
+        edit_username = binding.editUsername;
+        edit_password = binding.editPassword;
+        button_signin_mail = binding.buttonSigninMail;
             button_signin_mail.setOnClickListener(this::onLoginClick);
-        button_signin_google = findViewById(R.id.button_signin_google);
+        button_signin_google = binding.buttonSigninGoogle;
             button_signin_google.setOnClickListener(this::onGoogleLoginClick);
     }
     
@@ -192,56 +195,63 @@ public class LoginActivity extends BaseActivity
         });
     }
     
-    String downloadUserIcon()
+    String downloadUserIcon() //and make it round
     {
         if(user.getPhotoUrl() != null)
         {
-            AtomicReference<String> localUri = new AtomicReference<>();
+            AtomicReference<String> filename = new AtomicReference<>();
+            
             Thread thr = new Thread(() ->
             {
                 InputStream inStream = null; //data from internet
                 OutputStream outStream = null; //file
                 try
                 {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inDensity = 24; options.inTargetDensity = 24; //todo preco nescaluje?
+    
                     inStream = new URL(user.getPhotoUrl().toString()).openStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(inStream);
-                    File storageDir = getExternalFilesDir("media");
-                    Uri fileUri = null;
-                    try
-                    {
-                        File file = File.createTempFile("icon_", ".jpg", storageDir);
-                        fileUri = FileProvider.getUriForFile(this, "com.martin.carcharge.fileprovider", file); //fileProvider uri, Uri.fromFile dava file:///
-                    }
-                    catch(IOException e)
-                    {
-                        e.printStackTrace();
-                    }
-                    outStream = getContentResolver().openOutputStream(fileUri); //open stream from file uri
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outStream);
-                    localUri.set(fileUri.toString());
+                    Bitmap raw = BitmapFactory.decodeStream(inStream, null, options);
+                    assert raw != null; //todo over
+                    
+                    Bitmap out = Bitmap.createBitmap(raw.getWidth(), raw.getHeight(), Bitmap.Config.ARGB_8888);
+    
+                    Canvas canvas = new Canvas(out);
+                    final Paint paint = new Paint();
+                    final Rect rect = new Rect(0, 0, raw.getWidth(), raw.getHeight());
+    
+                    paint.setAntiAlias(true);
+                    canvas.drawCircle(raw.getWidth()/2.0f, raw.getHeight()/2.0f, raw.getWidth()/2.0f, paint);
+                    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN)); //clip
+                    canvas.drawBitmap(raw, rect, rect, paint);
+    
+                    File path = new File(getFilesDir().toString() + "/media");
+                    if(!path.exists())
+                        if(!path.mkdir())
+                            throw new IOException();
+                    
+                    File file = File.createTempFile("usericon_", ".png", path);
+                    outStream = new FileOutputStream(file);
+                    out.compress(Bitmap.CompressFormat.PNG, 0, outStream);
+                    
+                    Log.i(G.tag, "filename: " + file.getName());
+                    filename.set(file.getName());
                 }
                 catch(IOException e)
                 {
-                    Log.i("daco", "Streams fail");
+                    Log.i(G.tag, "Streams fail");
                     e.printStackTrace();
                 }
                 finally
                 {
-                    try
-                    {
-                        inStream.close();
-                        outStream.close();
-                    }
-                    catch(IOException e)
-                    {
-                        e.printStackTrace();
-                    }
+                    try {inStream.close(); outStream.close();} //todo treba??
+                    catch(NullPointerException | IOException e) {e.printStackTrace();}
                 }
             });
             thr.start();
             try {thr.join();} catch(InterruptedException e) {e.printStackTrace();}
             
-            return localUri.get();
+            return filename.get();
         }
         
         else return null;

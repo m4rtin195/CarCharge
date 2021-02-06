@@ -42,17 +42,15 @@
             android:id="@+id/preference_fcmEnabled"
             android:key="fcm_enabled"
             android:title="@string/preferences_use_FCM"
-            android:iconSpaceReserved="true"
             android:icon="@drawable/ic_send"
             android:defaultValue="false"
             android:disableDependentsState="true" />
         
         <SeekBarPreference
-            android:id="@+id/preference_updateFrequency"
-            android:key="update_frequency"
-            android:title="@string/preferences_update_frequency"
+            android:id="@+id/preference_updateInterval"
+            android:key="update_interval"
+            android:title="@string/preferences_update_interval"
             android:icon="@drawable/ic_refresh"
-            android:min="1"
             android:max="60"
             android:defaultValue="5"
             android:dependency="fcm_enabled"
@@ -64,6 +62,13 @@
             android:key="invalidate_cache"
             android:title="@string/preferences_invalidate_cache"
             android:icon="@drawable/ic_database_delete" />
+    
+        <SwitchPreference
+            android:id="@+id/preference_debug"
+            android:key="debug"
+            android:title="@string/preferences_debug_enabled"
+            android:defaultValue="false" />
+        
     </PreferenceCategory>
     
     <PreferenceCategory
@@ -99,8 +104,8 @@
             android:id="@+id/preference_vehicleImage"
             android:key="vehicle_image"
             android:title="@string/preferences_image"
-            android:icon="@drawable/ic_image"
-            android:summary="@string/preferences_unloaded" />
+            android:summary="@string/preferences_not_set"
+            android:icon="@drawable/ic_image" />
         
     </PreferenceCategory>
     

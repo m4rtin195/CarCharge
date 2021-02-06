@@ -1,10 +1,9 @@
 package com.martin.carcharge;
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,29 +13,23 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.martin.carcharge.database.AppDatabase;
+import com.martin.carcharge.databinding.ActivityMainBinding;
 import com.martin.carcharge.models.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
-import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.ui.BottomSheetFragment;
 
-import java.lang.reflect.Type;
-import java.util.Calendar;
 import java.util.Objects;
-
 
 public class MainActivity extends BaseActivity
 {
@@ -47,9 +40,13 @@ public class MainActivity extends BaseActivity
     
     NavController navController;
     
-    CoordinatorLayout layout_root;
+    ActivityMainBinding binding;
+    View root;
     FloatingActionButton fab_action;
     BottomAppBar bottomAppBar;
+    
+    Downloader downloader;
+    BroadcastReceiver fcmReceiver;
     
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
@@ -57,60 +54,71 @@ public class MainActivity extends BaseActivity
     {
         super.onCreate(savedInstanceState);
         this.setupUI();
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        root = binding.getRoot();
+        setContentView(root);
         
         db = AppActivity.getDatabase();
         pref = PreferenceManager.getDefaultSharedPreferences(this);
         vm = new ViewModelProvider(this).get(MainViewModel.class);
         auth = FirebaseAuth.getInstance();
-    
-        layout_root = findViewById(R.id.layout_root);
-        fab_action = findViewById(R.id.fab_action);
-        bottomAppBar = findViewById(R.id.bottomAppBar);
+        
+        fab_action = binding.fabAction;
+            fab_action.setOnClickListener(onActionClickListener);
+        bottomAppBar = binding.bottomAppBar;
         setSupportActionBar(bottomAppBar);
-    
-        BottomNavigationView navbar = findViewById(R.id.navbar);
         
         navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment))).getNavController();
-        NavigationUI.setupWithNavController(navbar, navController);
-    
-        Downloader downloader = new Downloader(this);
-        //downloader.start();
         
-        loadVehicle();
-        //updateStatus();
+        pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        
+        downloader = new Downloader(this);
+        fcmReceiver = new FcmReceiver(this); //todo isto netreba pretypovat???
         
     } //onCreate
     
     @Override
-    protected void onResume() //todo presun
+    public void onStart() //todo presun sem veci
     {
-        super.onResume();
-        registerReceiver(myReceiver, new IntentFilter("custom-update"));
+        super.onStart();
+        
+        loadVehicle();
+        //updateStatus();
+        
+        if(!pref.getBoolean("fcm_enabled", false))
+            downloader.start();
+    
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getApplicationContext());
+        lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
     }
     
-    @Override
+    /*@Override
     protected void onPause()
     {
         super.onPause();
-        unregisterReceiver(myReceiver);
-    }
+        //lbm.unregisterReceiver(fcmReceiver); //todo treba?? dokedy zostane zaregistrovany?
+    }*/
     
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu)
     {
-        getMenuInflater().inflate(R.menu.bottom_appbar, menu);
+        getMenuInflater().inflate(R.menu.menu_appbar, menu);
         return super.onCreateOptionsMenu(menu);
     }
     
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item)
     {
+        if(item.getItemId() == android.R.id.home)
+        {
+            BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();
+            bottomSheetFragment.show(getSupportFragmentManager(), G.BOTTOM_DRAWER_TAG);
+        }
         if(item.getItemId() == R.id.menu_history)
             navController.navigate(R.id.navigation_action_home_to_history);
         if(item.getItemId() == R.id.menu_refresh)
-            navController.navigate(R.id.navigation_action_home_to_preferences);
-        
+            downloader.download();
+            
         return true;
     }
     
@@ -141,6 +149,7 @@ public class MainActivity extends BaseActivity
                 .putString("vehicle_regplate", vehicle.getRegNumber())
                 .putString("vehicle_capacity", vehicle.getBatteryCapacity() > 0 ?
                         String.valueOf(vehicle.getBatteryCapacity()) : "")
+                .putString("vehicle_image", vehicle.getImageFile())
                 .apply();
     }
     
@@ -151,24 +160,38 @@ public class MainActivity extends BaseActivity
         Snackbar.make(getWindow().getDecorView().getRootView(), "Updating...", Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).setAction("Znova!!", null).show();
     }
     
-    public BroadcastReceiver myReceiver = new BroadcastReceiver()
+    
+    View.OnClickListener onActionClickListener = view ->
     {
-        @Override
-        public void onReceive(Context context, Intent intent)
-        {
-            String json = intent.getStringExtra("json");
-            Type type = new TypeToken<VehicleStatus>() {}.getType();
-            VehicleStatus vs = new Gson().fromJson(json, type);
-            vs.setState(VehicleStatus.State.Charging);
-            vm.VehicleStatus().postValue(vs);
-            Snackbar.make(getWindow().getDecorView().getRootView(), "Received FCM update. " +
-                    Calendar.getInstance().getTime().getHours() + ":" +
-                    Calendar.getInstance().getTime().getMinutes() + ":" +
-                    Calendar.getInstance().getTime().getSeconds(), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).setAction("Znova!!", null).show();
-        }
+        /*Vehicle vehicle = vm.getVehicle().getValue();
+        assert vehicle != null : "Vehicle in viewmodel is null";
+        
+        text_vehicleName.setText(vehicle.getName()); //todo osetrenie ci vehicle existuje
+        text_regNumber.setText(vehicle.getRegNumber());
+        
+        text_state.setText(getString(R.string.home_state_loading));
+        progress_charge.setIndeterminate(true);*/
+        
+        /*VehicleStatus vs = new VehicleStatus();
+        vs.setState(VehicleStatus.State.Idle);
+        vs.setCurrent(0);
+        //vs.print();
+        vm.VehicleStatus().postValue(vs);*/
+        
+        downloader.download();
     };
     
+    OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->
+    {
+        Log.i("daco","onSharedPreferenceChangeListener()");
+        if(key.equals("update_interval"))
+            downloader.restart();
+    };
     
+    public void restartDownloader()
+    {
+        downloader.restart();
+    }
     
     public void setFabVisible(boolean v)
     {
@@ -181,8 +204,9 @@ public class MainActivity extends BaseActivity
     
     public View getRootLayout()
     {
-        return layout_root;
+        return root;
     }
 }
 
 //todo room livedata
+//todo pref tagy do G

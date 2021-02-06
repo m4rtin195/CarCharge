@@ -29,8 +29,8 @@ public interface dbDAO
     @Update
     void updateVehicle(Vehicle v);
     
-    @Delete
-    void deleteVehicle(Vehicle v);
+    @Query("DELETE FROM vehicles")
+    void deleteAllVehicles();
     
     
     /** Table vehicle_statuses **/

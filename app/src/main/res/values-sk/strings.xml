@@ -16,7 +16,7 @@
     <string name="appbar_preferences">Nastavenia</string>
     <string name="appbar_history">História</string>
     <string name="home_voltage">Napätie</string>
-    <string name="home_targetVoltage">Cieľové napätie</string>
+    <string name="home_target_voltage">Cieľové napätie</string>
     <string name="home_current">Prúd</string>
     <string name="home_max_current">Max. prúd</string>
     <string name="home_charging_time">Čas nabíjania</string>
@@ -40,7 +40,7 @@
     <string name="preferences_image">Obrázok</string>
     <string name="preferences_user">Používateľ</string>
     <string name="preferences_logout">Odhlásiť</string>
-    <string name="preferences_update_frequency">Frekvencia obnovovania (minúty)</string>
+    <string name="preferences_update_interval">Frekvencia obnovovania (minúty)</string>
     <string name="preferences_save">Uložiť</string>
     <string name="preferences_category_about">O aplikácii</string>
     <string name="preferences_nickname">Meno používateľa</string>
@@ -57,5 +57,9 @@
     <string name="no">Nie</string>
     <string name="preferences_logout_dialog">Naozaj sa chcete odhlásiť?</string>
     <string name="preferences_invalidate_cache_dialog">Medzipamäť úspešne vymazaná.</string>
+    <string name="toast_fcm_update">Obdržaný nový FCM update</string>
+    <string name="preferences_set">nastavené</string>
+    <string name="preferences_not_set">nenastavené</string>
+    <string name="toast_refreshed">Aktualizované</string>
 
 </resources>
