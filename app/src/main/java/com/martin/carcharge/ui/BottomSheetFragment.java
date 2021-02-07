@@ -24,7 +24,8 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.martin.carcharge.AppActivity;
+import com.martin.carcharge.App;
+import com.martin.carcharge.G;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
@@ -37,7 +38,6 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
     private AppDatabase db;
     private SharedPreferences pref;
     private MainViewModel vm;
-    
     
     ImageView image_userIcon;
     TextView text_nickname, text_email;
@@ -52,20 +52,21 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         super.onCreateView(inflater, container, savedInstanceState);
         View root = inflater.inflate(R.layout.fragment_bottomsheet, container, false);
     
-        db = AppActivity.getDatabase();
-        pref = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        vm = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        db = App.getDatabase();
+        pref = App.getPreferences();
+        vm = App.getViewModel();
     
         image_userIcon = root.findViewById(R.id.image_userIcon);
-            image_userIcon.setImageDrawable(((MainActivity)requireActivity()).getUserIcon(pref.getString("user_icon", "")));
+            image_userIcon.setImageDrawable(((MainActivity)requireActivity()).getUserIcon(pref.getString(G.PREF_USER_ICON, "")));
             
         text_nickname = root.findViewById(R.id.text_nickname);
             User user = vm.user().getValue();
             text_nickname.setVisibility(user.getNickname().isEmpty() ? View.GONE : View.VISIBLE);
             text_nickname.setText(user.getNickname());
+            //todo observer
         
         text_email = root.findViewById(R.id.text_email);
-            text_email.setText(pref.getString("user_email", ""));
+            text_email.setText(pref.getString(G.PREF_USER_EMAIL, ""));
         
         ibutton_newVehicle = root.findViewById(R.id.ibutton_newVehicle);
             ibutton_newVehicle.setOnClickListener(v -> newVehicle());

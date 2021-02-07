@@ -10,23 +10,22 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.preference.PreferenceManager;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.databinding.ActivityMainBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
+import com.martin.carcharge.models.User;
 import com.martin.carcharge.ui.BottomSheetFragment;
 import com.martin.carcharge.ui.home.HomeFragment;
 
@@ -34,10 +33,8 @@ import java.util.Objects;
 
 public class MainActivity extends BaseActivity
 {
-    private AppDatabase db;
     private SharedPreferences pref;
     private MainViewModel vm;
-    private FirebaseAuth auth;
     
     NavController navController;
     
@@ -46,8 +43,11 @@ public class MainActivity extends BaseActivity
     FloatingActionButton fab_action;
     BottomAppBar bottomAppBar;
     
+    LocalBroadcastManager lbm;
+    
     Downloader downloader;
     BroadcastReceiver fcmReceiver;
+    
     
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
@@ -59,31 +59,39 @@ public class MainActivity extends BaseActivity
         root = binding.getRoot();
         setContentView(root);
         
-        db = AppActivity.getDatabase(); //todo to appactivity ako static
-        pref = PreferenceManager.getDefaultSharedPreferences(this);
-        vm = new ViewModelProvider(this).get(MainViewModel.class);
-        auth = FirebaseAuth.getInstance();
+        pref = App.getPreferences();
+        vm = App.getViewModel();
         
         fab_action = binding.fabAction;
             fab_action.setOnClickListener(onActionClickListener);
+            
         bottomAppBar = binding.bottomAppBar;
-        setSupportActionBar(bottomAppBar);
+            setSupportActionBar(bottomAppBar);
         
+        //todo ten normalny sposob?
         navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_nav_host))).getNavController();
-        
+    
+        lbm = LocalBroadcastManager.getInstance(getApplicationContext());
         pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         
         downloader = new Downloader(this);
-        fcmReceiver = new FcmReceiver(this); //todo isto netreba pretypovat???
+        fcmReceiver = new FcmReceiver();
+    
+        //todo tu alebo v onStart?
+        User user = (User) getIntent().getExtras().get(G.EXTRA_USER);
+        vm.postUser(user);
+        if(getIntent().getExtras().getBoolean(G.EXTRA_ISNEW, false))
+            Snackbar.make(root, getString(R.string.toast_welcome_back) + ", " + user.getNickname() + "!",
+                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
+    
+        vm.loadLastVehicle();
         
     } //onCreate
     
     @Override
-    public void onStart() //todo presun sem veci
+    public void onStart()
     {
         super.onStart();
-        
-        vm.loadLastVehicle();
         
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_nav_host);
         assert navHostFragment != null;
@@ -91,13 +99,12 @@ public class MainActivity extends BaseActivity
         assert fragment instanceof HomeFragment;
         ((HomeFragment)fragment).initState();
         
-        try {Thread.sleep(1000);} catch(InterruptedException e) {e.printStackTrace();}
-        //todo load last status
+        //try {Thread.sleep(1000);} catch(InterruptedException e) {e.printStackTrace();}
+        //load last status
         
-        if(!pref.getBoolean("fcm_enabled", false))
+        if(!pref.getBoolean(G.PREF_FCM_ENABLED, false))
             downloader.start();
-    
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(getApplicationContext());
+        
         lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
     }
     
@@ -149,9 +156,17 @@ public class MainActivity extends BaseActivity
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->
     {
-        Log.i("daco","onSharedPreferenceChangeListener()");
-        if(key.equals("update_interval"))
+        if(key.equals(G.PREF_FCM_ENABLED))
             downloader.restart();
+        
+        if(key.equals(G.PREF_FCM_ENABLED))
+        {
+            Toast.makeText(this, "daco", Toast.LENGTH_SHORT).show(); //todo prec
+            if(pref.getBoolean(G.PREF_FCM_ENABLED, false))
+                lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
+            else
+                lbm.unregisterReceiver(fcmReceiver);
+        }
     };
     
     public void restartDownloader()
@@ -175,4 +190,3 @@ public class MainActivity extends BaseActivity
 }
 
 //todo room livedata
-//todo pref tagy do G

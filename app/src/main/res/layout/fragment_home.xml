@@ -307,7 +307,6 @@
                             android:text="-"
                             android:textSize="@dimen/tile_textsize_big"
                             tools:text="1h 22m" />
-                        <!--TODO znacenia premennych-->
                 
                         <TextView
                             android:id="@+id/text_remainTimeLabel"

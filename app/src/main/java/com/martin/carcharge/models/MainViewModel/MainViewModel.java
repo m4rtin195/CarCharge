@@ -1,6 +1,5 @@
 package com.martin.carcharge.models.MainViewModel;
 
-import android.app.Application;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -10,8 +9,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
-import com.martin.carcharge.AppActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.martin.carcharge.App;
 import com.martin.carcharge.G;
 import com.martin.carcharge.database.AppDatabase;
 import com.martin.carcharge.models.User;
@@ -31,23 +33,39 @@ public class MainViewModel extends AndroidViewModel
     private final MutableLiveData<Vehicle> vehicle;
     private final MutableLiveData<VehicleStatus> vehicleStatus;
     
-    public MainViewModel(@NonNull Application context)
+    public MainViewModel(@NonNull android.app.Application context)
     {
         super(context);
-        Log.i("daco","creating new viewmodel, id:" + this.toString());
         skuska = new Skuska(this);
-        db = AppActivity.getDatabase();
-        pref = AppActivity.getPreferences();
         
+        db = App.getDatabase();
+        pref = App.getPreferences();
+    
         user = new MutableLiveData<>();
         vehicle = new MutableLiveData<>();
         vehicleStatus = new MutableLiveData<>();
     }
     
+    
+    
     public LiveData<User> user()
     {
         return user;
     }
+    
+    public void postUser(User u)
+    {
+        pref.edit()
+                .putString("user_nickname", u.getNickname())
+                .putString("user_email", u.getEmail())
+                .putString("user_icon", u.getImageFile())
+            .apply();
+        
+        this.user.postValue(u);
+    }
+    
+    
+    
     
     public LiveData<Vehicle> vehicle()
     {
@@ -58,12 +76,12 @@ public class MainViewModel extends AndroidViewModel
     {
         db.dao().updateVehicle(v);
         pref.edit()
-                .putLong("last_vehicle_id", v.getId())
-                .putString("vehicle_name", v.getName())
-                .putString("vehicle_regplate", v.getRegNumber())
-                //.putInt("vehicle_capacity", v.getBatteryCapacity())
-                .putString("vehicle_image", v.getImageFile())
-                .apply();
+                .putLong(G.PREF_LAST_VEHICLE_ID, v.getId())
+                .putString(G.PREF_VEHICLE_NAME, v.getName())
+                .putString(G.PREF_VEHICLE_REGPLATE, v.getRegNumber())
+                //.putInt(G.PREF_VEHICLE_CAPACITY, v.getBatteryCapacity())
+                .putString(G.PREF_VEHICLE_IMAGE, v.getImageFile())
+            .apply();
         
         this.vehicle.postValue(v);
     }
@@ -79,19 +97,19 @@ public class MainViewModel extends AndroidViewModel
     
     public void loadLastVehicle()
     {
-        long lastVehicleId = pref.getLong("last_vehicle_id", 0);
+        long lastVehicleId = pref.getLong(G.PREF_LAST_VEHICLE_ID, 0);
         if(lastVehicleId == 0) //app first launch
         {
             Log.i(G.tag,"Last used vehicle not set. Creating new vehicle.");
             Vehicle temp = new Vehicle();
             temp.setName("New vehicle");
             lastVehicleId = db.dao().insert(temp);
-            pref.edit().putLong("last_vehicle_id", lastVehicleId).apply();
+            pref.edit().putLong(G.PREF_LAST_VEHICLE_ID, lastVehicleId).apply();
         }
         if(db.dao().getVehicle(lastVehicleId) == null) //not exist in database
         {
             Log.e(G.tag,"Last used vehicle not found in database. Clearing last flag.");
-            pref.edit().remove("last_vehicle_id").apply();
+            pref.edit().remove(G.PREF_LAST_VEHICLE_ID).apply();
             loadLastVehicle();
             return;
         }
@@ -99,6 +117,8 @@ public class MainViewModel extends AndroidViewModel
         Vehicle v = db.dao().getVehicle(lastVehicleId); //valid load
         this.vehicle.postValue(v);
     }
+    
+    
     
     
     
@@ -113,11 +133,14 @@ public class MainViewModel extends AndroidViewModel
     }
     
     
+    
+    
+    
     public static class Factory extends ViewModelProvider.NewInstanceFactory
     {
-        private final Application context;
+        private final android.app.Application context;
         
-        public Factory(@NonNull Application application)
+        public Factory(@NonNull android.app.Application application)
         {
             context = application;
         }

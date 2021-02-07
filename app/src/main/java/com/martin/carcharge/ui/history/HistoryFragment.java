@@ -99,7 +99,7 @@ public class HistoryFragment extends Fragment
         button_load = binding.buttonLoad;
             button_load.setOnClickListener(onLoadClickListener);
     
-        chart =  binding.chartHistory; //todo over
+        chart =  binding.chartHistory;
             initChart();
         
         return root;

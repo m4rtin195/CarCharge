@@ -79,5 +79,7 @@
     <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
     <string name="home_initializing">Initializing...</string>
+    <string name="toast_refresh_fail">HTTP refresh failed</string>
+    <string name="toast_welcome_back">Welcome back</string>
 
 </resources>

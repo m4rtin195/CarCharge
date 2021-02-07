@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
+import com.martin.carcharge.App;
 import com.martin.carcharge.G;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.R;
@@ -40,8 +41,8 @@ public class HomeFragment extends Fragment
     {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
     
-        pref = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        vm = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        pref = App.getPreferences();
+        vm = App.getViewModel();
         
         findViews(root);
     
@@ -69,11 +70,6 @@ public class HomeFragment extends Fragment
     void updateStatusFields(VehicleStatus vs)
     {
         Log.i(G.tag, "observed status change.");
-        if(vs.getState() == VehicleStatus.State.Initializing)
-        {
-            if(vs.getState() != null) text_state.setText(vs.getState().text);
-    
-        }
         
         if(vs.getState() != null) text_state.setText(vs.getState().text);
         text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));

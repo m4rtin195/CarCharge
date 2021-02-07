@@ -5,10 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
-import androidx.preference.PreferenceManager;
-
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 
@@ -23,7 +19,6 @@ import retrofit2.Response;
 
 public class Downloader
 {
-    //todo db
     private final Context context;
     private final SharedPreferences pref;
     private final MainViewModel vm;
@@ -36,19 +31,19 @@ public class Downloader
     {
         this.context = context;
         
-        pref = PreferenceManager.getDefaultSharedPreferences(context);
-        vm = new ViewModelProvider((ViewModelStoreOwner) context).get(MainViewModel.class);
-        cloud_api = AppActivity.getApi();
+        pref = App.getPreferences();
+        vm = App.getViewModel();
+        cloud_api = App.getApi();
         
         executor = Executors.newSingleThreadScheduledExecutor();
     }
     
     public boolean start()
     {
-        long interval = pref.getInt("update_interval", 0);
+        long interval = pref.getInt(G.PREF_UPDATE_INTERVAL, 0);
         if(interval > 0)
         {
-            task = executor.scheduleAtFixedRate(runnable, 0, interval, TimeUnit.SECONDS); //todo change to minutes
+            task = executor.scheduleAtFixedRate(runnable, 0, interval, TimeUnit.SECONDS);
             return true;
         } else
             return false;
@@ -81,7 +76,7 @@ public class Downloader
                 Response<VehicleStatus> response = call.execute();
                 if(response.isSuccessful())
                 {
-                    Log.i(G.tag, "HTTP poziadavka uspesna");
+                    Log.i(G.tag, "HTTP request successful");
     
                     VehicleStatus vs = response.body();
                     vm.postVehicleStatus(vs);
@@ -91,12 +86,14 @@ public class Downloader
                 }
                 else
                 {
-                    Log.i(G.tag, "poziadavka zlyhala, HTTP: " + response.code());
+                    Log.w(G.tag, "HTTP request fault, code: " + response.code());
+                    ((Activity)context).runOnUiThread(() ->
+                            G.debug(context, context.getString(R.string.toast_refresh_fail), false));
                 }
             }
             catch(IOException e)
             {
-                Log.i(G.tag, "error in Retrofit callback: " + e.getMessage());
+                Log.e(G.tag, "Error in Retrofit callback: " + e.getMessage());
                 e.printStackTrace();
             }
         }

@@ -56,7 +56,7 @@ public class BaseActivity extends AppCompatActivity
     protected void attachBaseContext(Context newBase)
     {
         super.attachBaseContext(newBase);
-        String languageStr = PreferenceManager.getDefaultSharedPreferences(this).getString("language", "system");
+        String languageStr = PreferenceManager.getDefaultSharedPreferences(this).getString(G.PREF_LANGUAGE, "system");
         if(!languageStr.equals("system"))
             applyOverrideConfiguration(updateConfigurationLanguage(new Configuration(), languageStr));
     }

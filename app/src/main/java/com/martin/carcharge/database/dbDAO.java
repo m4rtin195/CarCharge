@@ -40,7 +40,7 @@ public interface dbDAO
     
     @Query("SELECT * FROM vehicle_statuses WHERE id IN (:statusId)")
     VehicleStatus getStatus(long statusId);
-    //todo nie radsej last status?
+    //nie radsej last status?
     
     @Query("SELECT * FROM vehicle_statuses WHERE vehicleId IN (:vehicleId) AND timestamp BETWEEN (:from) AND (:to)")
     List<VehicleStatus> getStatuses(long vehicleId, Timestamp from, Timestamp to);

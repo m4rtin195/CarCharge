@@ -15,10 +15,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.preference.PreferenceManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,13 +24,16 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.martin.carcharge.databinding.ActivityLoginBinding;
+import com.martin.carcharge.models.User;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,7 +46,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LoginActivity extends BaseActivity
 {
     private FirebaseAuth auth;
-    private FirebaseUser user;
     
     ActivityLoginBinding binding;
     View root;
@@ -59,11 +59,18 @@ public class LoginActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-        if(user != null)
+        FirebaseUser firebaseUser = auth.getCurrentUser();
+        if(firebaseUser != null) //already logged in
         {
-            Log.i(G.tag, "already logged: " + user.getEmail());
-            startActivity(new Intent(this, MainActivity.class));
+            Log.i(G.tag, "already logged in: " + firebaseUser.getEmail());
+            
+            User user = prepareUser(firebaseUser);
+            Intent intent = new Intent(this, MainActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(G.EXTRA_USER, user);
+            intent.putExtras(bundle);
+            
+            startActivity(intent);
             finish();
         }
         
@@ -121,81 +128,60 @@ public class LoginActivity extends BaseActivity
             try
             {   // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(G.tag, "Google sign in success: " + account.getId());
+                assert account != null;
+                Log.d(G.tag, "Google sign-in success: " + account.getId());
                 firebaseAuthWithGoogle(account.getIdToken());
             }
             catch(ApiException e)
             {
-                Log.w(G.tag, "Google sign in failed", e);
+                Log.w(G.tag, "Google sign-in failed", e);
             }
         }
         else
-            Log.w(G.tag, "nonok, resultcode: " + resultCode);
+            Log.w(G.tag, "Google sign-in intent not-ok, resultcode: " + resultCode);
     }
     
     private void firebaseAuthWithGoogle(String idToken)
     {
         progressbar.setVisibility(View.VISIBLE);
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        
-        auth.signInWithCredential(credential).addOnCompleteListener(this, task ->
-        {
-            if (task.isSuccessful())
-            {
-                Log.d(G.tag, "signInWithCredential: success");
-                user = auth.getCurrentUser();
-                //assert user != null;
-    
-                PreferenceManager.getDefaultSharedPreferences(this).edit()
-                        .putString("user_nickname", user.getDisplayName())
-                        .putString("user_email", user.getEmail())
-                        .putString("user_icon", downloadUserIcon())
-                        .apply();
-                
-                Toast.makeText(this, "Welcome back, " + user.getDisplayName() + "!", Toast.LENGTH_LONG).show();
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-            }
-            else
-            {
-                Log.w(G.tag, "signInWithCredential: failure", task.getException());
-                Snackbar.make(root, "Authentication failed.", Snackbar.LENGTH_LONG).show();
-            }
-            progressbar.setVisibility(View.INVISIBLE);
-        });
+        auth.signInWithCredential(credential).addOnCompleteListener(this, onSignInCompleteListener);
     }
     
     private void firebaseAuthWithEmailAndPassword(String email, String password)
     {
         progressbar.setVisibility(View.VISIBLE);
-    
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task ->
-        {
-            if(task.isSuccessful())
-            {
-                Log.i(G.tag, "signInWithEmail: success");
-                user = auth.getCurrentUser();
-                assert user != null;
-            
-                PreferenceManager.getDefaultSharedPreferences(this).edit()
-                        .putString("user_nickname", user.getDisplayName())
-                        .putString("user_email", user.getEmail())
-                        .apply();
-            
-                Toast.makeText(this, "Welcome back, " + user.getDisplayName() + "!", Toast.LENGTH_LONG).show();
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-            }
-            else
-            {
-                Log.w(G.tag, "signInWithEmail: failure", task.getException());
-                Snackbar.make(root, "Authentication failed.", Snackbar.LENGTH_LONG).show();
-            }
-            progressbar.setVisibility(View.INVISIBLE);
-        });
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, onSignInCompleteListener);
     }
     
-    String downloadUserIcon() //and make it round
+    
+    OnCompleteListener<AuthResult> onSignInCompleteListener = task ->
+    {
+        if(task.isSuccessful())
+        {
+            Log.i(G.tag, "signInWithEmail: success");
+            FirebaseUser firebaseUser = auth.getCurrentUser();
+            assert firebaseUser != null;
+            User user = LoginActivity.this.prepareUser(firebaseUser);
+            
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(G.EXTRA_USER, user);
+            bundle.putBoolean(G.EXTRA_ISNEW, true);
+            intent.putExtras(bundle);
+            
+            LoginActivity.this.startActivity(intent);
+            LoginActivity.this.finish();
+        } else
+        {
+            Log.w(G.tag, "signInWithEmail: failure", task.getException());
+            Snackbar.make(root, "Authentication failed.", Snackbar.LENGTH_LONG).show();
+        }
+        progressbar.setVisibility(View.INVISIBLE);
+    };
+    
+    
+    String downloadUserIcon(FirebaseUser user) //and make it round
     {
         if(user.getPhotoUrl() != null)
         {
@@ -255,5 +241,15 @@ public class LoginActivity extends BaseActivity
         }
         
         else return null;
+    }
+    
+    private User prepareUser(FirebaseUser user)
+    {
+        User u = new User();
+        u.setNickname(user.getDisplayName());
+        u.setEmail(user.getEmail());
+        //u.setImageFile();
+        
+        return u;
     }
 }

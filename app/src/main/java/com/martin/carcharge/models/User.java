@@ -3,21 +3,29 @@ package com.martin.carcharge.models;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import androidx.preference.PreferenceManager;
 
-public class User
+import com.google.firebase.auth.FirebaseUser;
+
+public class User implements Parcelable
 {
-    private SharedPreferences pref;
-    
     private String nickname;
     private String email;
     private String imageFile;
     private Drawable image;
     
-    public User(Context context)
+    public User()
+    {}
+    
+    public User(Parcel parcel)
     {
-        pref = PreferenceManager.getDefaultSharedPreferences(context);
+        nickname = parcel.readString();
+        email = parcel.readString();
+        imageFile = parcel.readString();
+        //todo Bitmap
     }
     
     public String getNickname()
@@ -27,7 +35,6 @@ public class User
     
     public void setNickname(String nickname)
     {
-        pref.edit().putString("nickname", nickname).apply();
         this.nickname = nickname;
     }
     
@@ -56,8 +63,34 @@ public class User
         return image;
     }
     
-    public void setImage(Drawable image)
+    
+    @Override
+    public int describeContents()
     {
-        this.image = image;
+        return 0;
     }
+    
+    @Override
+    public void writeToParcel(Parcel parcel, int flags)
+    {
+        parcel.writeString(nickname);
+        parcel.writeString(email);
+        parcel.writeString(imageFile);
+        //bitmap
+    }
+    
+    public static final Creator<User> CREATOR = new Creator<User>()
+    {
+        @Override
+        public User[] newArray(int size)
+        {
+            return new User[size];
+        }
+        
+        @Override
+        public User createFromParcel(Parcel incoming)
+        {
+            return new User(incoming);
+        }
+    };
 }

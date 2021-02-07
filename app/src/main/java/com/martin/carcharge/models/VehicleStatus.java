@@ -47,16 +47,14 @@ public class VehicleStatus
         Charging("Charging..."),
         Idle("Idle"),
         Driving("Driving"),
-        Initializing("Initializing...");
+        Uninitialized("Uninitialized.");
         
         public final String text;
         State(String label) {this.text = label;}
     }
     
     public VehicleStatus()
-    {
-        this.state = State.Initializing;
-    }
+    {}
     
     public long getId()
     {

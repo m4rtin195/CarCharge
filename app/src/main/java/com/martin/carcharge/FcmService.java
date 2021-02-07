@@ -35,7 +35,7 @@ public class FcmService extends FirebaseMessagingService
         Log.d(G.tag, "Refreshed token: " + token);
     
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        pref.edit().putString("fcm_token", token).apply();
+        pref.edit().putString(G.PREF_FCM_TOKEN, token).apply();
         
         //sendRegistrationToServer(token);
     }

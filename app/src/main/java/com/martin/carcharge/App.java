@@ -23,22 +23,12 @@ import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class AppActivity extends Application
+public class App extends android.app.Application
 {
     static AppDatabase db;
     static SharedPreferences pref;
     static MainViewModel vm;
-    
     static KitCloudAPI api;
-    
-    /*static final Migration MIGRATION_1_2 = new Migration(1, 2)
-    {
-        @Override
-        public void migrate(SupportSQLiteDatabase database)
-        {
-            database.execSQL("ALTER TABLE Vehicle ADD COLUMN aaa TEXT");
-        }
-    };*/
     
     @Override
     public void onCreate()
@@ -64,6 +54,7 @@ public class AppActivity extends Application
                 .build();
     
         pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        
         vm = new MainViewModel.Factory(this).create(MainViewModel.class); //( getApplicationContext()).get(MainViewModel.class);
     
         Retrofit retrofit = new Retrofit.Builder()
@@ -71,11 +62,12 @@ public class AppActivity extends Application
                 .baseUrl("https://run.mocky.io/v3/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-    
+        
         api = retrofit.create(KitCloudAPI.class);
     }
     
     public static AppDatabase getDatabase() {return db;}
     public static SharedPreferences getPreferences() {return pref;}
+    public static MainViewModel getViewModel() {return vm;}
     public static KitCloudAPI getApi() {return api;}
 }
