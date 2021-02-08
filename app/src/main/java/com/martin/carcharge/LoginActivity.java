@@ -62,7 +62,7 @@ public class LoginActivity extends BaseActivity
         FirebaseUser firebaseUser = auth.getCurrentUser();
         if(firebaseUser != null) //already logged in
         {
-            Log.i(G.tag, "already logged in: " + firebaseUser.getEmail());
+            Log.i(G.tag, "Already logged-in: " + firebaseUser.getEmail());
             
             User user = prepareUser(firebaseUser);
             Intent intent = new Intent(this, MainActivity.class);

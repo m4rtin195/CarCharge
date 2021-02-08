@@ -5,19 +5,14 @@
     <string name="app_home">Home</string>
     <string name="app_history">History</string>
     <string name="app_preferences">Preferences</string>
-    <string name="appbar_refresh">Refresh</string>
-    <string name="appbar_preferences">Preferences</string>
-    <string name="appbar_history">History</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="toast_fcm_update">Received FCM update</string>
-    <string name="toast_refreshed">Refreshed</string>
-    <string name="appbar_fab_description">Main action button</string>
-    <string name="app_new_vehicle">Create a new vehicle</string>
-    <string name="create">Create</string>
+    <string name="welcome_back">Welcome back</string>
+    <string name="uninitialized">Not initialized</string>
+    <string name="initializing">Initializing…</string>
     
     <!-- Login -->
-    <string name="login_email" translatable="false">E-mail:</string>
+    <string name="login_email">E-mail:</string>
     <string name="login_password">Password:</string>
     <string name="login_button_log_in">Log in</string>
     <string name="login_title_login">CarCharge Login</string>
@@ -25,7 +20,7 @@
     <string name="login_or">or</string>
     
     <!-- Home -->
-    <string name="home_vehicle_picture_desc">Vehicle Picture</string>
+    <string name="home_vehicle_picture_desc">vehicle picture</string>
     <string name="home_voltage">Voltage</string>
     <string name="home_target_voltage">Target Voltage</string>
     <string name="home_current">Current</string>
@@ -78,8 +73,17 @@
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
     <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
-    <string name="home_initializing">Initializing...</string>
-    <string name="toast_refresh_fail">HTTP refresh failed</string>
-    <string name="toast_welcome_back">Welcome back</string>
+    
+    <!-- Other -->
+    <string name="appbar_fab_description">main action button</string>
+    <string name="appbar_refresh">Refresh</string>
+    <string name="appbar_preferences">Preferences</string>
+    <string name="appbar_history">History</string>
+    <string name="pairing_new_vehicle">Register a new vehicle</string>
+    <string name="pairing_new_vehicle_id">vehicle id</string>
+    <string name="pairing_pair">Pair</string>
+    <string name="toast_fcm_update">Received FCM update</string>
+    <string name="toast_refreshed">Refreshed</string>
+    <string name="toast_refresh_fail">Refresh failed</string>
 
 </resources>

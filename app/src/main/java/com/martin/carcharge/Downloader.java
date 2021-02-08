@@ -60,9 +60,10 @@ public class Downloader
         start();
     }
     
-    public void download()
+    public boolean download()
     {
         executor.execute(runnable);
+        return true; //todo check ci uspesne
     }
     
     final Runnable runnable = new Runnable()
@@ -77,18 +78,18 @@ public class Downloader
                 if(response.isSuccessful())
                 {
                     Log.i(G.tag, "HTTP request successful");
-    
-                    VehicleStatus vs = response.body();
-                    vm.postVehicleStatus(vs);
-                    
                     ((Activity)context).runOnUiThread(() ->
-                            G.debug(context, context.getString(R.string.toast_refreshed), false));
+                        {
+                            VehicleStatus vs = response.body();
+                            vm.setVehicleStatus(vs);
+                            G.debug(context, context.getString(R.string.toast_refreshed), false);
+                        });
                 }
                 else
                 {
                     Log.w(G.tag, "HTTP request fault, code: " + response.code());
                     ((Activity)context).runOnUiThread(() ->
-                            G.debug(context, context.getString(R.string.toast_refresh_fail), false));
+                            G.debug(context, context.getString(R.string.toast_refresh_fail), true));
                 }
             }
             catch(IOException e)

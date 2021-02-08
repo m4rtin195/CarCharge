@@ -4,17 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:viewBindingIgnore="true">
+    android:layout_height="match_parent">
     
     <EditText
         android:id="@+id/edit_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="@dimen/dialog_margin_top"
+        android:layout_marginHorizontal="@dimen/dialog_margin"
         android:ems="10"
+        android:hint="@string/pairing_new_vehicle_id"
+        android:importantForAutofill="no"
         android:inputType="textCapWords"
         android:maxLines="1"
-        android:importantForAutofill="no"
         tools:ignore="LabelFor" />
 </LinearLayout>

@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:text="Not initializated."
+            android:text="@string/uninitialized"
             android:textColor="@color/white_shade"
             android:textSize="@dimen/tile_textsize_normal"
             app:layout_constraintStart_toStartOf="@+id/progress_charge"

@@ -5,37 +5,59 @@
     android:id="@+id/layout_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    
+   
+    <!-- todo elevacie -->
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_nav_host"
+        android:id="@+id/fragment_navHost"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:elevation="0dp"
         app:defaultNavHost="true"
         app:navGraph="@navigation/navigation" />
+    
+    <FrameLayout
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="0dp"
+        android:visibility="invisible" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_bottomSheet"
+        android:name="com.martin.carcharge.ui.BottomSheetFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        
+        app:behavior_hideable="true"
+        app:layout_behavior="@string/bottom_sheet_behavior" />
+        <!--android:elevation="6dp"-->
     
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:elevation="12dp"
         android:contentDescription="@string/appbar_fab_description"
         app:backgroundTint="@color/tint_blue"
-        app:layout_anchor="@id/bottomAppBar"
-        app:srcCompat="@drawable/ic_thunderbolt"
+        app:layout_anchor="@id/bottombar"
+        app:srcCompat="@drawable/ic_flash"
         app:tint="@color/white" />
     
     <com.google.android.material.bottomappbar.BottomAppBar
-        android:id="@+id/bottomAppBar"
-        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+        android:id="@+id/bottombar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginTop="20dp"
+        app:elevation="8dp"
+        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+        android:background="@android:color/white"
         app:backgroundTint="@color/background"
         app:fabAlignmentMode="center"
         app:fabCradleMargin="3dp"
+        app:fabAnimationMode="slide"
         app:hideOnScroll="true"
         app:menu="@menu/menu_appbar"
         app:navigationIcon="@drawable/ic_menu" />
-
+    
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

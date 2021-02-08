@@ -26,6 +26,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
@@ -39,12 +40,13 @@ public class HistoryFragment extends Fragment
 {
     private HistoryViewModel historyViewModel;
     
-    private FragmentHistoryBinding binding;
-    private View root;
-    private Toolbar toolbar;
-    private EditText edit_periodFrom, edit_periodTo;
-    private Button button_load;
-    private LineChart chart;
+    FragmentHistoryBinding binding;
+    View root;
+    Toolbar toolbar;
+    EditText edit_periodFrom, edit_periodTo;
+    Button button_load;
+    LineChart chart;
+    FloatingActionButton fab_action;
     
     Date dateFrom, dateTo;
     
@@ -101,6 +103,9 @@ public class HistoryFragment extends Fragment
     
         chart =  binding.chartHistory;
             initChart();
+    
+        fab_action = ((MainActivity)requireActivity()).getFab();
+            fab_action.setOnClickListener(null);
         
         return root;
     }

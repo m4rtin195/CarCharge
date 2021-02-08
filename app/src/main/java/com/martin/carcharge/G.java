@@ -20,6 +20,9 @@ public class G
     public static final String EXTRA_ISNEW = "com.martin.carcharge.LoginActivity.isNew";
     public static final int RC_SIGN_IN = 9001;
     public static final int RC_FILE_PICKER = 9002;
+    public static final int FAB_FLASH = 5001;
+    public static final int FAB_PLUS = 5002;
+    public static final int FAB_REFRESH = 5003;
     
     //not bind with xml!!
     public static final String PREF_DEBUG = "debug";

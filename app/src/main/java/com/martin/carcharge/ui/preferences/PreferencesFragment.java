@@ -196,7 +196,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             if(resultCode == RESULT_OK)
             {
                 Uri uri = intent.getData();
-                try(InputStream is = requireActivity().getContentResolver().openInputStream(uri);)
+                try(InputStream is = requireActivity().getContentResolver().openInputStream(uri))
                 {
                     File path = new File(requireActivity().getFilesDir().toString() + "/media");
                     if(!path.exists())
@@ -315,7 +315,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 vehicle.setImageFile((String)newValue);
         }
         
-        vm.postVehicle(vehicle);
+        vm.setVehicle(vehicle);
         return true;
     };
     

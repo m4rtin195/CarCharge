@@ -2,8 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_root_bottom"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/background"
     android:orientation="vertical">
     
     <LinearLayout
@@ -35,42 +37,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
-                android:text="Martin Timko"
+                android:text="@string/uninitialized"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
-    
+                android:textSize="16sp"
+                tools:text="Martin Timko"/>
+        
             <TextView
                 android:id="@+id/text_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
                 android:singleLine="true"
-                android:text="martin.timko195@gmail.com"
-                android:textColor="@color/white_shade" />
+                android:textColor="@color/white_shade"
+                tools:text="martin.timko195@gmail.com" />
     
         </LinearLayout>
-    
+        
         <ImageButton
-            android:id="@+id/ibutton_newVehicle"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
+            android:id="@+id/ibutton_preferences"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginStart="20dp"
-            android:padding="2dp"
+            android:layout_marginHorizontal="22dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/app_preferences"
-            app:srcCompat="@drawable/ic_plus" />
-    
-        <ImageButton
-            android:id="@+id/ibutton_settings"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_gravity="center"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:padding="2dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/app_preferences"
+            android:padding="3dp"
             app:srcCompat="@drawable/ic_settings" />
 
     </LinearLayout>
@@ -91,14 +82,8 @@
         tools:itemCount="3"
         tools:listitem="@layout/row_vehicle" />
     
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation_view"
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginTop="8dp"
-        android:paddingHorizontal="8dp"
-        android:visibility="gone"
-        app:menu="@menu/menu_drawer" />
+        android:layout_height="?attr/actionBarSize" />
 
 </LinearLayout>

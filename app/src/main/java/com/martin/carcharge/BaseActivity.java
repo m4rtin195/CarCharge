@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -50,6 +51,11 @@ public class BaseActivity extends AppCompatActivity
             window.getInsetsController().hide(WindowInsets.Type.navigationBars());
         else
             window.getInsetsController().show(WindowInsets.Type.navigationBars());
+    }
+    
+    public void setStatusBarColor(int color)
+    {
+        getWindow().setStatusBarColor(color);
     }
     
     @Override

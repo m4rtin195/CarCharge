@@ -1,47 +1,41 @@
 package com.martin.carcharge.ui;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.martin.carcharge.App;
-import com.martin.carcharge.G;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.database.AppDatabase;
+import com.martin.carcharge.databinding.FragmentBottomsheetBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
 
+import java.util.List;
+
 public class BottomSheetFragment extends BottomSheetDialogFragment
 {
     private AppDatabase db;
-    private SharedPreferences pref;
     private MainViewModel vm;
     
+    FragmentBottomsheetBinding binding;
+    View root;
     ImageView image_userIcon;
     TextView text_nickname, text_email;
-    ImageButton ibutton_newVehicle, ibutton_preferences;
+    ImageButton ibutton_preferences;
     RecyclerView recycler_vehicles;
     
     VehiclesAdapter vehiclesAdapter;
@@ -49,80 +43,50 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        super.onCreateView(inflater, container, savedInstanceState);
-        View root = inflater.inflate(R.layout.fragment_bottomsheet, container, false);
+        binding = FragmentBottomsheetBinding.inflate(inflater, container, false);
+        root = binding.getRoot();
     
         db = App.getDatabase();
-        pref = App.getPreferences();
         vm = App.getViewModel();
     
-        image_userIcon = root.findViewById(R.id.image_userIcon);
-            image_userIcon.setImageDrawable(((MainActivity)requireActivity()).getUserIcon(pref.getString(G.PREF_USER_ICON, "")));
-            
-        text_nickname = root.findViewById(R.id.text_nickname);
-            User user = vm.user().getValue();
-            text_nickname.setVisibility(user.getNickname().isEmpty() ? View.GONE : View.VISIBLE);
-            text_nickname.setText(user.getNickname());
-            //todo observer
+        vm.user().observe(this, this::updateUserFields);
+        //vm.vehicles().observe(this, this::updateVehiclesRecycler);
         
-        text_email = root.findViewById(R.id.text_email);
-            text_email.setText(pref.getString(G.PREF_USER_EMAIL, ""));
+        image_userIcon = binding.imageUserIcon;
+        text_nickname = binding.textNickname;
+        text_email = binding.textEmail;
         
-        ibutton_newVehicle = root.findViewById(R.id.ibutton_newVehicle);
-            ibutton_newVehicle.setOnClickListener(v -> newVehicle());
-        
-        ibutton_preferences = root.findViewById(R.id.ibutton_settings);
+        ibutton_preferences = binding.ibuttonPreferences;
             ibutton_preferences.setOnClickListener(v ->
             {
-                NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_nav_host);
+                NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
                 navController.navigate(R.id.navigation_action_home_to_preferences);
+                ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
         vehiclesAdapter = new VehiclesAdapter(requireContext(), db.dao().getAllVehicles());
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
                 Vehicle currentVehicle = vehiclesAdapter.get(position);
-                vm.postVehicle(currentVehicle);
+                vm.setVehicle(currentVehicle);
+                ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
-        recycler_vehicles = root.findViewById(R.id.recycler_vehicles);
+        recycler_vehicles = binding.recyclerVehicles;
             recycler_vehicles.setAdapter(vehiclesAdapter);
-        
+            
+        root.setOnClickListener(null); //chyti bottomsheet touches, inak by prepadli na scrim
         return root;
     }
     
-    
-    void newVehicle()
+    private void updateUserFields(User user)
     {
-        View content = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit, null);
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle(getString(R.string.app_new_vehicle));
-        builder.setView(content);
-        builder.setPositiveButton(getString(R.string.create), (dialog2, which) -> {});
-        
-        {
-            AlertDialog newVehicleDialog = builder.create();
-            newVehicleDialog.show();
-            newVehicleDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        
-            EditText edit_name = content.findViewById(R.id.edit_name);
-            Button dialogPButton = newVehicleDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            
-            edit_name.addTextChangedListener(new TextWatcher()
-            {
-                @Override public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-                @Override public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-                @Override public void afterTextChanged(Editable editable) {dialogPButton.setEnabled(!editable.toString().isEmpty()); }
-            });
-    
-            dialogPButton.setEnabled(false);
-            dialogPButton.setOnClickListener(view ->
-            {
-                newVehicleDialog.dismiss();
-                Vehicle newVehicle = vm.createVehicle(edit_name.getText().toString());
-                vehiclesAdapter.add(newVehicle);
-            });
-    
-        }
+        image_userIcon.setImageDrawable(user.getImage());
+        text_nickname.setVisibility(user.getNickname().isEmpty() ? View.GONE : View.VISIBLE);
+        text_nickname.setText(user.getNickname());
+        text_email.setText(user.getEmail());
     }
+    
+    private void updateVehiclesRecycler(List<Vehicle> vehicles)
+    {}
 }

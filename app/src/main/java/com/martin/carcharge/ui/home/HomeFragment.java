@@ -14,8 +14,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 
 import com.martin.carcharge.App;
 import com.martin.carcharge.G;
@@ -91,8 +89,8 @@ public class HomeFragment extends Fragment
     
     public void initState()
     {
-        text_state.setText(getString(R.string.home_initializing));
-        progress_charge.setIndeterminate(true);
+        text_state.setText(getString(R.string.initializing));
+        //progress_charge.setIndeterminate(true);
     }
     
     private void findViews(View root)

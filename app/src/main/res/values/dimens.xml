@@ -11,5 +11,8 @@
     <dimen name="tile_textsize_big">20sp</dimen>
     <dimen name="tile_textsize_normal">16sp</dimen>
     <dimen name="tile_textsize_small">13sp</dimen>
+    
+    <dimen name="dialog_margin_top">8dp</dimen>
+    <dimen name="dialog_margin">16dp</dimen>
 
 </resources>

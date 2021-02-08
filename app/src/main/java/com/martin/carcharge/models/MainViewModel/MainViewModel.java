@@ -53,7 +53,7 @@ public class MainViewModel extends AndroidViewModel
         return user;
     }
     
-    public void postUser(User u)
+    public void setUser(User u)
     {
         pref.edit()
                 .putString("user_nickname", u.getNickname())
@@ -61,7 +61,7 @@ public class MainViewModel extends AndroidViewModel
                 .putString("user_icon", u.getImageFile())
             .apply();
         
-        this.user.postValue(u);
+        this.user.setValue(u);
     }
     
     
@@ -72,7 +72,7 @@ public class MainViewModel extends AndroidViewModel
         return vehicle;
     }
     
-    public void postVehicle(Vehicle v)
+    public void setVehicle(Vehicle v)
     {
         db.dao().updateVehicle(v);
         pref.edit()
@@ -83,7 +83,7 @@ public class MainViewModel extends AndroidViewModel
                 .putString(G.PREF_VEHICLE_IMAGE, v.getImageFile())
             .apply();
         
-        this.vehicle.postValue(v);
+        this.vehicle.setValue(v);
     }
     
     public Vehicle createVehicle(String name)
@@ -115,7 +115,7 @@ public class MainViewModel extends AndroidViewModel
         }
         
         Vehicle v = db.dao().getVehicle(lastVehicleId); //valid load
-        this.vehicle.postValue(v);
+        this.vehicle.setValue(v);
     }
     
     
@@ -127,9 +127,9 @@ public class MainViewModel extends AndroidViewModel
         return vehicleStatus;
     }
     
-    public void postVehicleStatus(VehicleStatus vs)
+    public void setVehicleStatus(VehicleStatus vs)
     {
-        this.vehicleStatus.postValue(vs);
+        this.vehicleStatus.setValue(vs);
     }
     
     
