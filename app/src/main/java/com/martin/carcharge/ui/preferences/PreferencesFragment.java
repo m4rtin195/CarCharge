@@ -2,7 +2,7 @@ package com.martin.carcharge.ui.preferences;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,7 +35,7 @@ import com.martin.carcharge.G;
 import com.martin.carcharge.LoginActivity;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
-import com.martin.carcharge.database.AppDatabase;
+import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.databinding.FragmentPreferencesBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
@@ -77,6 +77,8 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
+        ((MainActivity)requireActivity()).setBottomBarVisible(false);
+        
         root = super.onCreateView(inflater, container, savedInstanceState);
         binding = FragmentPreferencesBinding.bind(root);
         
@@ -86,22 +88,21 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         auth = FirebaseAuth.getInstance();
         
         toolbar = binding.toolbarPreferences;
-            toolbar.setBackgroundColor(Color.TRANSPARENT);
-            toolbar.setTitle(getString(R.string.app_preferences));
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
     
         progressbar = binding.progressPreferences;
-    
-        //((MainActivity)requireActivity()).setFabVisible(false);
-        //((MainActivity)requireActivity()).setBottomBarVisible(false);
-    
     
         /***/
         
         preference_language = findPreference(G.PREF_LANGUAGE);
             preference_language.setOnPreferenceChangeListener((preference, newValue) ->
             {
-                requireActivity().recreate();
+                //requireActivity().recreate();
+                Intent intent = new Intent(requireContext(), LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                requireActivity().finish();
+                
                 return true;
             });
     
@@ -140,7 +141,8 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                     getString(R.string.preferences_nickname) : pref.getString(G.PREF_USER_NICKNAME, ""));
             preference_user.setTitle(title);
             preference_user.setSummary(pref.getString(G.PREF_USER_EMAIL, ""));
-            preference_user.setIcon(((MainActivity)requireActivity()).getUserIcon(pref.getString(G.PREF_USER_ICON, "")));
+            //preference_user.setIcon(((MainActivity)requireActivity()).loadCachedUserIcon(pref.getString(G.PREF_USER_ICON, "")));
+            preference_user.setIcon(new BitmapDrawable(getResources(), vm.user().getValue().getIcon()));
             preference_user.setOnPreferenceChangeListener(nicknameChanged);
             ((EditTextPreference)preference_user).setOnBindEditTextListener(TextView::setSingleLine);
             
@@ -310,12 +312,12 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             if(preference.equals(preference_vehicleRegplate))
                 vehicle.setRegNumber((String)newValue);
             if(preference.equals(preference_vehicleCapacity))
-                vehicle.setBatteryCapacity(Integer.parseInt((String)newValue)); //todo check format}
+                vehicle.setBatteryMaxVoltage(Integer.parseInt((String)newValue)); //todo check format}
             if(preference.equals(preference_vehicleImage))
                 vehicle.setImageFile((String)newValue);
         }
         
-        vm.setVehicle(vehicle);
+        vm.updateActualVehicle(vehicle);
         return true;
     };
     

@@ -1,10 +1,13 @@
-package com.martin.carcharge;
+package com.martin.carcharge.network;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.martin.carcharge.App;
+import com.martin.carcharge.G;
+import com.martin.carcharge.R;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 
@@ -22,18 +25,18 @@ public class Downloader
     private final Context context;
     private final SharedPreferences pref;
     private final MainViewModel vm;
-    private final KitCloudAPI cloud_api;
+    private final CloudRestAPI api;
     
     ScheduledExecutorService executor;
     ScheduledFuture<?> task;
     
-    Downloader(Context context)
+    public Downloader(Context context)
     {
         this.context = context;
         
         pref = App.getPreferences();
         vm = App.getViewModel();
-        cloud_api = App.getApi();
+        api = App.getApi();
         
         executor = Executors.newSingleThreadScheduledExecutor();
     }
@@ -71,7 +74,7 @@ public class Downloader
         @Override
         public void run()
         {
-            Call<VehicleStatus> call = cloud_api.getActual();
+            Call<VehicleStatus> call = api.getActualStatus();
             try
             {
                 Response<VehicleStatus> response = call.execute();
@@ -81,7 +84,7 @@ public class Downloader
                     ((Activity)context).runOnUiThread(() ->
                         {
                             VehicleStatus vs = response.body();
-                            vm.setVehicleStatus(vs);
+                            vm.updateVehicleStatus(vs);
                             G.debug(context, context.getString(R.string.toast_refreshed), false);
                         });
                 }

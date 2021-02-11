@@ -88,19 +88,4 @@ public class BaseActivity extends AppCompatActivity
             country = (String) tempStringTokenizer.nextElement();
         return new Locale(language, country);
     }
-    
-    public Drawable getUserIcon(String filename) //todo moze to byt tu?
-    {
-        Drawable icon = null;
-        
-        if(filename.isEmpty())
-            icon = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_user, getTheme());
-        else
-        {
-            Bitmap bitmap = BitmapFactory.decodeFile(getFilesDir().toString() + "/media/" + filename);
-            icon = new BitmapDrawable(getResources(), bitmap);
-        }
-        
-        return icon;
-    }
 }

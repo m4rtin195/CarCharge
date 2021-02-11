@@ -15,7 +15,6 @@ public class G
 {
     public static final String tag = "daco";
     public static final String ACTION_BROAD_UPDATE = "com.martin.carcharge.FcmReceiver.update";
-    public static final String BOTTOM_DRAWER_TAG = "com.martin.carcharge.BottomVehiclesDrawer.tag";
     public static final String EXTRA_USER = "com.martin.carcharge.LoginActivity.user";
     public static final String EXTRA_ISNEW = "com.martin.carcharge.LoginActivity.isNew";
     public static final int RC_SIGN_IN = 9001;
@@ -24,7 +23,7 @@ public class G
     public static final int FAB_PLUS = 5002;
     public static final int FAB_REFRESH = 5003;
     
-    //not bind with xml!!
+    //not binded with xml!!
     public static final String PREF_DEBUG = "debug";
     public static final String PREF_FCM_ENABLED = "fcm_enabled";
     public static final String PREF_FCM_TOKEN = "fcm_token";
@@ -36,8 +35,9 @@ public class G
     public static final String PREF_USER_ICON = "user_icon";
     public static final String PREF_VEHICLE_NAME = "vehicle_name";
     public static final String PREF_VEHICLE_REGPLATE = "vehicle_regplate";
-    public static final String PREF_VEHICLE_CAPACITY = "vehicle_capacity";
+    public static final String PREF_VEHICLE_CAPACITY = "vehicle_max_voltage";
     public static final String PREF_VEHICLE_IMAGE = "vehicle_image";
+    public static final String PREF_ACTUAL_THRESHOLD = "actual_threshold";
     
     
     public static void debug(Context context, String string, Boolean... vibrate)

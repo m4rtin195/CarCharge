@@ -13,22 +13,11 @@
         android:layout_height="wrap_content"
         android:minHeight="100dp"
         android:theme="?attr/actionBarTheme"
+        android:background="@color/transparent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="?attr/homeAsUpIndicator" />
-    
-    <ProgressBar
-        android:id="@+id/progress_history"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="30dp"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_history"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="visible" />
     
     <TextView
         android:id="@+id/text_history"
@@ -42,6 +31,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     
+    <ProgressBar
+        android:id="@+id/progress_history"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_history"
+        tools:visibility="visible" />
     
     <TableLayout
         android:id="@+id/layout_period"

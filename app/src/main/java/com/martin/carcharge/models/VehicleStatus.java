@@ -1,35 +1,38 @@
 package com.martin.carcharge.models;
 
-import android.util.Log;
-
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import com.martin.carcharge.G;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 @Entity(tableName = "vehicle_statuses",
         foreignKeys = @ForeignKey(entity = Vehicle.class, parentColumns = "id",
                                 childColumns = "vehicleId", onDelete = ForeignKey.CASCADE))
 public class VehicleStatus
 {
-    @PrimaryKey(autoGenerate = true)
-    private long id;
-    
-    private String _id; //todo merge with id
-    
-    @Ignore
-    private String _rev;
+    @PrimaryKey
+    @SerializedName("_id")
+    @NonNull
+    private String id;
     
     @ColumnInfo(index = true)
     private long vehicleId;
+    
+    @Expose
     private Timestamp timestamp;
+    
+    @Expose
+    private Connectivity connectivity;
     
     private State state;
     private int current_charge;
@@ -38,59 +41,86 @@ public class VehicleStatus
     private int elapsed_time;
     private int remain_time;
     private int range;
-    private float elec_consumption;
+    private float outdoor_temperature;
     private float indoor_temperature;
+    
+    public enum Connectivity
+    {
+        Unknown(Integer.MIN_VALUE),
+        @SerializedName("0") NotConnected(0),
+        @SerializedName("1") Sigfox(1),
+        @SerializedName("2") WiFi(2);
+        
+        public final int value;
+        Connectivity(int value)
+        {
+            this.value = value;
+        }
+        public static Connectivity getConnectivity(int value)
+        {
+            for(Connectivity c : values())
+                if(c.value == value) return c;
+            return null;
+        }
+    }
     
     public enum State
     {
-        Off("Off"),
-        Charging("Charging..."),
-        Idle("Idle"),
-        Driving("Driving"),
-        Uninitialized("Uninitialized.");
+        Unknown(Integer.MIN_VALUE),
+        Loading(Integer.MIN_VALUE+1),
+        @SerializedName("0") Off(0),
+        @SerializedName("1") Charging(1),
+        @SerializedName("2") Idle(2),
+        @SerializedName("3") Driving(3);
         
-        public final String text;
-        State(String label) {this.text = label;}
+        public final int value;
+        State(int value)
+        {
+            this.value = value;
+        }
+        public static State getState(int value)
+        {
+            for(State state : values())
+                if(state.value == value) return state;
+            return null;
+        }
+        public boolean isValid()
+        {
+            return (value >= 0);
+        }
     }
     
     public VehicleStatus()
-    {}
+    {
+        id = UUID.randomUUID().toString().replace("-","");
+        state = State.Unknown;
+        connectivity = Connectivity.Unknown;
+        timestamp = new Timestamp(0);
+        
+        vehicleId = 1; //todo prec
+    }
     
-    public long getId()
+    @Ignore
+    public VehicleStatus(State state)
+    {
+        this();
+        this.state = state;
+    }
+    
+    @NotNull
+    public String getId()
     {
         return id;
     }
-    
-    public void setId(long id)
+    public void setId(String id)
     {
         this.id = id;
-    }
-    
-    public String get_id()
-    {
-        return _id;
-    }
-    
-    public void set_id(String _id)
-    {
-        this._id = _id;
-    }
-    
-    public String get_rev()
-    {
-        return _rev;
-    }
-    
-    public void set_rev(String _rev)
-    {
-        this._rev = _rev;
     }
     
     public long getVehicleId()
     {
         return vehicleId;
     }
-    
     public void setVehicleId(long vehicleId)
     {
         this.vehicleId = vehicleId;
@@ -100,17 +130,24 @@ public class VehicleStatus
     {
         return timestamp;
     }
-    
     public void setTimestamp(Timestamp timestamp)
     {
         this.timestamp = timestamp;
+    }
+    
+    public Connectivity getConnectivity()
+    {
+        return connectivity;
+    }
+    public void setConnectivity(Connectivity connectivity)
+    {
+        this.connectivity = connectivity;
     }
     
     public State getState()
     {
         return state;
     }
-    
     public void setState(State state)
     {
         this.state = state;
@@ -120,7 +157,6 @@ public class VehicleStatus
     {
         return current_charge;
     }
-    
     public void setCurrent_charge(int current_charge)
     {
         this.current_charge = current_charge;
@@ -130,7 +166,6 @@ public class VehicleStatus
     {
         return target_charge;
     }
-    
     public void setTarget_charge(int target_charge)
     {
         this.target_charge = target_charge;
@@ -140,7 +175,6 @@ public class VehicleStatus
     {
         return current;
     }
-    
     public void setCurrent(int current)
     {
         this.current = current;
@@ -150,7 +184,6 @@ public class VehicleStatus
     {
         return elapsed_time;
     }
-    
     public void setElapsed_time(int elapsed_time)
     {
         this.elapsed_time = elapsed_time;
@@ -160,7 +193,6 @@ public class VehicleStatus
     {
         return remain_time;
     }
-    
     public void setRemain_time(int remain_time)
     {
         this.remain_time = remain_time;
@@ -170,31 +202,29 @@ public class VehicleStatus
     {
         return range;
     }
-    
     public void setRange(int range)
     {
         this.range = range;
     }
     
-    public float getElec_consumption()
+    public float getOutdoor_temperature()
     {
-        return elec_consumption;
+        return outdoor_temperature;
     }
-    
-    public void setElec_consumption(float elec_consumption)
+    public void setOutdoor_temperature(float outdoor_temperature)
     {
-        this.elec_consumption = elec_consumption;
+        this.outdoor_temperature = outdoor_temperature;
     }
     
     public float getIndoor_temperature()
     {
         return indoor_temperature;
     }
-    
     public void setIndoor_temperature(float indoor_temperature)
     {
         this.indoor_temperature = indoor_temperature;
     }
+    
     
     @NotNull
     @Override
@@ -202,8 +232,7 @@ public class VehicleStatus
     {
         return "VehicleStatus{" +
                 "id=" + id +
-                ", _id='" + _id + '\'' +
-                ", _rev='" + _rev + '\'' +
+                ", _id='" + id + '\'' +
                 ", vehicleId=" + vehicleId +
                 ", timestamp=" + timestamp +
                 ", state=" + state +
@@ -213,7 +242,7 @@ public class VehicleStatus
                 ", elapsed_time=" + elapsed_time +
                 ", remain_time=" + remain_time +
                 ", range=" + range +
-                ", elec_consumption=" + elec_consumption +
+                ", elec_consumption=" + outdoor_temperature +
                 ", indoor_temperature=" + indoor_temperature +
                 '}';
     }

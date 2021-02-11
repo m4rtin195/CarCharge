@@ -1,6 +1,8 @@
 package com.martin.carcharge;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -8,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class LoginActivity extends BaseActivity
 {
+    private SharedPreferences pref;
     private FirebaseAuth auth;
     
     ActivityLoginBinding binding;
@@ -58,13 +62,14 @@ public class LoginActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        pref = App.getPreferences();
         auth = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = auth.getCurrentUser();
         if(firebaseUser != null) //already logged in
         {
             Log.i(G.tag, "Already logged-in: " + firebaseUser.getEmail());
             
-            User user = prepareUser(firebaseUser);
+            User user = prepareUser(firebaseUser, false);
             Intent intent = new Intent(this, MainActivity.class);
             Bundle bundle = new Bundle();
             bundle.putParcelable(G.EXTRA_USER, user);
@@ -162,7 +167,7 @@ public class LoginActivity extends BaseActivity
             Log.i(G.tag, "signInWithEmail: success");
             FirebaseUser firebaseUser = auth.getCurrentUser();
             assert firebaseUser != null;
-            User user = LoginActivity.this.prepareUser(firebaseUser);
+            User user = prepareUser(firebaseUser, true);
             
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             Bundle bundle = new Bundle();
@@ -181,6 +186,7 @@ public class LoginActivity extends BaseActivity
     };
     
     
+    // returns filename
     String downloadUserIcon(FirebaseUser user) //and make it round
     {
         if(user.getPhotoUrl() != null)
@@ -243,13 +249,33 @@ public class LoginActivity extends BaseActivity
         else return null;
     }
     
-    private User prepareUser(FirebaseUser user)
+    // Prepare icon and convert FirebaseUser to local User
+    @SuppressLint("ApplySharedPref")
+    private User prepareUser(FirebaseUser u, boolean isNew)
     {
-        User u = new User();
-        u.setNickname(user.getDisplayName());
-        u.setEmail(user.getEmail());
-        //u.setImageFile();
+        if(isNew)
+        {
+            String filename = downloadUserIcon(u);
+            pref.edit().putString(G.PREF_USER_ICON, filename).apply();
+        }
         
-        return u;
+        User user = new User();
+        user.setNickname(u.getDisplayName());
+        user.setEmail(u.getEmail());
+        user.setIcon(loadCachedUserIcon(pref.getString(G.PREF_USER_ICON, "")));
+        
+        return user;
+    }
+    
+    public Bitmap loadCachedUserIcon(String filename)
+    {
+        Bitmap icon = null;
+        
+        if(filename.isEmpty())
+            icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_user);
+        else
+            icon = BitmapFactory.decodeFile(getFilesDir().toString() + "/media/" + filename);
+        
+        return icon;
     }
 }

@@ -91,9 +91,9 @@
             app:useSimpleSummaryProvider="true" />
     
         <EditTextPreference
-            android:id="@+id/preference_vehicleCapacity"
-            android:key="vehicle_capacity"
-            android:title="Battery capacity"
+            android:id="@+id/preference_vehicleMaxVoltage"
+            android:key="vehicle_max_voltage"
+            android:title="@string/preferences_vehicle_max_voltage"
             android:icon="@drawable/ic_battery"
             app:positiveButtonText="@string/preferences_save"
             app:useSimpleSummaryProvider="true"

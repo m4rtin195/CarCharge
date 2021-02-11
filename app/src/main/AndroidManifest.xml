@@ -34,7 +34,7 @@
         </activity>
     
         <service
-            android:name=".FcmService"
+            android:name=".network.FcmService"
             android:exported="false">
             
             <intent-filter>

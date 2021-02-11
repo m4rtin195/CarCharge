@@ -9,7 +9,6 @@
     <string name="no">No</string>
     <string name="welcome_back">Welcome back</string>
     <string name="uninitialized">Not initialized</string>
-    <string name="initializing">Initializing…</string>
     
     <!-- Login -->
     <string name="login_email">E-mail:</string>
@@ -34,6 +33,11 @@
     <string name="home_indoor_temperature">Indoor\nTemperature</string>
     <string name="home_desired_temperature">Desired\nTemperature</string>
     <string name="home_state_loading">Loading…</string>
+    <string name="home_state_unknown">Unknown</string>
+    <string name="home_state_charging">Charging…</string>
+    <string name="home_state_off">Off</string>
+    <string name="home_state_idle">Idle</string>
+    <string name="home_state_driving">Driving</string>
     
     <!-- History -->
     <string name="history_title">Charging history</string>
@@ -42,6 +46,7 @@
     <string name="history_button_load">Load</string>
     
     <!-- Preferences -->
+    <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_language">Language</string>
     <string name="preferences_about" translatable="false">This application is a client side for eCar IoT Kit\nMartin Timko\nGlobalLogic Slovakia s.r.o.\nKMIKT FEIT UNIZA\n© 2021</string>
     <string name="preferences_version">Version</string>
@@ -71,8 +76,8 @@
     <string name="preferences_nickname_update_success">Nickname successfully updated online.</string>
     <string name="preferences_logout_dialog">Are you sure you want to log-out?</string>
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
-    <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
+    <string name="preferences_vehicle_max_voltage">Battery max voltage</string>
     
     <!-- Other -->
     <string name="appbar_fab_description">main action button</string>

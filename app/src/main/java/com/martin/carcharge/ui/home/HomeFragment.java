@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.martin.carcharge.App;
 import com.martin.carcharge.G;
+import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.R;
 import com.martin.carcharge.models.Vehicle;
@@ -37,6 +38,8 @@ public class HomeFragment extends Fragment
     
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
+        ((MainActivity)requireActivity()).setBottomBarVisible(true);
+        
         View root = inflater.inflate(R.layout.fragment_home, container, false);
     
         pref = App.getPreferences();
@@ -69,28 +72,51 @@ public class HomeFragment extends Fragment
     {
         Log.i(G.tag, "observed status change.");
         
-        if(vs.getState() != null) text_state.setText(vs.getState().text);
+        int maxVoltage = 851; //todo load odniekial
+        
+        if(vs.getState() == VehicleStatus.State.Loading)
+        {
+            loading();
+            return;
+        }
+        
+        if(vs.getState() != null) text_state.setText(stateToString(vs.getState()));
         text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));
+        progress_charge.setIndeterminate(false);
         progress_charge.setProgress(vs.getCurrent_charge(),true);
         progress_charge.setSecondaryProgress(vs.getTarget_charge());
         
-        //text_voltage.setText("648.2V");
-        //text_tVoltage.setText("800V");
+        text_voltage.setText(String.format("%.1fV", (vs.getCurrent_charge()/100f)*maxVoltage));
+        text_tVoltage.setText(String.format("%.0fV", (vs.getTarget_charge()/100f)*maxVoltage));
         text_current.setText(String.format("%+dA", vs.getCurrent())); //todo a minus?
         //text_maxCurrent.setText(vs.g);
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
         text_approach.setText(String.format("%dkm", vs.getRange()));
         //text_location.setText("49°12’32”N  18°45’36”E");
-        //text_outdoorTemp.setText("13.2°C");
+        text_outdoorTemp.setText(String.format("%.1f°C", vs.getOutdoor_temperature()));
         text_indoorTemp.setText(String.format("%.1f°C", vs.getIndoor_temperature()));
         //text_desiredTemp.setText("20.0°C");
     }
     
-    public void initState()
+    private String stateToString(VehicleStatus.State st)
     {
-        text_state.setText(getString(R.string.initializing));
-        //progress_charge.setIndeterminate(true);
+        String s = new String();
+        
+        if(st == VehicleStatus.State.Unknown) s = getString(R.string.home_state_unknown);
+        if(st == VehicleStatus.State.Loading) s = getString(R.string.home_state_loading);
+        if(st == VehicleStatus.State.Off) s = getString(R.string.home_state_off);
+        if(st == VehicleStatus.State.Charging) s = getString(R.string.home_state_charging);
+        if(st == VehicleStatus.State.Idle) s = getString(R.string.home_state_idle);
+        if(st == VehicleStatus.State.Driving) s = getString(R.string.home_state_driving);
+    
+        return s;
+    }
+    
+    public void loading()
+    {
+        text_state.setText(getString(R.string.home_state_loading));
+        progress_charge.setIndeterminate(true);
     }
     
     private void findViews(View root)

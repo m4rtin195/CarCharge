@@ -8,7 +8,7 @@
     <string name="preferences_version">Verzia</string>
     <string name="preferences_language">Jazyk</string>
     <string name="preferences_choose_email_client">Vyberte emailového klienta</string>
-    <string name="home_vehicle_picture_desc">Obrázok vozidla</string>
+    <string name="home_vehicle_picture_desc">obrázok vozidla</string>
     <string name="preferences_browse_github">Prejsť na GitHub repozitár</string>
     <string name="preferences_contact_developer">Kontaktovať vývojára</string>
     <string name="preferences_contact_developer_summary">Neváhajte mi napísať!</string>
@@ -61,5 +61,19 @@
     <string name="preferences_set">nastavené</string>
     <string name="preferences_not_set">nenastavené</string>
     <string name="toast_refreshed">Aktualizované</string>
+    <string name="welcome_back">Vitaj späť</string>
+    <string name="pairing_pair">Spárovať</string>
+    <string name="pairing_new_vehicle_id">id vozidla</string>
+    <string name="pairing_new_vehicle">Zaregistrovať nové vozidlo</string>
+    <string name="appbar_fab_description">hlavné tlačidlo akcie</string>
+    <string name="login_email">E-mail:</string>
+    <string name="toast_refresh_fail">Aktualizácia zlyhala</string>
+    <string name="uninitialized">Neinicializované</string>
+    <string name="home_state_charging">Nabíjanie…</string>
+    <string name="home_state_off">Vypnuté</string>
+    <string name="home_state_idle">Nečinné</string>
+    <string name="home_state_driving">V jazde</string>
+    <string name="home_state_unknown">Neznámy</string>
+    <string name="preferences_vehicle_max_voltage">Maximálne napätie batérie</string>
 
 </resources>

@@ -1,38 +1,24 @@
 package com.martin.carcharge.models;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import androidx.preference.PreferenceManager;
-
-import com.google.firebase.auth.FirebaseUser;
 
 public class User implements Parcelable
 {
     private String nickname;
     private String email;
     private String imageFile;
-    private Drawable image;
+    private Bitmap icon;
     
-    public User()
-    {}
-    
-    public User(Parcel parcel)
-    {
-        nickname = parcel.readString();
-        email = parcel.readString();
-        imageFile = parcel.readString();
-        //todo Bitmap
-    }
+    public User() {}
     
     public String getNickname()
     {
         return nickname;
     }
-    
     public void setNickname(String nickname)
     {
         this.nickname = nickname;
@@ -42,7 +28,6 @@ public class User implements Parcelable
     {
         return email;
     }
-    
     public void setEmail(String email)
     {
         this.email = email;
@@ -52,15 +37,18 @@ public class User implements Parcelable
     {
         return imageFile;
     }
-    
     public void setImageFile(String imageFile)
     {
         this.imageFile = imageFile;
     }
     
-    public Drawable getImage()
+    public void setIcon(Bitmap icon)
     {
-        return image;
+        this.icon = icon;
+    }
+    public Bitmap getIcon()
+    {
+        return icon;
     }
     
     
@@ -76,7 +64,15 @@ public class User implements Parcelable
         parcel.writeString(nickname);
         parcel.writeString(email);
         parcel.writeString(imageFile);
-        //bitmap
+        parcel.writeParcelable(icon, flags);
+    }
+    
+    public User(Parcel parcel)
+    {
+        nickname = parcel.readString();
+        email = parcel.readString();
+        imageFile = parcel.readString();
+        icon = parcel.readParcelable(getClass().getClassLoader());
     }
     
     public static final Creator<User> CREATOR = new Creator<User>()

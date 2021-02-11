@@ -129,6 +129,8 @@
                         android:paddingTop="@dimen/tiles_padding"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding_between"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -160,6 +162,8 @@
                         android:paddingTop="@dimen/tiles_padding"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding_between"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -191,6 +195,8 @@
                         android:paddingTop="@dimen/tiles_padding_between"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -222,6 +228,8 @@
                         android:paddingTop="@dimen/tiles_padding_between"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -268,6 +276,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -296,6 +306,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -341,6 +353,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -378,6 +392,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -419,9 +435,10 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/home_tile"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -466,6 +483,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -494,6 +513,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -522,6 +543,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
+                        android:clickable="true"
+                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView

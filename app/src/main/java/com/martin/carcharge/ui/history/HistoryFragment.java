@@ -1,5 +1,7 @@
 package com.martin.carcharge.ui.history;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
@@ -53,11 +55,12 @@ public class HistoryFragment extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
+        ((MainActivity)requireActivity()).setBottomBarVisible(true);
+        
         binding = FragmentHistoryBinding.inflate(inflater, container, false);
         root = binding.getRoot();
-    
+        
         historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
-    
         historyViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>()
         {
             @Override
@@ -67,7 +70,6 @@ public class HistoryFragment extends Fragment
         });
     
         toolbar = binding.toolbarHistory;
-            toolbar.setBackgroundColor(Color.TRANSPARENT);
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
             
         edit_periodFrom = binding.editPeriodFrom;

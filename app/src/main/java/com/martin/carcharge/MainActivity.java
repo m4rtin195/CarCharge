@@ -8,6 +8,8 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -23,7 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
@@ -39,8 +40,14 @@ import com.martin.carcharge.databinding.DialogEditBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
-import com.martin.carcharge.ui.home.HomeFragment;
+import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.network.Downloader;
 
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+import java.util.Date;
 import java.util.Objects;
 
 public class MainActivity extends BaseActivity
@@ -54,7 +61,7 @@ public class MainActivity extends BaseActivity
     View root;
     View scrim;
     FloatingActionButton fab_action;
-    BottomAppBar bottombar;
+    BottomAppBar bottomBar;
     
     BottomSheetBehavior<FragmentContainerView> bottomSheetBehavior;
     LocalBroadcastManager lbm;
@@ -81,8 +88,8 @@ public class MainActivity extends BaseActivity
         fab_action = binding.fabAction;
             fab_action.setOnClickListener(onActionClickListener_flash);
     
-        bottombar = binding.bottombar;
-            setSupportActionBar(bottombar);
+        bottomBar = binding.bottombar;
+            setSupportActionBar(bottomBar);
         
         bottomSheetBehavior = BottomSheetBehavior.from(binding.fragmentBottomSheet);
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -92,7 +99,9 @@ public class MainActivity extends BaseActivity
             scrim.setOnClickListener(v -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN));
         
         //todo ten normalny sposob?
+        //NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_navHost))).getNavController();
+    
     
         lbm = LocalBroadcastManager.getInstance(getApplicationContext());
         pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
@@ -106,8 +115,7 @@ public class MainActivity extends BaseActivity
         if(getIntent().getExtras().getBoolean(G.EXTRA_ISNEW, false))
             Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
                     Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
-    
-        vm.loadLastVehicle();
+        
     } //onCreate
     
     @Override
@@ -115,17 +123,27 @@ public class MainActivity extends BaseActivity
     {
         super.onStart();
         
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_navHost);
-        assert navHostFragment != null;
-        Fragment fragment = navHostFragment.getChildFragmentManager().getFragments().get(0);
-        assert fragment instanceof HomeFragment;
-        ((HomeFragment) fragment).initState();
-        
-        //try {Thread.sleep(1000);} catch(InterruptedException e) {e.printStackTrace();}
-        //load last status
-        
-        if(!pref.getBoolean(G.PREF_FCM_ENABLED, false))
-            downloader.start();
+        vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading));
+    
+        new Handler(Looper.getMainLooper()).postDelayed(() ->
+        {
+            VehicleStatus vs = vm.getLastVehicleStatus(vm.getActualVehicleId());
+            if(vs != null)
+            {
+                long diff = new Date().getTime() - vs.getTimestamp().getTime();
+                if(diff < pref.getLong(G.PREF_ACTUAL_THRESHOLD, 300))
+                {
+                    Log.i(G.tag, "Have actual status, old: " + diff + " sedonds");
+                    vm.updateVehicleStatus(vs);
+                }
+            }
+            
+            if(!pref.getBoolean(G.PREF_FCM_ENABLED, false)) //automatic downloading
+                if(!downloader.start())                               //is not enabled
+                    if(!downloader.download())                        //download once
+                        vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Unknown)); //if not successful
+            //todo check it
+        }, 1000);
         
         lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
     }
@@ -199,12 +217,12 @@ public class MainActivity extends BaseActivity
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->
     {
-        if(key.equals(G.PREF_FCM_ENABLED))
+        if(key.equals(G.PREF_UPDATE_INTERVAL))
             downloader.restart();
         
         if(key.equals(G.PREF_FCM_ENABLED))
         {
-            Toast.makeText(this, "daco", Toast.LENGTH_SHORT).show(); //todo prec
+            Toast.makeText(this, "fcm enabled change", Toast.LENGTH_SHORT).show(); //todo prec
             if(pref.getBoolean(G.PREF_FCM_ENABLED, false))
                 lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
             else
@@ -263,26 +281,24 @@ public class MainActivity extends BaseActivity
     {
         if(state == G.FAB_FLASH)
         {
-            bottombar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_CENTER);
+            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_CENTER);
             fab_action.setImageResource(R.drawable.ic_flash);
             fab_action.setOnClickListener(onActionClickListener_flash);
         }
         if(state == G.FAB_PLUS)
         {
-            bottombar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_END);
+            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_END);
             fab_action.setImageResource(R.drawable.ic_plus);
             fab_action.setOnClickListener(v -> newVehicle());
         }
     }
     
-    //todo merge?
-    public void setFabVisible(boolean v)
-    {
-        fab_action.setVisibility(v ? View.VISIBLE : View.GONE);
-    }
     public void setBottomBarVisible(boolean v)
     {
-        bottombar.setVisibility(v ? View.VISIBLE : View.GONE);
+        if(v) bottomBar.performShow();
+        else bottomBar.performHide();
+        bottomBar.setHideOnScroll(v);
+        fab_action.setVisibility(v ? View.VISIBLE : View.GONE);
     }
     
     public View getRootLayout()

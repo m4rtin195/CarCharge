@@ -1,8 +1,5 @@
 package com.martin.carcharge.models;
 
-import android.net.Uri;
-
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -14,14 +11,14 @@ public class Vehicle
     
     private String name;
     private String regNumber;
-    private int batteryCapacity;
+    private int batteryMaxVoltage;
     private String imageFile;
     
     public Vehicle()
     {
         name = "";
         regNumber = "";
-        batteryCapacity = 0;
+        batteryMaxVoltage = 0;
         imageFile = "";
     }
     public long getId() {return id;}
@@ -33,8 +30,8 @@ public class Vehicle
     public String getRegNumber() {return regNumber;}
     public void setRegNumber(String regNumber) {this.regNumber = regNumber;}
     
-    public int getBatteryCapacity() {return batteryCapacity;}
-    public void setBatteryCapacity(int batteryCapacity) {this.batteryCapacity = batteryCapacity;}
+    public int getBatteryMaxVoltage() {return batteryMaxVoltage;}
+    public void setBatteryMaxVoltage(int batteryMaxVoltage) {this.batteryMaxVoltage = batteryMaxVoltage;}
     
     public String getImageFile() {return imageFile;}
     public void setImageFile(String imageFile) {this.imageFile = imageFile;}

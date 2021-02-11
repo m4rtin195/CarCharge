@@ -18,7 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.martin.carcharge.App;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
-import com.martin.carcharge.database.AppDatabase;
+import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.databinding.FragmentBottomsheetBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
@@ -68,7 +68,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
                 Vehicle currentVehicle = vehiclesAdapter.get(position);
-                vm.setVehicle(currentVehicle);
+                vm.updateActualVehicle(currentVehicle);
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
@@ -81,7 +81,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
     
     private void updateUserFields(User user)
     {
-        image_userIcon.setImageDrawable(user.getImage());
+        image_userIcon.setImageBitmap(user.getIcon());
         text_nickname.setVisibility(user.getNickname().isEmpty() ? View.GONE : View.VISIBLE);
         text_nickname.setText(user.getNickname());
         text_email.setText(user.getEmail());

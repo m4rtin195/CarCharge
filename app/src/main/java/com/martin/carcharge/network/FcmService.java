@@ -1,4 +1,4 @@
-package com.martin.carcharge;
+package com.martin.carcharge.network;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +10,7 @@ import androidx.preference.PreferenceManager;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.reflect.TypeToken;
+import com.martin.carcharge.G;
 import com.martin.carcharge.models.VehicleStatus;
 
 import org.jetbrains.annotations.NotNull;

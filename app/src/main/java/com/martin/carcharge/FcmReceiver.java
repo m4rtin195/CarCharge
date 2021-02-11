@@ -27,7 +27,7 @@ public class FcmReceiver extends BroadcastReceiver
         Type type = new TypeToken<VehicleStatus>() {}.getType();
         VehicleStatus vs = new Gson().fromJson(json, type);
         vs.setState(VehicleStatus.State.Charging); //todo prec
-        vm.setVehicleStatus(vs);
+        vm.updateVehicleStatus(vs);
         
         G.debug(context, context.getString(R.string.toast_fcm_update), false);
     }
