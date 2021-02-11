@@ -1,10 +1,9 @@
 package com.martin.carcharge.ui.history;
 
-import android.app.Activity;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,16 +29,21 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.martin.carcharge.App;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.databinding.FragmentHistoryBinding;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
+import com.martin.carcharge.models.VehicleStatus;
 
-import java.util.Date;
+import java.sql.Timestamp;
+import java.util.List;
 
 import static java.text.DateFormat.getDateTimeInstance;
 
 public class HistoryFragment extends Fragment
 {
+    private MainViewModel vm;
     private HistoryViewModel historyViewModel;
     
     FragmentHistoryBinding binding;
@@ -50,7 +54,7 @@ public class HistoryFragment extends Fragment
     LineChart chart;
     FloatingActionButton fab_action;
     
-    Date dateFrom, dateTo;
+    Timestamp timestampFrom, timestampTo;
     
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -59,6 +63,8 @@ public class HistoryFragment extends Fragment
         
         binding = FragmentHistoryBinding.inflate(inflater, container, false);
         root = binding.getRoot();
+        
+        vm = App.getViewModel();
         
         historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
         historyViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>()
@@ -222,25 +228,47 @@ public class HistoryFragment extends Fragment
         return set;
     }
     
+    
+    
+    
     SingleDateAndTimePickerDialog.Listener datetimeFromPickerListener = date ->
     {
-        dateFrom = date;
-        binding.editPeriodFrom.setText(getDateTimeInstance().format(dateFrom));
+        timestampFrom = new Timestamp(date.getTime()/1000);
+        binding.editPeriodFrom.setText(getDateTimeInstance().format(timestampFrom.getTime()));
     };
     
     SingleDateAndTimePickerDialog.Listener datetimeToPickerListener = date ->
     {
-        dateTo = date;
-        binding.editPeriodTo.setText(getDateTimeInstance().format(dateTo));
+        timestampTo = new Timestamp(date.getTime()/1000);
+        binding.editPeriodTo.setText(getDateTimeInstance().format(timestampTo.getTime()));
     };
     
     View.OnClickListener onLoadClickListener = view ->
     {
-        binding.editPeriodFrom.clearFocus();
-        binding.editPeriodTo.clearFocus();
-    
-        int entries = 6;
+        edit_periodFrom.clearFocus();
+        edit_periodTo.clearFocus();
+        timestampFrom = new Timestamp(1612371300); timestampTo = new Timestamp(1613061813);
+        if(timestampFrom == null || timestampTo == null) return;
         
+        List<VehicleStatus> list = vm.getVehicleStatuses(vm.getActualVehicleId(), timestampFrom, timestampTo);
+        int entries = list.size();
+        
+        LineData data = new LineData();
+        ILineDataSet set = createSet();
+        data.addDataSet(set);
+        
+        for(VehicleStatus vs : list)
+        {
+            Entry entry = new Entry(vs.getTimestamp().getTime(), vs.getCurrent_charge());
+            data.addEntry(entry, 0);
+        }
+        
+        chart.setData(data);
+        chart.notifyDataSetChanged();
+        chart.moveViewToX(data.getEntryCount());
+    
+    
+    
         Snackbar snack = Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), "Found " + entries + " entries.", Snackbar.LENGTH_SHORT)
                 .setAnchorView(R.id.fab_action);
         View snackView = snack.getView();
@@ -248,5 +276,7 @@ public class HistoryFragment extends Fragment
         layoutParams.setMargins(layoutParams.leftMargin + 20,layoutParams.topMargin + 20,layoutParams.rightMargin + 20,layoutParams.bottomMargin + 20);
         snackView.setLayoutParams(layoutParams);
         snack.show();
+        
+        
     };
 }
