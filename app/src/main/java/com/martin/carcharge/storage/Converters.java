@@ -62,7 +62,7 @@ public class Converters
         @Override
         public Timestamp deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
         {
-            return new Timestamp(json.getAsJsonPrimitive().getAsLong() * 1000);
+            return new Timestamp(json.getAsJsonPrimitive().getAsLong());
         }
     }
     

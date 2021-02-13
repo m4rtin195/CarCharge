@@ -75,5 +75,8 @@
     <string name="home_state_driving">V jazde</string>
     <string name="home_state_unknown">Neznámy</string>
     <string name="preferences_vehicle_max_voltage">Maximálne napätie batérie</string>
+    <string name="history_graph_charge_level">Úroveň nabitia</string>
+    <string name="history_graph_current">Prúd</string>
+    <string name="history_graph_nodata">Údaje niesú načítané.</string>
 
 </resources>

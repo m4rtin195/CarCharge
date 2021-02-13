@@ -46,7 +46,7 @@ public class VehicleStatus
     
     public enum Connectivity
     {
-        Unknown(Integer.MIN_VALUE),
+        Unknown(-1),
         @SerializedName("0") NotConnected(0),
         @SerializedName("1") Sigfox(1),
         @SerializedName("2") WiFi(2);
@@ -66,8 +66,8 @@ public class VehicleStatus
     
     public enum State
     {
-        Unknown(Integer.MIN_VALUE),
-        Loading(Integer.MIN_VALUE+1),
+        Unknown(-1),
+        Loading(-2),
         @SerializedName("0") Off(0),
         @SerializedName("1") Charging(1),
         @SerializedName("2") Idle(2),

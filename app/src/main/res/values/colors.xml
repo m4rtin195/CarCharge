@@ -17,5 +17,8 @@
     <color name="white">#ffffff</color>
     <color name="tint_blue">#3c76b8</color>
     <color name="tint_blue_variant">#2c5686</color>
+    
+    <color name="alternative_blue">#1680E9</color>
+    <color name="alternative_orange">#E97F16</color>
 
 </resources>

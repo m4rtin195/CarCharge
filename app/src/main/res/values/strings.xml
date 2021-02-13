@@ -90,5 +90,8 @@
     <string name="toast_fcm_update">Received FCM update</string>
     <string name="toast_refreshed">Refreshed</string>
     <string name="toast_refresh_fail">Refresh failed</string>
+    <string name="history_graph_charge_level">Charge level</string>
+    <string name="history_graph_current">Current</string>
+    <string name="history_graph_nodata">Data not loaded.</string>
 
 </resources>

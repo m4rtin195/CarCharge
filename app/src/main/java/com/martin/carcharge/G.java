@@ -51,7 +51,7 @@ public class G
             }
     
             Date now = new Date();
-            SimpleDateFormat date = new SimpleDateFormat("hh:mm:ss", Locale.getDefault());
+            SimpleDateFormat date = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
             Toast.makeText(context, string + " (" + date.format(now) + ")", Toast.LENGTH_SHORT).show();
         }
     }
