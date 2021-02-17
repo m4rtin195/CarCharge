@@ -4,6 +4,7 @@
     <string name="app_name" translatable="false">CarCharge</string>
     <string name="app_home">Home</string>
     <string name="app_history">History</string>
+    <string name="app_map">Map</string>
     <string name="app_preferences">Preferences</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -38,12 +39,17 @@
     <string name="home_state_off">Off</string>
     <string name="home_state_idle">Idle</string>
     <string name="home_state_driving">Driving</string>
+    <string name="home_connection_icon_desc">connection type icon</string>
+    
     
     <!-- History -->
     <string name="history_title">Charging history</string>
     <string name="history_period_from">Period from:</string>
     <string name="history_period_to">Period to:</string>
     <string name="history_button_load">Load</string>
+    <string name="history_graph_charge_level">Charge level</string>
+    <string name="history_graph_current">Current</string>
+    <string name="history_graph_nodata">Data not loaded.</string>
     
     <!-- Preferences -->
     <string name="not_set" msgid="6573031135582639649">Not set</string>
@@ -72,8 +78,8 @@
     <string name="preferences_nickname">User name</string>
     <string name="preferences_use_FCM">Use Firebase Cloud Messaging</string>
     <string name="preferences_fcm_token" translatable="false">FCM token</string>
-    <string name="preferences_nickname_update_failed">Updating nickname online failed.</string>
-    <string name="preferences_nickname_update_success">Nickname successfully updated online.</string>
+    <string name="preferences_toast_nickname_update_success">Nickname successfully updated online.</string>
+    <string name="preferences_toast_nickname_update_failed">Updating nickname online failed.</string>
     <string name="preferences_logout_dialog">Are you sure you want to log-out?</string>
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
@@ -88,10 +94,8 @@
     <string name="pairing_new_vehicle_id">vehicle id</string>
     <string name="pairing_pair">Pair</string>
     <string name="toast_fcm_update">Received FCM update</string>
-    <string name="toast_refreshed">Refreshed</string>
-    <string name="toast_refresh_fail">Refresh failed</string>
-    <string name="history_graph_charge_level">Charge level</string>
-    <string name="history_graph_current">Current</string>
-    <string name="history_graph_nodata">Data not loaded.</string>
-
+    <string name="toast_refreshed">Refreshed.</string>
+    <string name="toast_refresh_fail">Refresh failed.</string>
+    <string name="map_toast_location_access_not_granted">Location access not granted.</string>
+    
 </resources>

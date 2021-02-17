@@ -1,5 +1,11 @@
 package com.martin.carcharge.models;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -9,6 +15,7 @@ import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.martin.carcharge.R;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +41,7 @@ public class VehicleStatus
     @Expose
     private Connectivity connectivity;
     
+    @NonNull
     private State state;
     private int current_charge;
     private int target_charge;
@@ -43,6 +51,11 @@ public class VehicleStatus
     private int range;
     private float outdoor_temperature;
     private float indoor_temperature;
+    
+    @Expose
+    private Location location;
+    private int max_current;
+    private float desired_temperature;
     
     public enum Connectivity
     {
@@ -88,20 +101,35 @@ public class VehicleStatus
         {
             return (value >= 0);
         }
+        
+        public String asString(Context context, boolean asProgress)
+        {
+            String str = new String();
+            if(value == Unknown.value) str = context.getString(R.string.home_state_unknown);
+            if(value == Loading.value) str = context.getString(R.string.home_state_loading)  + (asProgress ? "..." : "");
+            if(value == Off.value) str = context.getString(R.string.home_state_off);
+            if(value == Charging.value) str = context.getString(R.string.home_state_charging) + (asProgress ? "..." : "");
+            if(value == Idle.value) str = context.getString(R.string.home_state_idle);
+            if(value == Driving.value) str = context.getString(R.string.home_state_driving);
+            return str;
+        }
     }
     
     public VehicleStatus()
     {
-        id = UUID.randomUUID().toString().replace("-","");
+        id = UUID.randomUUID().toString().replace("-",""); //todo preco
         state = State.Unknown;
         connectivity = Connectivity.Unknown;
-        timestamp = new Timestamp(0);
+        //timestamp = new Timestamp(0);
         
-        vehicleId = 1; //todo prec
+        location = null;
+        max_current = Integer.MIN_VALUE;
+        desired_temperature = Float.MIN_VALUE;
+        vehicleId = 1; //todo prec ked bude api
     }
     
     @Ignore
-    public VehicleStatus(State state)
+    public VehicleStatus(@NotNull State state)
     {
         this();
         this.state = state;
@@ -225,6 +253,14 @@ public class VehicleStatus
         this.indoor_temperature = indoor_temperature;
     }
     
+    public Location getLocation() {return location;}
+    public void setLocation(Location location) {this.location = location;}
+    
+    public int getMax_current() {return max_current;}
+    public void setMax_current(int max_current) {this.max_current = max_current;}
+    
+    public float getDesired_temperature() {return desired_temperature;}
+    public void setDesired_temperature(float desired_temperature) {this.desired_temperature = desired_temperature;}
     
     @NotNull
     @Override

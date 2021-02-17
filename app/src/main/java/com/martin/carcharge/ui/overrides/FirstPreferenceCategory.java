@@ -2,6 +2,7 @@ package com.martin.carcharge.ui.overrides;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -31,6 +32,7 @@ public class FirstPreferenceCategory extends PreferenceCategory
     @Override
     public void onBindViewHolder(PreferenceViewHolder holder)
     {
+        Log.i("daco", "onFirstPreferenceBintViewHolder()");
         super.onBindViewHolder(holder);
         
         TextView textView = (TextView) holder.findViewById(android.R.id.title);

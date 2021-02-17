@@ -10,7 +10,6 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -172,7 +171,7 @@ public class LoginActivity extends BaseActivity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             Bundle bundle = new Bundle();
             bundle.putParcelable(G.EXTRA_USER, user);
-            bundle.putBoolean(G.EXTRA_ISNEW, true);
+            bundle.putBoolean(G.EXTRA_USER_JUST_LOGGED, true);
             intent.putExtras(bundle);
             
             LoginActivity.this.startActivity(intent);

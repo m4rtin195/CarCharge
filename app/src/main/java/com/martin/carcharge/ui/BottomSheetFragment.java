@@ -18,7 +18,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.martin.carcharge.App;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
-import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.databinding.FragmentBottomsheetBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
@@ -28,7 +27,6 @@ import java.util.List;
 
 public class BottomSheetFragment extends BottomSheetDialogFragment
 {
-    private AppDatabase db;
     private MainViewModel vm;
     
     FragmentBottomsheetBinding binding;
@@ -46,7 +44,6 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         binding = FragmentBottomsheetBinding.inflate(inflater, container, false);
         root = binding.getRoot();
     
-        db = App.getDatabase();
         vm = App.getViewModel();
     
         vm.user().observe(this, this::updateUserFields);
@@ -64,11 +61,12 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
-        vehiclesAdapter = new VehiclesAdapter(requireContext(), db.dao().getAllVehicles());
+        //vehiclesAdapter = new VehiclesAdapter(requireContext(), db.dao().getAllVehicles());
+        vehiclesAdapter = new VehiclesAdapter(requireContext(), vm.getAllVehicles());
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
                 Vehicle currentVehicle = vehiclesAdapter.get(position);
-                vm.updateActualVehicle(currentVehicle);
+                vm.updateVehicle(currentVehicle);
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
@@ -77,6 +75,13 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
             
         root.setOnClickListener(null); //chyti bottomsheet touches, inak by prepadli na scrim
         return root;
+    }
+    
+    @Override
+    public void onDestroyView()
+    {
+        super.onDestroyView();
+        binding = null;
     }
     
     private void updateUserFields(User user)

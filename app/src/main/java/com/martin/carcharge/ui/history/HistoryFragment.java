@@ -1,49 +1,40 @@
 package com.martin.carcharge.ui.history;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.github.florent37.singledateandtimepicker.dialog.SingleDateAndTimePickerDialog;
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.components.MarkerImage;
-import com.github.mikephil.charting.components.MarkerView;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.App;
+import com.martin.carcharge.BaseActivity;
+import com.martin.carcharge.G;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.databinding.FragmentHistoryBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.network.Downloader;
+import com.martin.carcharge.ui.Graph;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Response;
 
 import static java.text.DateFormat.getDateTimeInstance;
 
@@ -55,32 +46,36 @@ public class HistoryFragment extends Fragment
     FragmentHistoryBinding binding;
     View root;
     Toolbar toolbar;
+    ProgressBar progressbar;
     EditText edit_periodFrom, edit_periodTo;
     Button button_load;
     LineChart chart;
     FloatingActionButton fab_action;
     
+    Graph graph;
     SimpleDateFormat formatter;
     Timestamp timestampFrom, timestampTo;
-    long timestampBase;
     
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        ((MainActivity)requireActivity()).setBottomBarVisible(true);
+        ((MainActivity)requireActivity()).setBottomBarVisible(true, true);
         
         binding = FragmentHistoryBinding.inflate(inflater, container, false);
         root = binding.getRoot();
         
         vm = App.getViewModel();
+        //todo observe status change
         
-        historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
-        historyViewModel.getText().observe(getViewLifecycleOwner(), s -> {});
-    
-        formatter = new SimpleDateFormat(new String(), locale());
+        //historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
+        //historyViewModel.getText().observe(getViewLifecycleOwner(), s -> {});
+        
+        formatter = new SimpleDateFormat(new String(), ((MainActivity)requireActivity()).getCurrentLocale());
 
         toolbar = binding.toolbarHistory;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
+    
+        progressbar = binding.progressHistory;
             
         edit_periodFrom = binding.editPeriodFrom;
             edit_periodFrom.setShowSoftInputOnFocus(false);
@@ -116,7 +111,8 @@ public class HistoryFragment extends Fragment
             button_load.setOnClickListener(onLoadClickListener);
     
         chart =  binding.chartHistory;
-            initChart();
+            graph = new Graph(this, chart);
+            graph.initChart();
     
         fab_action = ((MainActivity)requireActivity()).getFab();
             fab_action.setOnClickListener(null);
@@ -131,132 +127,26 @@ public class HistoryFragment extends Fragment
         binding = null;
     }
     
-    private void initChart()
-    {
-        chart.setVisibility(View.VISIBLE);
-        chart.setEnabled(true);
-        chart.setTouchEnabled(true);
-        chart.setDragEnabled(true);
-        chart.setScaleXEnabled(true);
-        chart.setScaleYEnabled(false);
-        chart.setDoubleTapToZoomEnabled(true);
-        
-        chart.setNoDataText(getString(R.string.history_graph_nodata));
-        chart.setMaxVisibleValueCount(10); //show values only when zoomed
-        //chart.animateX(1000, Easing.EaseInOutElastic);
-        chart.setVisibleXRangeMinimum(4); //todo nejde?
-        chart.setVisibleXRangeMaximum(50);
-        chart.setExtraBottomOffset(20);
-    
-        Description description = chart.getDescription();
-        description.setEnabled(false);
-    
-        Legend legend = chart.getLegend();
-        legend.setForm(Legend.LegendForm.CIRCLE);
-        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.RIGHT);
-        legend.setTextColor(getResources().getColor(R.color.tint_blue, requireActivity().getTheme()));
-        legend.setXOffset(0);
-        legend.setYOffset(6);
-        legend.setXEntrySpace(12);
-        
-        XAxis xAxis = chart.getXAxis();
-        xAxis.setEnabled(true);
-        xAxis.setDrawAxisLine(true);
-        xAxis.setDrawGridLines(false);
-        xAxis.setTextColor(Color.WHITE);
-        xAxis.setLabelCount(6, false);
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setGranularity(60000-1); //ani srnka netusi preco -1 ale s 60k to nejde
-        xAxis.setValueFormatter(timeFormatter);
-        xAxis.setLabelRotationAngle(330);
-        xAxis.setDrawLimitLinesBehindData(true);
-    
-        YAxis yAxisL = chart.getAxisLeft();
-        yAxisL.setEnabled(true);
-        yAxisL.setDrawAxisLine(false);
-        yAxisL.setDrawGridLines(false);
-        yAxisL.setTextColor(getResources().getColor(R.color.white, requireActivity().getTheme()));
-        yAxisL.setGridColor(getResources().getColor(R.color.gray_medium, requireActivity().getTheme()));
-        //yAxisL.setAxisMaximum(100);
-        yAxisL.setAxisMinimum(0);
-        yAxisL.setValueFormatter(percentFormatter);
-    
-        YAxis yAxisR = chart.getAxisRight();
-        yAxisR.setEnabled(false);
-        yAxisR.setDrawAxisLine(false);
-        yAxisR.setDrawGridLines(false);
-        yAxisR.setTextColor(getResources().getColor(R.color.white, requireActivity().getTheme()));
-        //yAxisR.setAxisMinimum(-500);
-        yAxisR.setAxisMaximum(500); //todo na listener
-        yAxisR.setInverted(true);
-    }
-    
-    private LineDataSet createDataSet(List<Entry> entries, String label, int color)
-    {
-        LineDataSet set = new LineDataSet(entries, label);
-        set.setLineWidth(3f);
-        set.setColor(color);
-        set.setHighlightEnabled(true);
-        set.setDrawVerticalHighlightIndicator(true);
-        set.setDrawHorizontalHighlightIndicator(false);
-        set.setDrawValues(true);
-        set.setDrawCircles(true);
-        set.setCircleColor(color);
-        set.setDrawCircleHole(false);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        return set;
-    }
-    
-    ValueFormatter timeFormatter = new ValueFormatter()
-    {
-        @Override
-        public String getFormattedValue(float value)
-        {
-            return formatter.format(new Date((long)value+timestampBase));
-        }
-    };
-    
-    ValueFormatter percentFormatter = new ValueFormatter()
-    {
-        @Override
-        public String getFormattedValue(float value)
-        {
-            return String.format(locale(), "%.0f%%", value);
-        }
-    };
-    
-    ValueFormatter amperFormatter = new ValueFormatter()
-    {
-        @Override
-        public String getFormattedValue(float value)
-        {
-            return String.format(locale(), "%.0fA", value);
-        }
-    };
-    
-    Locale locale()
-    {
-        return getResources().getConfiguration().getLocales().get(0);
-    }
     
     SingleDateAndTimePickerDialog.Listener datetimeFromPickerListener = date ->
     {
         timestampFrom = new Timestamp(date.getTime());
-        String string = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale()).format(timestampFrom);
+        DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
+        String string = df.format(timestampFrom);
         edit_periodFrom.setText(string);
     };
     
     SingleDateAndTimePickerDialog.Listener datetimeToPickerListener = date ->
     {
         timestampTo = new Timestamp(date.getTime());
-        String string = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale()).format(timestampTo);
+        DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
+        String string = df.format(timestampTo);
         edit_periodTo.setText(string);
     };
     
     View.OnClickListener onLoadClickListener = view ->
     {
-        /**/ timestampFrom = new Timestamp(1612371300000L); timestampTo = new Timestamp(1613061813000L);
+        /**/ timestampFrom = new Timestamp(1612371300000L); timestampTo = new Timestamp(1614061813000L);
         /**/ if(timestampFrom == null || timestampTo == null) return;
         
         edit_periodFrom.clearFocus();
@@ -268,59 +158,46 @@ public class HistoryFragment extends Fragment
         else
             formatter.applyLocalizedPattern("HH:mm");
     
-        List<VehicleStatus> list = vm.getVehicleStatuses(vm.getActualVehicleId(), timestampFrom, timestampTo);
-        List<Entry> entriesCharge = new ArrayList<>();
-        List<Entry> entriesCurrent = new ArrayList<>();
+        List<VehicleStatus> localList = vm.getVehicleStatuses(vm.getActualVehicleId(), timestampFrom, timestampTo);
+        graph.newChart(localList);
         
-        timestampBase = list.get(0).getTimestamp().getTime();
-        VehicleStatus.State previousState = list.get(0).getState();
-        
-        for(VehicleStatus vs : list)
-        {
-            float x = (vs.getTimestamp().getTime() - timestampBase);
-            entriesCharge.add(new Entry(x, vs.getCurrent_charge()));
-            entriesCurrent.add(new Entry(x, vs.getCurrent()));
-
-            if(vs.getState() != previousState)
-            {
-                previousState = vs.getState();
-                LimitLine ll = new LimitLine(x, new String());
-                ll.setLineColor(getResources().getColor(R.color.gray_medium, requireActivity().getTheme()));
-                ll.enableDashedLine(3, 5, 0);
-                ll.setLabel("Charging");
-                ll.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
-                ll.setYOffset(6);
-                ll.setTextColor(getResources().getColor(R.color.gray_medium, requireActivity().getTheme()));
-                ll.setTextSize(8);
-                chart.getXAxis().addLimitLine(ll);
-            }
+        //network part
+        progressbar.setVisibility(View.VISIBLE);
+        ((MainActivity)requireActivity()).getDownloader()
+                .downloadRange(vm.getActualVehicleId(), timestampFrom, timestampTo, new Downloader.RangeListener()
+                {
+                    @Override
+                    public void onSuccess(@NonNull List<VehicleStatus> remoteList)
+                    {
+                        progressbar.setVisibility(View.INVISIBLE);
+                        vm.addVehicleStatuses(remoteList);
+                        graph.updateChart(remoteList);
+                    }
     
-        }
-        
-        
-        LineDataSet dataSetCharge = createDataSet(entriesCharge, getString(R.string.history_graph_charge_level), getResources().getColor(R.color.alternative_blue, requireActivity().getTheme()));
-            dataSetCharge.setAxisDependency(YAxis.AxisDependency.LEFT);
-            dataSetCharge.setValueFormatter(percentFormatter);
-            dataSetCharge.setDrawFilled(true);
-            dataSetCharge.setFillColor(getResources().getColor(R.color.tint_blue, requireActivity().getTheme()));
-        LineDataSet dataSetCurrent = createDataSet(entriesCurrent, getString(R.string.history_graph_current), getResources().getColor(R.color.alternative_orange, requireActivity().getTheme()));
-            dataSetCurrent.setAxisDependency(YAxis.AxisDependency.RIGHT);
-            dataSetCurrent.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
-            dataSetCurrent.setValueFormatter(amperFormatter);
-            
-        LineData lineData = new LineData(dataSetCharge, dataSetCurrent);
-        chart.setData(lineData);
-        chart.invalidate();
-        //chart.notifyDataSetChanged();
-        //chart.moveViewToX(data.getEntryCount());
-        
+                    @Override
+                    public void onFail(@Nullable Response<?> response)
+                    {
+                        progressbar.setVisibility(View.INVISIBLE);
+                        Snackbar.make(((MainActivity)requireActivity()).getRootLayout(),
+                                "Server request failed.\nShowing local only (" + localList.size() + " entries)",
+                                Snackbar.LENGTH_SHORT)
+                                .setAnchorView(R.id.fab_action).show();
+                    }
+                });
     
-        Snackbar snack = Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), "Found " + list.size() + " entries.", Snackbar.LENGTH_SHORT)
+    
+        G.debug(requireContext(), "Found " + localList.size() + " local entries.");
+        /*Snackbar snack = Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), "Found " + localList.size() + " local entries.", Snackbar.LENGTH_SHORT)
                 .setAnchorView(R.id.fab_action);
         View snackView = snack.getView();
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) snackView.getLayoutParams();
         layoutParams.setMargins(layoutParams.leftMargin + 20,layoutParams.topMargin + 20,layoutParams.rightMargin + 20,layoutParams.bottomMargin + 20);
         snackView.setLayoutParams(layoutParams);
-        snack.show();
+        snack.show();*/
     };
+    
+    public DateFormat getDateFormatter()
+    {
+        return formatter;
+    }
 }

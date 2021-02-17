@@ -51,8 +51,8 @@
     <string name="login_or">alebo</string>
     <string name="not_set" msgid="6573031135582639649">"nenastavené"</string>
     <string name="login_error_hint">Nemôže byť prázdne</string>
-    <string name="preferences_nickname_update_failed">Užívateľské meno úspešne zmenené online.</string>
-    <string name="preferences_nickname_update_success">Zmena užívateľského mena online zlyhala.</string>
+    <string name="preferences_toast_nickname_update_failed">Užívateľské meno úspešne zmenené online.</string>
+    <string name="preferences_toast_nickname_update_success">Zmena užívateľského mena online zlyhala.</string>
     <string name="yes">Áno</string>
     <string name="no">Nie</string>
     <string name="preferences_logout_dialog">Naozaj sa chcete odhlásiť?</string>
@@ -60,14 +60,14 @@
     <string name="toast_fcm_update">Obdržaný nový FCM update</string>
     <string name="preferences_set">nastavené</string>
     <string name="preferences_not_set">nenastavené</string>
-    <string name="toast_refreshed">Aktualizované</string>
+    <string name="toast_refreshed">Aktualizované.</string>
     <string name="welcome_back">Vitaj späť</string>
     <string name="pairing_pair">Spárovať</string>
     <string name="pairing_new_vehicle_id">id vozidla</string>
     <string name="pairing_new_vehicle">Zaregistrovať nové vozidlo</string>
     <string name="appbar_fab_description">hlavné tlačidlo akcie</string>
     <string name="login_email">E-mail:</string>
-    <string name="toast_refresh_fail">Aktualizácia zlyhala</string>
+    <string name="toast_refresh_fail">Aktualizácia zlyhala.</string>
     <string name="uninitialized">Neinicializované</string>
     <string name="home_state_charging">Nabíjanie…</string>
     <string name="home_state_off">Vypnuté</string>
@@ -78,5 +78,8 @@
     <string name="history_graph_charge_level">Úroveň nabitia</string>
     <string name="history_graph_current">Prúd</string>
     <string name="history_graph_nodata">Údaje niesú načítané.</string>
+    <string name="app_map">Mapa</string>
+    <string name="home_connection_icon_desc">ikona typu pripojenia</string>
+    <string name="map_toast_location_access_not_granted">Prístup k polohe nebol udelený.</string>
 
 </resources>

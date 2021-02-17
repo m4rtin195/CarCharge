@@ -16,7 +16,7 @@ public class G
     public static final String tag = "daco";
     public static final String ACTION_BROAD_UPDATE = "com.martin.carcharge.FcmReceiver.update";
     public static final String EXTRA_USER = "com.martin.carcharge.LoginActivity.user";
-    public static final String EXTRA_ISNEW = "com.martin.carcharge.LoginActivity.isNew";
+    public static final String EXTRA_USER_JUST_LOGGED = "com.martin.carcharge.LoginActivity.isNew";
     public static final int RC_SIGN_IN = 9001;
     public static final int RC_FILE_PICKER = 9002;
     public static final int FAB_FLASH = 5001;
@@ -35,9 +35,14 @@ public class G
     public static final String PREF_USER_ICON = "user_icon";
     public static final String PREF_VEHICLE_NAME = "vehicle_name";
     public static final String PREF_VEHICLE_REGPLATE = "vehicle_regplate";
-    public static final String PREF_VEHICLE_CAPACITY = "vehicle_max_voltage";
+    public static final String PREF_VEHICLE_MAX_VOLTAGE = "vehicle_max_voltage";
     public static final String PREF_VEHICLE_IMAGE = "vehicle_image";
     public static final String PREF_ACTUAL_THRESHOLD = "actual_threshold";
+    public static final String PREF_INVALIDATE_CACHE = "invalidate_cache";
+    public static final String PREF_APP_VERSION = "app_version";
+    public static final String PREF_CONTACT_DEVELOPER = "contact_developer";
+    public static final String PREF_LOGOUT = "logout";
+    
     
     
     public static void debug(Context context, String string, Boolean... vibrate)

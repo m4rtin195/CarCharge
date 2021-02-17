@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +36,7 @@ import com.martin.carcharge.G;
 import com.martin.carcharge.LoginActivity;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
+import com.martin.carcharge.models.User;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.databinding.FragmentPreferencesBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
@@ -52,7 +54,6 @@ import static android.app.Activity.RESULT_OK;
 
 public class PreferencesFragment extends PreferenceFragmentCompat
 {
-    private AppDatabase db;
     private SharedPreferences pref;
     private MainViewModel vm;
     private FirebaseAuth auth;
@@ -65,7 +66,10 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     Preference preference_language, preference_fcmEnabled, preference_updateInterval, preference_invalidateCache,
             preference_version, preference_fcmToken, preference_contactDeveloper;
     Preference preference_user, preference_logout,
-            preference_vehicleName, preference_vehicleRegplate, preference_vehicleCapacity, preference_vehicleImage;
+            preference_vehicleName, preference_vehicleRegplate, preference_vehicleMaxVoltage, preference_vehicleImage;
+    
+    User user;
+    Vehicle vehicle;
     
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
@@ -73,105 +77,27 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         setPreferencesFromResource(R.xml.preferences_main, rootKey);
     }
     
-    @SuppressWarnings("ConstantConditions")
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        ((MainActivity)requireActivity()).setBottomBarVisible(false);
+        ((MainActivity)requireActivity()).setBottomBarVisible(false, false);
         
         root = super.onCreateView(inflater, container, savedInstanceState);
+        assert root != null;
         binding = FragmentPreferencesBinding.bind(root);
         
-        db = App.getDatabase();
         pref = App.getPreferences();
         vm = App.getViewModel();
         auth = FirebaseAuth.getInstance();
         
+        user = vm.getUser();
+        vehicle = vm.getActualVehicle();
+        
         toolbar = binding.toolbarPreferences;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
-    
         progressbar = binding.progressPreferences;
-    
-        /***/
         
-        preference_language = findPreference(G.PREF_LANGUAGE);
-            preference_language.setOnPreferenceChangeListener((preference, newValue) ->
-            {
-                //requireActivity().recreate();
-                Intent intent = new Intent(requireContext(), LoginActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                requireActivity().finish();
-                
-                return true;
-            });
-    
-        preference_fcmEnabled = findPreference(G.PREF_FCM_ENABLED);
-            preference_fcmEnabled.setOnPreferenceChangeListener((preference, newValue) ->
-            {
-                preference_updateInterval.setVisible(!(boolean)newValue);
-                return true;
-            });
-    
-        preference_updateInterval = findPreference(G.PREF_FCM_ENABLED);
-            preference_updateInterval.setVisible(!pref.getBoolean(G.PREF_FCM_ENABLED, false));
-            preference_updateInterval.setOnPreferenceChangeListener((preference, newValue) ->
-            {
-                ((MainActivity)requireActivity()).restartDownloader();
-                return true;
-            });
-        
-        preference_invalidateCache = findPreference("invalidate_cache");
-            preference_invalidateCache.setOnPreferenceClickListener(invalidateCache);
-            
-        preference_version = findPreference("version");
-            preference_version.setSummary(BuildConfig.VERSION_NAME);
-            preference_version.setOnPreferenceClickListener(easterEgg);
-    
-        preference_fcmToken = findPreference(G.PREF_FCM_TOKEN);
-            preference_fcmToken.setSummary(pref.getString(G.PREF_FCM_TOKEN, getString(R.string.preferences_unloaded)));
-            
-        preference_contactDeveloper = findPreference("contact_developer");
-            preference_contactDeveloper.setOnPreferenceClickListener(contactDeveloper);
-    
-        /***/
-        
-        preference_user = findPreference(G.PREF_USER_NICKNAME);
-            String title = (pref.getString(G.PREF_USER_NICKNAME, "").isEmpty() ?
-                    getString(R.string.preferences_nickname) : pref.getString(G.PREF_USER_NICKNAME, ""));
-            preference_user.setTitle(title);
-            preference_user.setSummary(pref.getString(G.PREF_USER_EMAIL, ""));
-            //preference_user.setIcon(((MainActivity)requireActivity()).loadCachedUserIcon(pref.getString(G.PREF_USER_ICON, "")));
-            preference_user.setIcon(new BitmapDrawable(getResources(), vm.user().getValue().getIcon()));
-            preference_user.setOnPreferenceChangeListener(nicknameChanged);
-            ((EditTextPreference)preference_user).setOnBindEditTextListener(TextView::setSingleLine);
-            
-        preference_logout = findPreference("logout");
-            preference_logout.setOnPreferenceClickListener(this::onLogoutClick);
-            
-        preference_vehicleName = findPreference(G.PREF_VEHICLE_NAME);
-            preference_vehicleName.setOnPreferenceChangeListener(vehicleModified);
-            ((EditTextPreference)preference_vehicleName).setOnBindEditTextListener(TextView::setSingleLine);
-    
-        preference_vehicleRegplate = findPreference(G.PREF_VEHICLE_REGPLATE);
-            preference_vehicleRegplate.setOnPreferenceChangeListener(vehicleModified);
-            ((EditTextPreference)preference_vehicleRegplate).setOnBindEditTextListener(edit_regplate ->
-            {
-                edit_regplate.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
-                edit_regplate.setSingleLine();
-            });
-    
-        preference_vehicleCapacity = findPreference(G.PREF_VEHICLE_CAPACITY);
-            preference_vehicleCapacity.setOnPreferenceChangeListener(vehicleModified);
-            
-        preference_vehicleImage = findPreference(G.PREF_VEHICLE_IMAGE);
-            String summary = pref.getString(G.PREF_VEHICLE_IMAGE, "").isEmpty() ?
-                    getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
-            preference_vehicleImage.setSummary(summary);
-            preference_vehicleImage.setOnPreferenceClickListener(this::onVehicleImageClick);
-        
-        /***/
-        
+        configPreferences();
         return root;
     }
     
@@ -182,14 +108,104 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         binding = null;
     }
     
-    public boolean onVehicleImageClick(Preference preference)
+    @SuppressWarnings("ConstantConditions")
+    private void configPreferences()
+    {
+        /***/
+        //General & About
+    
+        preference_language = findPreference(G.PREF_LANGUAGE);
+            preference_language.setOnPreferenceChangeListener((preference, newValue) ->
+            {
+                requireActivity().recreate(); //todo preco nie
+                    /*Intent intent = new Intent(requireContext(), LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    requireActivity().finish();*/
+            
+                return true;
+            });
+        
+        preference_fcmEnabled = findPreference(G.PREF_FCM_ENABLED);
+            preference_fcmEnabled.setOnPreferenceChangeListener((preference, newValue) ->
+            {
+                preference_updateInterval.setVisible(!(boolean)newValue);
+                return true;
+            });
+    
+        preference_updateInterval = findPreference(G.PREF_UPDATE_INTERVAL);
+            preference_updateInterval.setVisible(!pref.getBoolean(G.PREF_FCM_ENABLED, false));
+            preference_updateInterval.setOnPreferenceChangeListener((preference, newValue) ->
+            {
+                ((MainActivity)requireActivity()).getDownloader().restart();
+                return true;
+            });
+    
+        preference_invalidateCache = findPreference(G.PREF_INVALIDATE_CACHE);
+            preference_invalidateCache.setOnPreferenceClickListener(onInvalidateCache);
+    
+        preference_version = findPreference(G.PREF_APP_VERSION);
+            preference_version.setSummary(BuildConfig.VERSION_NAME);
+            preference_version.setOnPreferenceClickListener(easterEgg);
+    
+        preference_fcmToken = findPreference(G.PREF_FCM_TOKEN);
+            preference_fcmToken.setSummary(pref.getString(G.PREF_FCM_TOKEN, getString(R.string.preferences_unloaded)));
+    
+        preference_contactDeveloper = findPreference(G.PREF_CONTACT_DEVELOPER);
+            preference_contactDeveloper.setOnPreferenceClickListener(onContactDeveloper);
+    
+            
+        /***/
+        //User & Vehicle
+    
+        preference_user = findPreference(G.PREF_USER_NICKNAME);
+            String nickname = user.getNickname().isEmpty() ?
+                    getString(R.string.preferences_nickname) : user.getNickname();
+            preference_user.setTitle(nickname);
+            preference_user.setSummary(user.getEmail());
+            preference_user.setIcon(new BitmapDrawable(getResources(), user.getIcon()));
+            preference_user.setOnPreferenceChangeListener(onNicknameChanged);
+            ((EditTextPreference)preference_user).setOnBindEditTextListener(TextView::setSingleLine);
+    
+        preference_logout = findPreference(G.PREF_LOGOUT);
+            preference_logout.setOnPreferenceClickListener(onLogout);
+    
+        preference_vehicleName = findPreference(G.PREF_VEHICLE_NAME);
+            //preference_vehicleName.setSummary(vehicle.getName());
+            preference_vehicleName.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleName).setOnBindEditTextListener(TextView::setSingleLine);
+    
+        preference_vehicleRegplate = findPreference(G.PREF_VEHICLE_REGPLATE);
+            //preference_vehicleRegplate.setSummary(vehicle.getRegNumber());
+            preference_vehicleRegplate.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleRegplate).setOnBindEditTextListener(edit_regplate ->
+            {
+                edit_regplate.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
+                edit_regplate.setSingleLine();
+            });
+    
+        preference_vehicleMaxVoltage = findPreference(G.PREF_VEHICLE_MAX_VOLTAGE);
+            //preference_vehicleMaxVoltage.setSummary(vehicle.getMaxVoltage());
+            preference_vehicleMaxVoltage.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleMaxVoltage).setOnBindEditTextListener(editText ->
+                editText.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL));
+    
+        preference_vehicleImage = findPreference(G.PREF_VEHICLE_IMAGE);
+            String summary = vehicle.getImageFile().isEmpty() ?
+                    getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
+            preference_vehicleImage.setSummary(summary);
+            preference_vehicleImage.setOnPreferenceClickListener(onVehicleImageClick);
+    }
+    
+    OnPreferenceClickListener onVehicleImageClick = preference ->
     {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, G.RC_FILE_PICKER);
         return true;
-    }
+    };
     
+    //for vehicle image picker
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
@@ -205,19 +221,21 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                         if(!path.mkdir())
                             throw new IOException();
                         
-                    File file = File.createTempFile("vehicleimage_", ".aaa", path);
-                    Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    pref.edit().putString(G.PREF_VEHICLE_IMAGE, file.getName()).apply();
+                    File newFile = File.createTempFile("vehicleimage_", ".aaa", path); //todo zistit priponu
+                    Files.copy(is, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    
+                    File oldFile = new File(requireActivity().getFilesDir().toString() + "/media/" + vehicle.getImageFile());
+                    if(oldFile.exists())
+                        oldFile.delete();
+                    
+                    onVehicleModified.onPreferenceChange(preference_vehicleImage, newFile.getName());
                 }
                 catch(IOException e) {e.printStackTrace();}
             }
-    
-            vehicleModified.onPreferenceChange(preference_vehicleImage, pref.getString(G.PREF_VEHICLE_IMAGE, ""));
-            preference_vehicleImage.setSummary(getString(R.string.preferences_set));
         }
     }
     
-    private boolean onLogoutClick(Preference preference)
+    OnPreferenceClickListener onLogout = preference ->
     {
         AlertDialog.Builder confirmDialog = new AlertDialog.Builder(requireContext());
         confirmDialog.setTitle(getString(R.string.preferences_logout_dialog));
@@ -226,7 +244,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         confirmDialog.show();
         
         return true;
-    }
+    };
     
     private void logout() //todo move all to vm
     {
@@ -236,11 +254,12 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         //remove shared-pref
         pref.edit()
                 .remove(G.PREF_LAST_VEHICLE_ID)
-                .remove(G.PREF_USER_NICKNAME).remove(G.PREF_USER_EMAIL).remove(G.PREF_USER_ICON)
-                .remove(G.PREF_VEHICLE_NAME).remove(G.PREF_VEHICLE_REGPLATE).remove(G.PREF_VEHICLE_CAPACITY).remove(G.PREF_VEHICLE_IMAGE)
+                //.remove(G.PREF_USER_NICKNAME).remove(G.PREF_USER_EMAIL).remove(G.PREF_USER_ICON)
+                //.remove(G.PREF_VEHICLE_NAME).remove(G.PREF_VEHICLE_REGPLATE).remove(G.PREF_VEHICLE_MAX_VOLTAGE).remove(G.PREF_VEHICLE_IMAGE)
             .apply();
         
         //remove database tables
+        AppDatabase db = App.getDatabase();
         db.dao().deleteAllVehicles();
         db.dao().deleteAllStatuses();
         
@@ -269,16 +288,17 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 file.delete();
         }
     
-        List<Vehicle> vehicles = db.dao().getAllVehicles(); //todo arraylist?
-        for(Vehicle vehicle : vehicles)
+        List<Vehicle> vehicles = vm.getAllVehicles();
+        for(Vehicle v : vehicles)
         {
-            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + vehicle.getImageFile());
+            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + v.getImageFile());
             if(file.exists())
                 file.delete();
         }
     }
     
-    OnPreferenceChangeListener nicknameChanged = (preference, newValue) ->
+    
+    OnPreferenceChangeListener onNicknameChanged = (preference, newValue) ->
     {
         progressbar.setVisibility(View.VISIBLE);
         FirebaseUser user = Objects.requireNonNull(auth.getCurrentUser());
@@ -291,10 +311,10 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                                 getString(R.string.preferences_nickname) : newValue.toString());
                         preference_user.setTitle(title);
                         ((EditTextPreference) preference_user).setText(newValue.toString()); //interne ulozi aj do shared
-                        Snackbar.make(root, getString(R.string.preferences_nickname_update_success), Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_success), Snackbar.LENGTH_SHORT).show();
                     }
                     else
-                        Snackbar.make(root, getString(R.string.preferences_nickname_update_failed), Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_failed), Snackbar.LENGTH_LONG).show();
                     
                     progressbar.setVisibility(View.INVISIBLE);
                 });
@@ -302,33 +322,43 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         return false;
     };
     
-    OnPreferenceChangeListener vehicleModified = (preference, newValue) ->
+    OnPreferenceChangeListener onVehicleModified = (preference, newValue) ->
     {
-        Vehicle vehicle = vm.vehicle().getValue();
         if(vehicle != null)
         {
             if(preference.equals(preference_vehicleName))
-                vehicle.setName((String)newValue);
+            {
+                vehicle.setName((String) newValue);
+                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
+            }
             if(preference.equals(preference_vehicleRegplate))
-                vehicle.setRegNumber((String)newValue);
-            if(preference.equals(preference_vehicleCapacity))
-                vehicle.setBatteryMaxVoltage(Integer.parseInt((String)newValue)); //todo check format}
+            {
+                vehicle.setRegNumber((String) newValue);
+                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
+            }
+            if(preference.equals(preference_vehicleMaxVoltage))
+            {
+                vehicle.setMaxVoltage(Integer.parseInt((String) newValue));
+                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
+            }
             if(preference.equals(preference_vehicleImage))
-                vehicle.setImageFile((String)newValue);
+            {
+                vehicle.setImageFile((String) newValue);
+                preference_vehicleImage.setSummary(getString(R.string.preferences_set));
+            }
         }
-        
-        vm.updateActualVehicle(vehicle);
+        vm.updateVehicle(vehicle);
         return true;
     };
     
-    OnPreferenceClickListener invalidateCache = preference ->
+    OnPreferenceClickListener onInvalidateCache = preference ->
     {
-        db.dao().deleteAllStatuses(); //todo to viewmodel
-        Snackbar.make(root, getString(R.string.preferences_invalidate_cache_dialog), Snackbar.LENGTH_SHORT).show();
+        vm.deleteAllVehicleStatuses();
+        Snackbar.make(root, PreferencesFragment.this.getString(R.string.preferences_invalidate_cache_dialog), Snackbar.LENGTH_SHORT).show();
         return true;
     };
     
-    OnPreferenceClickListener contactDeveloper = preference ->
+    OnPreferenceClickListener onContactDeveloper = preference ->
     {
         String body =
                 "\n\n-----------------------------" +

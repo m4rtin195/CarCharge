@@ -43,12 +43,11 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.Downloader;
 
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
-import java.util.Date;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
+
+import retrofit2.Response;
 
 public class MainActivity extends BaseActivity
 {
@@ -68,6 +67,7 @@ public class MainActivity extends BaseActivity
     
     Downloader downloader;
     BroadcastReceiver fcmReceiver;
+    boolean appJustLaunched;
     
     
     @SuppressLint("ClickableViewAccessibility")
@@ -110,39 +110,32 @@ public class MainActivity extends BaseActivity
         fcmReceiver = new FcmReceiver();
     
         //todo tu alebo v onStart?
-        User user = (User) getIntent().getExtras().get(G.EXTRA_USER);
-        vm.setUser(user);
-        if(getIntent().getExtras().getBoolean(G.EXTRA_ISNEW, false))
-            Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
-                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
         
+        
+        appJustLaunched = true;
     } //onCreate
     
     @Override
     public void onStart()
     {
         super.onStart();
+    
+        User user = (User) getIntent().getExtras().get(G.EXTRA_USER);
+        vm.setUser(user);
+        if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
+            Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
+                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
         
         vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading));
     
         new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
-            VehicleStatus vs = vm.getLastVehicleStatus(vm.getActualVehicleId());
-            if(vs != null)
-            {
-                long diff = new Date().getTime() - vs.getTimestamp().getTime();
-                if(diff < pref.getLong(G.PREF_ACTUAL_THRESHOLD, 300))
-                {
-                    Log.i(G.tag, "Have actual status, old: " + diff + " sedonds");
-                    vm.updateVehicleStatus(vs);
-                }
-            }
+            vm.updateVehicleStatus(vm.getActualVehicleStatus(vm.getActualVehicleId()));
             
-            if(!pref.getBoolean(G.PREF_FCM_ENABLED, false)) //automatic downloading
-                if(!downloader.start())                               //is not enabled
-                    if(!downloader.download())                        //download once
-                        vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Unknown)); //if not successful
-            //todo check it
+            if(!pref.getBoolean(G.PREF_FCM_ENABLED, false))                           //automatic downloading
+                if(!downloader.start(vm.getActualVehicleId(), autoNewDataListener))               //is not enabled
+                    downloader.downloadLast(vm.getActualVehicleId(), autoNewDataListener);
+        
         }, 1000);
         
         lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
@@ -188,15 +181,61 @@ public class MainActivity extends BaseActivity
         
         if(item.getItemId() == R.id.menu_refresh)
         {
-            boolean b = downloader.download();
-            if(b)
-                showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
-            else
-                showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
+            downloader.downloadLast(vm.getActualVehicleId(), manualNewDataListener);
         }
     
         return true;
     }
+    
+    public Downloader.Listener autoNewDataListener = new Downloader.Listener()
+    {
+        @Override
+        public void onSuccess(@NotNull VehicleStatus vs)
+        {
+            if(vs.getVehicleId() == vm.getActualVehicleId())
+                vm.updateVehicleStatus(vs);
+            else
+            {
+                Log.w(G.tag, "Received status is not for current selected vehicle!");
+                onFail(null);
+            }
+        }
+        @Override
+        public void onFail(Response<?> response)
+        {
+            G.debug(getApplication(), getString(R.string.toast_refresh_fail));
+        }
+    };
+    
+    public Downloader.Listener manualNewDataListener = new Downloader.Listener()
+    {
+        @Override
+        public void onSuccess(@NotNull VehicleStatus vs)
+        {
+            if(vs.getVehicleId() == vm.getActualVehicleId())
+            {
+                vm.updateVehicleStatus(vs);
+                showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
+            }
+            else
+            {
+                Log.w(G.tag, "Received status is not for current selected vehicle!");
+                onFail(null);
+            }
+        }
+        @Override
+        public void onFail(Response<?> response)
+        {
+            if(appJustLaunched)
+            {
+                appJustLaunched = false;
+                if(vm.getActualVehicleStatus())
+                vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Unknown));
+            }
+            else
+                showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
+        }
+    };
     
     /**********/
     
@@ -209,10 +248,10 @@ public class MainActivity extends BaseActivity
     }
     
     
-    View.OnClickListener onActionClickListener_flash = view ->
+    View.OnClickListener onActionClickListener_flash = (View view) ->
     {
-        Toast.makeText(this, "click", Toast.LENGTH_SHORT).show();
-        downloader.download();
+        Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
+        downloader.downloadLast(vm.getActualVehicleId(), null);
     };
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->
@@ -264,9 +303,9 @@ public class MainActivity extends BaseActivity
         }
     }
     
-    public void restartDownloader()
+    public Downloader getDownloader()
     {
-        downloader.restart();
+        return downloader;
     }
     
     public void setBottomSheetExpanded(boolean b)
@@ -293,12 +332,12 @@ public class MainActivity extends BaseActivity
         }
     }
     
-    public void setBottomBarVisible(boolean v)
+    public void setBottomBarVisible(boolean bar, boolean fab)
     {
-        if(v) bottomBar.performShow();
+        if(bar) bottomBar.performShow();
         else bottomBar.performHide();
-        bottomBar.setHideOnScroll(v);
-        fab_action.setVisibility(v ? View.VISIBLE : View.GONE);
+        bottomBar.setHideOnScroll(bar);
+        fab_action.setVisibility(fab ? View.VISIBLE : View.GONE);
     }
     
     public View getRootLayout()

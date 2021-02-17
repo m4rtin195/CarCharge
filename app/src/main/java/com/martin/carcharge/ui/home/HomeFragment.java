@@ -1,78 +1,112 @@
 package com.martin.carcharge.ui.home;
 
-import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.martin.carcharge.App;
+import com.martin.carcharge.BaseActivity;
 import com.martin.carcharge.G;
 import com.martin.carcharge.MainActivity;
-import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.R;
+import com.martin.carcharge.databinding.FragmentHomeBinding;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.storage.Converters;
+
+import java.util.Locale;
 
 public class HomeFragment extends Fragment
 {
-    private SharedPreferences pref;
+    //private SharedPreferences pref;
     private MainViewModel vm;
     
+    FragmentHomeBinding binding;
+    View root;
     TextView text_vehicleName, text_regNumber, text_state, text_charge;
-    ImageView image_vehicle;
+    ImageView image_vehicle, image_connectivity;
     ProgressBar progress_charge;
     TextView text_voltage, text_tVoltage, text_current, text_maxCurrent,
             text_chargingTime, text_remainTime,
             text_approach, text_fuel, text_location,
             text_indoorTemp, text_outdoorTemp, text_desiredTemp;
     
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        ((MainActivity)requireActivity()).setBottomBarVisible(true);
-        
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        ((MainActivity)requireActivity()).setBottomBarVisible(true, true);
     
-        pref = App.getPreferences();
+        //pref = App.getPreferences();
         vm = App.getViewModel();
         
-        findViews(root);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        root = binding.getRoot();
+        
+        findViews();
+        binding.layoutLocation.setOnClickListener(onLocationTileClickListener);
+        
+        image_connectivity.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Log.i("daco", "clicked");
+                TextView aa = new TextView(requireContext());
+                aa.setPadding(32,32,32,32);
+                aa.setGravity(Gravity.END);
+                aa.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END); //todo co z toho?
+                aa.setText("Connected via Wi-Fi \nUpdated: 16:32:05");
+                PopupWindow popupWindow = new PopupWindow(aa, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+    
+                popupWindow.setTouchable(true);
+                //popupWindow.
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.home_tile, requireActivity().getTheme()));
+                popupWindow.showAsDropDown(binding.imageConnectivity, -350, 50, Gravity.LEFT);
+            }
+        });
     
         vm.vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
-        vm.vehicleStatus().observeForever(this::updateStatusFields); //todo forever?
+        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateStatusFields);
     
         return root;
     }
     
-    void updateVehicleFields(Vehicle vehicle)
+    @Override
+    public void onDestroyView()
     {
-        Log.i(G.tag, "observed vehicle change.");
-        text_vehicleName.setText(vehicle.getName());
-        text_regNumber.setText(vehicle.getRegNumber());
-        if(vehicle.getImageFile().isEmpty())
-            image_vehicle.setImageResource(R.drawable.vehicle_placeholder);
-        else
-        {
-            Uri uri = Uri.parse(requireActivity().getFilesDir() + "/media/" + vehicle.getImageFile());
-            image_vehicle.setImageURI(uri); //todo
-        }
+        super.onDestroyView();
+        binding = null;
     }
     
-    @SuppressLint("DefaultLocale") //todo prec
+    void updateVehicleFields(Vehicle vehicle)
+    {
+        Log.d(G.tag, "observed vehicle change.");
+        
+        text_vehicleName.setText(vehicle.getName());
+        text_regNumber.setText(vehicle.getRegNumber());
+        image_vehicle.setImageBitmap(vehicle.getImage());
+        updateStatusFields(vm.getActualVehicleStatus(vehicle.getId()));
+    }
+    
     void updateStatusFields(VehicleStatus vs)
     {
-        Log.i(G.tag, "observed status change.");
-        
-        int maxVoltage = 851; //todo load odniekial
+        Log.d(G.tag, "observed status change.");
         
         if(vs.getState() == VehicleStatus.State.Loading)
         {
@@ -80,65 +114,68 @@ public class HomeFragment extends Fragment
             return;
         }
         
-        if(vs.getState() != null) text_state.setText(stateToString(vs.getState()));
-        text_charge.setText(String.format("%d%%", vs.getCurrent_charge()));
+        Locale l = ((BaseActivity)requireActivity()).getCurrentLocale();
+        Vehicle v = vm.getVehicleByStatus(vs);
+        int maxVoltage = getMaxVoltage();
+        
+        //topscreen
+        if(vs.getState() != null) text_state.setText(vs.getState().asString(requireContext(), true));
+        text_charge.setText(String.format(l, "%d%%", vs.getCurrent_charge()));
         progress_charge.setIndeterminate(false);
         progress_charge.setProgress(vs.getCurrent_charge(),true);
         progress_charge.setSecondaryProgress(vs.getTarget_charge());
         
-        text_voltage.setText(String.format("%.1fV", (vs.getCurrent_charge()/100f)*maxVoltage));
-        text_tVoltage.setText(String.format("%.0fV", (vs.getTarget_charge()/100f)*maxVoltage));
-        text_current.setText(String.format("%+dA", vs.getCurrent())); //todo a minus?
-        //text_maxCurrent.setText(vs.g);
+        //tiles
+        text_voltage.setText(String.format(l, "%.1fV", (vs.getCurrent_charge()/100f)*maxVoltage));
+        text_tVoltage.setText(String.format(l, "%.0fV", (vs.getTarget_charge()/100f)*maxVoltage));
+        text_current.setText(String.format(l, "%+dA", vs.getCurrent()));
+        text_maxCurrent.setText(vs.getMax_current() != Integer.MIN_VALUE ?
+                String.format(l, "%dA", vs.getMax_current()) : "-");
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
-        text_approach.setText(String.format("%dkm", vs.getRange()));
-        //text_location.setText("49°12’32”N  18°45’36”E");
-        text_outdoorTemp.setText(String.format("%.1f°C", vs.getOutdoor_temperature()));
-        text_indoorTemp.setText(String.format("%.1f°C", vs.getIndoor_temperature()));
-        //text_desiredTemp.setText("20.0°C");
-    }
-    
-    private String stateToString(VehicleStatus.State st)
-    {
-        String s = new String();
+        text_approach.setText(String.format(l, "%dkm", vs.getRange()));
+        text_location.setText(Converters.LocationToFormattedString(vs.getLocation()));
+        text_outdoorTemp.setText(String.format(l, "%.1f°C", vs.getOutdoor_temperature()));
+        text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
+        text_desiredTemp.setText(vs.getDesired_temperature() != Float.MIN_VALUE ?
+                String.format(l, "%.1f°C", vs.getDesired_temperature()) : "-");
         
-        if(st == VehicleStatus.State.Unknown) s = getString(R.string.home_state_unknown);
-        if(st == VehicleStatus.State.Loading) s = getString(R.string.home_state_loading);
-        if(st == VehicleStatus.State.Off) s = getString(R.string.home_state_off);
-        if(st == VehicleStatus.State.Charging) s = getString(R.string.home_state_charging);
-        if(st == VehicleStatus.State.Idle) s = getString(R.string.home_state_idle);
-        if(st == VehicleStatus.State.Driving) s = getString(R.string.home_state_driving);
-    
-        return s;
+        switch(vs.getConnectivity())
+        {
+            case Unknown:  /*image_connectivity.setImageResource(R.drawable.ic_offline3);*/ break;
+            case NotConnected: image_connectivity.setImageResource(R.drawable.ic_offline2); break;
+            case Sigfox: /*image_connectivity.setImageResource(R.drawable.ic_iot);*/ break;
+            case WiFi: image_connectivity.setImageResource(R.drawable.ic_wifi); break;
+        }
     }
     
     public void loading()
     {
         text_state.setText(getString(R.string.home_state_loading));
-        progress_charge.setIndeterminate(true);
+        //progress_charge.setIndeterminate(true);
     }
     
-    private void findViews(View root)
+    private void findViews()
     {
-        text_vehicleName = root.findViewById(R.id.text_vehicleName);
-        text_regNumber = root.findViewById(R.id.text_regNumber);
-        image_vehicle = root.findViewById(R.id.image_vehicle);
-        text_state = root.findViewById(R.id.text_state);
-        text_charge = root.findViewById(R.id.text_charge);
-        progress_charge = root.findViewById(R.id.progress_charge);
-        text_voltage = root.findViewById(R.id.text_voltage);
-        text_tVoltage = root.findViewById(R.id.text_tVoltage);
-        text_current = root.findViewById(R.id.text_current);
-        text_maxCurrent = root.findViewById(R.id.text_maxCurrent);
-        text_chargingTime = root.findViewById(R.id.text_chargingTime);
-        text_remainTime = root.findViewById(R.id.text_remainTime);
-        text_approach = root.findViewById(R.id.text_approach);
-        text_fuel = root.findViewById(R.id.text_fuel);
-        text_location = root.findViewById(R.id.text_location);
-        text_indoorTemp = root.findViewById(R.id.text_indoorTemp);
-        text_outdoorTemp = root.findViewById(R.id.text_outdoorTemp);
-        text_desiredTemp = root.findViewById(R.id.text_desiredTemp);
+        text_vehicleName = binding.textVehicleName;
+        text_regNumber = binding.textRegNumber;
+        image_vehicle = binding.imageVehicle;
+        image_connectivity = binding.imageConnectivity;
+        text_state = binding.textState;
+        text_charge = binding.textCharge;
+        progress_charge = binding.progressCharge;
+        text_voltage = binding.textVoltage;
+        text_tVoltage = binding.textTVoltage;
+        text_current = binding.textCurrent;
+        text_maxCurrent = binding.textMaxCurrent;
+        text_chargingTime = binding.textChargingTime;
+        text_remainTime = binding.textRemainTime;
+        text_approach = binding.textApproach;
+        text_fuel = binding.textFuel;
+        text_location = binding.textLocation;
+        text_indoorTemp = binding.textIndoorTemp;
+        text_outdoorTemp = binding.textOutdoorTemp;
+        text_desiredTemp = binding.textDesiredTemp;
     }
     
     private String minsToTime(int mins)
@@ -150,4 +187,17 @@ public class HomeFragment extends Fragment
         
         return (days>0 ? (days + "d ") : "") + (hours>0 ? (hours + "h ") : "") + minutes + "m";
     }
+    
+    View.OnClickListener onLocationTileClickListener = new View.OnClickListener()
+    {
+        @Override
+        public void onClick(View v)
+        {
+            if(vm.getActualVehicleStatus(vm.getActualVehicleId()).getLocation() != null)
+            {
+                NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
+                navController.navigate(R.id.navigation_action_home_to_map);
+            }
+        }
+    };
 }

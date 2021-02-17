@@ -50,7 +50,6 @@
                 android:singleLine="true"
                 android:textColor="@color/white_shade"
                 tools:text="martin.timko195@gmail.com" />
-    
         </LinearLayout>
         
         <ImageButton
@@ -63,7 +62,6 @@
             android:contentDescription="@string/app_preferences"
             android:padding="3dp"
             app:srcCompat="@drawable/ic_settings" />
-
     </LinearLayout>
     
     <View
@@ -78,6 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginVertical="8dp"
         android:scrollbars="none"
+        android:paddingBottom="24dp"
         app:layoutManager="LinearLayoutManager"
         tools:itemCount="3"
         tools:listitem="@layout/row_vehicle" />

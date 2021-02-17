@@ -4,11 +4,13 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.martin.carcharge.R;
+import com.martin.carcharge.databinding.RowVehicleBinding;
 import com.martin.carcharge.models.Vehicle;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,9 +40,10 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
     @Override
     public void onBindViewHolder(VehicleHolder holder, int position)
     {
-        Vehicle vehicle = array.get(position);
-        holder.text_vehicleName.setText(vehicle.getName());
-        holder.text_vehicleState.setText("not implemented");
+        Vehicle v = array.get(position);
+        holder.text_vehicleName.setText(v.getName());
+        holder.text_vehicleState.setText("Last status: not implemented");
+        holder.image_vehicleIcon.setImageBitmap(v.getImage());
     }
     
     @Override
@@ -80,13 +83,17 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
     
     public class VehicleHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
+        protected ImageView image_vehicleIcon;
         protected TextView text_vehicleName, text_vehicleState;
         
         VehicleHolder(View itemView)
         {
             super(itemView);
-            text_vehicleName = itemView.findViewById(R.id.text_vehicleName2);
-            text_vehicleState = itemView.findViewById(R.id.text_vehicleState);
+            
+            RowVehicleBinding binding = RowVehicleBinding.bind(itemView);
+            image_vehicleIcon = binding.imageVehicleIcon;
+            text_vehicleName = binding.textVehicleName2;
+            text_vehicleState = binding.textVehicleState;
             
             itemView.setOnClickListener(this);
         }

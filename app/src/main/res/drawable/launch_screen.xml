@@ -10,7 +10,7 @@
 
     <item>
         <bitmap
-            android:src="@drawable/ic_appicon"
+            android:src="@drawable/bm_appicon"
             android:gravity="center"/>
     </item>
 </layer-list>

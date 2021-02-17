@@ -13,6 +13,7 @@
             android:title="Martin Timko"
             android:dialogTitle="@string/preferences_nickname"
             android:summary="@string/preferences_unloaded"
+            android:persistent="false"
             app:positiveButtonText="@string/preferences_save" />
         
         <Preference
@@ -79,6 +80,7 @@
             android:key="vehicle_name"
             android:title="@string/preferences_vehicle_name"
             android:icon="@drawable/ic_vehicle"
+            android:persistent="false"
             app:positiveButtonText="@string/preferences_save"
             app:useSimpleSummaryProvider="true" />
     
@@ -87,6 +89,7 @@
             android:key="vehicle_regplate"
             android:title="@string/preferences_vehicle_regplate"
             android:icon="@drawable/ic_regplate"
+            android:persistent="false"
             app:positiveButtonText="@string/preferences_save"
             app:useSimpleSummaryProvider="true" />
     
@@ -95,6 +98,7 @@
             android:key="vehicle_max_voltage"
             android:title="@string/preferences_vehicle_max_voltage"
             android:icon="@drawable/ic_battery"
+            android:persistent="false"
             app:positiveButtonText="@string/preferences_save"
             app:useSimpleSummaryProvider="true"
             android:enabled="false" />
@@ -104,7 +108,7 @@
             android:key="vehicle_image"
             android:title="@string/preferences_image"
             android:summary="@string/preferences_not_set"
-            android:icon="@drawable/ic_image" />
+            android:icon="@drawable/ic_image"/>
         
     </PreferenceCategory>
     
@@ -120,7 +124,7 @@
         
         <Preference
             android:id="@+id/preference_version"
-            android:key="version"
+            android:key="app_version"
             android:title="@string/preferences_version"
             android:summary="@string/preferences_unloaded"
             app:iconSpaceReserved="false" />

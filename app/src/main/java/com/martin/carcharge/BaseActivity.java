@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -87,5 +88,15 @@ public class BaseActivity extends AppCompatActivity
         if(tempStringTokenizer.hasMoreTokens())
             country = (String) tempStringTokenizer.nextElement();
         return new Locale(language, country);
+    }
+    
+    public Locale getCurrentLocale()
+    {
+        return getResources().getConfiguration().getLocales().get(0);
+    }
+    
+    public int getResColor(int resoruceId)
+    {
+        return getResources().getColor(resoruceId, getTheme());
     }
 }

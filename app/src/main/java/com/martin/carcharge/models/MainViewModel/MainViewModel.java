@@ -1,5 +1,6 @@
 package com.martin.carcharge.models.MainViewModel;
 
+import android.app.Application;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -12,12 +13,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.martin.carcharge.App;
 import com.martin.carcharge.G;
-import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.storage.AppDatabase;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +37,7 @@ public class MainViewModel extends AndroidViewModel
     private final MutableLiveData<VehicleStatus> vehicleStatus;
     
     
-    public MainViewModel(@NonNull android.app.Application context)
+    public MainViewModel(@NonNull Application context)
     {
         super(context);
         skuska = new Skuska(this);
@@ -52,8 +55,9 @@ public class MainViewModel extends AndroidViewModel
     
     private void _initRepositories()
     {
-        _loadLastVehicle();
+        Log.i("daco", "initRepositories");
         _loadVehiclesRepo();
+        _loadLastVehicle();
     }
     
     
@@ -64,6 +68,11 @@ public class MainViewModel extends AndroidViewModel
     public LiveData<User> user()
     {
         return user;
+    }
+    
+    public User getUser()
+    {
+        return user.getValue();
     }
     
     public void setUser(User u)
@@ -89,7 +98,20 @@ public class MainViewModel extends AndroidViewModel
     
     public long getActualVehicleId()
     {
-        return vehicle.getValue().getId();
+        if(vehicle.getValue() != null)
+            return vehicle.getValue().getId();
+        else
+            return 0;
+    }
+    
+    public Vehicle getActualVehicle()
+    {
+        return vehicle.getValue();
+    }
+    
+    public Vehicle getVehicleByStatus(VehicleStatus vs)
+    {
+        return _getVehicle(vs.getVehicleId());
     }
     
     public List<Vehicle> getAllVehicles()
@@ -97,21 +119,21 @@ public class MainViewModel extends AndroidViewModel
         return this.vehiclesRepo;
     }
     
-    public void fillVehiclesRepo(ArrayList<Vehicle> bundle)
+    public void addToVehiclesRepo(List<Vehicle> bundle)
     {
         this.vehiclesRepo.addAll(bundle);
     }
     
-    public void updateActualVehicle(Vehicle v)
+    public void updateVehicle(Vehicle v)
     {
         db.dao().updateVehicle(v);
-        pref.edit()
+        /*pref.edit()
                 .putLong(G.PREF_LAST_VEHICLE_ID, v.getId())
                 .putString(G.PREF_VEHICLE_NAME, v.getName())
                 .putString(G.PREF_VEHICLE_REGPLATE, v.getRegNumber())
                 //.putInt(G.PREF_VEHICLE_CAPACITY, v.getBatteryCapacity())
                 .putString(G.PREF_VEHICLE_IMAGE, v.getImageFile())
-            .apply();
+            .apply();*/
         
         this.vehicle.setValue(v);
     }
@@ -122,7 +144,6 @@ public class MainViewModel extends AndroidViewModel
         v.setName(name);
         long id = db.dao().insertVehicle(v);
         v.setId(id);
-        
         _addToVehiclesRepo(v);
         return v;
     }
@@ -144,9 +165,26 @@ public class MainViewModel extends AndroidViewModel
             _addToStatusesRepo(vs);
     }
     
-    public VehicleStatus getLastVehicleStatus(long vehicleId)
+    public VehicleStatus getActualVehicleStatus(long vehicleId)
     {
-        return db.dao().getLastStatus(vehicleId);
+        VehicleStatus vs = db.dao().getLastStatus(vehicleId);
+        
+        
+        if(vs == null) return new VehicleStatus(VehicleStatus.State.Unknown);
+        
+        //long diff = new Date().getTime() - vs.getTimestamp().getTime();
+        //if(diff < pref.getLong(G.PREF_ACTUAL_THRESHOLD, 300)*1000)
+        long thresholdVal = pref.getLong(G.PREF_ACTUAL_THRESHOLD, 300);
+        Instant timeThreshold = Instant.now().minus(thresholdVal, ChronoUnit.MINUTES);
+        if(Instant.ofEpochMilli(vs.getTimestamp().getTime()).isBefore(timeThreshold))
+        {
+            return vs;
+        }
+        else
+        {
+            Log.i(G.tag, "Dont have actual status, returning unknown one");
+            return new VehicleStatus(VehicleStatus.State.Unknown);
+        }
     }
     
     public List<VehicleStatus> getVehicleStatuses(long vehicleId, Timestamp from, Timestamp to)
@@ -154,11 +192,16 @@ public class MainViewModel extends AndroidViewModel
         return db.dao().getStatuses(vehicleId, from, to);
     }
     
-    public void addVehicleStatuses(ArrayList<VehicleStatus> bundle)
+    public void addVehicleStatuses(List<VehicleStatus> bundle)
     {
         db.dao().insertStatuses(bundle);
     }
     
+    
+    public void deleteAllVehicleStatuses()
+    {
+        db.dao().deleteAllStatuses();
+    }
     
     
     /**********/
@@ -175,12 +218,11 @@ public class MainViewModel extends AndroidViewModel
         if(lastVehicleId == 0) //last id not set  //app first launch
         {
             Log.i(G.tag,"Last used vehicle not set. Creating new vehicle.");
-            Vehicle v = new Vehicle();
-            v.setName("New vehicle");
-            lastVehicleId = db.dao().insertVehicle(v);
+            Vehicle v = createVehicle("New vehicle");
+            lastVehicleId = v.getId();
             pref.edit().putLong(G.PREF_LAST_VEHICLE_ID, lastVehicleId).apply();
         }
-        if(db.dao().getVehicle(lastVehicleId) == null) //not exist in database
+        if(_getVehicle(lastVehicleId) == null) //not found
         {
             Log.e(G.tag,"Last used vehicle not found in database. Clearing last flag.");
             pref.edit().remove(G.PREF_LAST_VEHICLE_ID).apply();
@@ -188,8 +230,18 @@ public class MainViewModel extends AndroidViewModel
             return;
         }
         
-        Vehicle v = db.dao().getVehicle(lastVehicleId); //valid load
+        Vehicle v = _getVehicle(lastVehicleId); //valid load
         this.vehicle.setValue(v);
+    }
+    
+    private Vehicle _getVehicle(long id)
+    {
+        List<Vehicle> list = getAllVehicles();
+        for(Vehicle v : list)
+            if(v.getId() == id)
+                return v;
+        
+        return null;
     }
     
     private void _loadVehiclesRepo()
@@ -197,7 +249,11 @@ public class MainViewModel extends AndroidViewModel
         int i = vehiclesRepo.size();
         assert i==0 : "populating not-empty vehiclesRepo!!";
         
-        vehiclesRepo.addAll(db.dao().getAllVehicles());
+        List<Vehicle> list = db.dao().getAllVehicles();
+        for(Vehicle v : list)
+            v.loadVehicleImage(getApplication().getApplicationContext());
+        
+        vehiclesRepo.addAll(list);
     }
     
     
@@ -225,7 +281,7 @@ public class MainViewModel extends AndroidViewModel
     
     
     /**********/
-    //factory
+    //viewmodel factory
     
     public static class Factory extends ViewModelProvider.NewInstanceFactory
     {

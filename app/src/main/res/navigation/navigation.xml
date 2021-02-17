@@ -17,6 +17,9 @@
         <action
             android:id="@+id/navigation_action_home_to_preferences"
             app:destination="@id/navigation_preferences" />
+        <action
+            android:id="@+id/navigation_action_home_to_map"
+            app:destination="@id/navigation_map" />
     </fragment>
 
     <fragment
@@ -27,6 +30,16 @@
         <action
             android:id="@+id/navigation_action_history_self"
             app:destination="@id/navigation_history" />
+    </fragment>
+    
+    <fragment
+        android:id="@+id/navigation_map"
+        android:name="com.martin.carcharge.ui.MapFragment"
+        android:label="@string/app_map"
+        tools:layout="@layout/fragment_map" >
+        <action
+            android:id="@+id/navigation_action_map_self"
+            app:destination="@id/navigation_map" />
     </fragment>
 
     <fragment

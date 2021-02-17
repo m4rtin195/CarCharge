@@ -1,10 +1,13 @@
 package com.martin.carcharge;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 import androidx.room.Room;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.facebook.flipper.android.AndroidFlipperClient;
 import com.facebook.flipper.core.FlipperClient;
@@ -14,11 +17,19 @@ import com.facebook.flipper.plugins.inspector.DescriptorMapping;
 import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin;
 import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
 import com.facebook.soloader.SoLoader;
+import com.martin.carcharge.models.User;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.storage.Converters;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.network.CloudRestAPI;
 
+import java.io.IOException;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -48,18 +59,40 @@ public class App extends android.app.Application
         
         db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "CarCharge_db")
                 .allowMainThreadQueries()
-                //.addMigrations(MIGRATION_1_2)
                 .fallbackToDestructiveMigration()
                 .build();
     
         pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         
         vm = new MainViewModel.Factory(this).create(MainViewModel.class); //( getApplicationContext()).get(MainViewModel.class);
+    
+        
+        Interceptor interceptor = new Interceptor()
+        {
+            @Override
+            public Response intercept(Chain chain) throws IOException
+            {
+                //Log.i("daco", "interceptor run");
+                //String userSecret = vm.user().getValue().getUserSecret();
+                
+                Request request = chain.request();
+                //request.newBuilder().addHeader("User-Secret", userSecret).build();
+                return chain.proceed(request);
+            }
+        };
+        
+        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+    
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.interceptors().add(interceptor);
+        builder.networkInterceptors().add(httpLoggingInterceptor);
+        OkHttpClient okHttpClient = builder.build();
         
         Retrofit retrofit = new Retrofit.Builder()
-                //.baseUrl("https://fe6ea208.eu-gb.apigw.appdomain.cloud/ecar-iot-kit-api/v1/")
-                .baseUrl("https://run.mocky.io/v3/")
+                .baseUrl("https://fe6ea208.eu-gb.apigw.appdomain.cloud/ecar-iot-kit-api/v1/")
                 .addConverterFactory(GsonConverterFactory.create(Converters.getGsonForRetrofit()))
+                .client(okHttpClient)
                 .build();
         
         api = retrofit.create(CloudRestAPI.class);
