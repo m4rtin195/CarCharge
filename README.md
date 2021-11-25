@@ -14,6 +14,6 @@ For Android, written in `Java`, using `Firebase`.
 `Flipper` `MPAndroidChart` `CoordinatorLayout` `Geocoder`
 
 Targeted on API 30 (Android 11).
-<br>
+<br><br>
 
 2021
