@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 
 import com.martin.carcharge.App;
 import com.martin.carcharge.G;
+import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class Downloader
     private final CloudRestAPI api;
     
     ScheduledExecutorService executor;
-    ScheduledTask task;
+    ScheduledDownloaderTask task;
     
     public Downloader(Context context)
     {
@@ -43,12 +44,14 @@ public class Downloader
         executor = Executors.newSingleThreadScheduledExecutor();
     }
     
-    public boolean start(long vehicleId, Listener listener)
+    //task actions
+    public boolean start(Vehicle vehicle, Listener listener)
     {
+        
         long interval = pref.getInt(G.PREF_UPDATE_INTERVAL, 0);
         if(interval > 0)
         {
-            task = new ScheduledTask(vehicleId, listener);
+            task = new ScheduledDownloaderTask(vehicle, listener);
             task.taskFuture = executor.scheduleAtFixedRate(task.runnable, 0, interval, TimeUnit.SECONDS);
             return true;
         }
@@ -71,27 +74,28 @@ public class Downloader
         if(task != null)
         {
             stop(true);
-            start(task.vehicleId, task.listener);
+            start(task.vehicle, task.listener);
             return true;
         }
         else
             return false;
     }
     
-    public void downloadLast(long vehicleId, Listener listener)
+    //one time actions
+    public void downloadLast(Vehicle v, Listener listener)
     {
-        executor.submit(runnableCreator(vehicleId, listener));
+        executor.submit(runnableCreator(v.getId(), listener));
     }
     
-    public boolean downloadRange(long vehicleId, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
+    public boolean downloadRange(Vehicle v, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
     {
-        executor.submit(runnableRangeCreator(vehicleId, timestampFrom, timestampTo, listener));
+        executor.submit(runnableRangeCreator(v.getId(), timestampFrom, timestampTo, listener));
         return true;
     }
     
     
-    
-    public Runnable runnableCreator(long vehicleId, Listener listener)
+    //internal
+    private Runnable runnableCreator(String vehicleId, Listener listener)
     {
         return () ->
         {
@@ -116,7 +120,7 @@ public class Downloader
         };
     }
     
-    public Runnable runnableRangeCreator(long vehicleId, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
+    private Runnable runnableRangeCreator(String vehicleId, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
     {
         return () ->
         {
@@ -154,19 +158,19 @@ public class Downloader
         void onFail(@Nullable Response<?> response);
     }
     
-    private class ScheduledTask
+    private class ScheduledDownloaderTask
     {
-        long vehicleId; //todo moze byt protected?
+        Vehicle vehicle; //todo moze byt protected alego treba getset?
         Listener listener;
         
         Runnable runnable;
         ScheduledFuture<?> taskFuture;
         
-        ScheduledTask(long vehicleId, Listener listener)
+        ScheduledDownloaderTask(Vehicle vehicle, Listener listener)
         {
-            this.vehicleId = vehicleId;
+            this.vehicle = vehicle;
             this.listener = listener;
-            runnable = runnableCreator(vehicleId, listener);
+            runnable = runnableCreator(vehicle.getId(), listener);
         }
     }
 }

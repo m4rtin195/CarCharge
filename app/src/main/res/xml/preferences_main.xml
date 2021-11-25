@@ -100,8 +100,7 @@
             android:icon="@drawable/ic_battery"
             android:persistent="false"
             app:positiveButtonText="@string/preferences_save"
-            app:useSimpleSummaryProvider="true"
-            android:enabled="false" />
+            app:useSimpleSummaryProvider="true" />
     
         <Preference
             android:id="@+id/preference_vehicleImage"

@@ -1,13 +1,10 @@
 package com.martin.carcharge;
 
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.facebook.flipper.android.AndroidFlipperClient;
 import com.facebook.flipper.core.FlipperClient;
@@ -17,7 +14,6 @@ import com.facebook.flipper.plugins.inspector.DescriptorMapping;
 import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin;
 import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
 import com.facebook.soloader.SoLoader;
-import com.martin.carcharge.models.User;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.storage.Converters;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
@@ -75,7 +71,8 @@ public class App extends android.app.Application
                 //Log.i("daco", "interceptor run");
                 //String userSecret = vm.user().getValue().getUserSecret();
                 
-                Request request = chain.request();
+                //Request request = chain.request();
+                Request request = chain.request().newBuilder().addHeader("x-api-key", "3N9CgQlJxX5RJOIUjhLpy1q9cxxaTWIo8n0IfYtA").build(); //todo extern
                 //request.newBuilder().addHeader("User-Secret", userSecret).build();
                 return chain.proceed(request);
             }
@@ -90,8 +87,9 @@ public class App extends android.app.Application
         OkHttpClient okHttpClient = builder.build();
         
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://fe6ea208.eu-gb.apigw.appdomain.cloud/ecar-iot-kit-api/v1/")
-                .addConverterFactory(GsonConverterFactory.create(Converters.getGsonForRetrofit()))
+                //.baseUrl("https://fe6ea208.eu-gb.apigw.appdomain.cloud/ecar-iot-kit-api/v1/")
+                .baseUrl("https://uilqy1jfsf.execute-api.eu-central-1.amazonaws.com/v2/")
+                .addConverterFactory(GsonConverterFactory.create(Converters.getGsonConverter()))
                 .client(okHttpClient)
                 .build();
         

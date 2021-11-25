@@ -20,13 +20,13 @@ public interface dbDAO
     /** Table vehicles **/
     
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    long insertVehicle(Vehicle v);
+    void insertVehicle(Vehicle v);
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertVehicles(List<Vehicle> list);
 
     @Query("SELECT * FROM vehicles WHERE id IN (:vehicleId)")
-    Vehicle getVehicle(long vehicleId);
+    Vehicle getVehicle(String vehicleId);
     
     @Query("SELECT * FROM vehicles ORDER BY id ASC")
     List<Vehicle> getAllVehicles();
@@ -50,10 +50,10 @@ public interface dbDAO
     void insertStatuses(List<VehicleStatus> list);
     
     @Query("SELECT * FROM vehicle_statuses WHERE vehicleId IN (:vehicleId) ORDER BY timestamp DESC LIMIT 1")
-    VehicleStatus getLastStatus(long vehicleId);
+    VehicleStatus getLastStatus(String vehicleId);
     
     @Query("SELECT * FROM vehicle_statuses WHERE vehicleId IN (:vehicleId) AND timestamp BETWEEN (:from) AND (:to)")
-    List<VehicleStatus> getStatuses(long vehicleId, Timestamp from, Timestamp to);
+    List<VehicleStatus> getStatuses(String vehicleId, Timestamp from, Timestamp to);
     
     @Query("DELETE FROM vehicle_statuses WHERE id IN (SELECT id FROM vehicle_statuses ORDER BY timestamp ASC LIMIT (:count))")
     void deleteStatusesCount(int count);

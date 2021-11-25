@@ -33,14 +33,13 @@
     <string name="home_outdoor_temperature">Outdoor\nTemperature</string>
     <string name="home_indoor_temperature">Indoor\nTemperature</string>
     <string name="home_desired_temperature">Desired\nTemperature</string>
-    <string name="home_state_loading">Loading…</string>
+    <string name="home_state_loading">Loading</string>
     <string name="home_state_unknown">Unknown</string>
-    <string name="home_state_charging">Charging…</string>
+    <string name="home_state_charging">Charging</string>
     <string name="home_state_off">Off</string>
     <string name="home_state_idle">Idle</string>
     <string name="home_state_driving">Driving</string>
     <string name="home_connection_icon_desc">connection type icon</string>
-    
     
     <!-- History -->
     <string name="history_title">Charging history</string>
@@ -84,6 +83,7 @@
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>
     <string name="preferences_vehicle_max_voltage">Battery max voltage</string>
+    <string name="preferences_volts">volts</string>
     
     <!-- Other -->
     <string name="appbar_fab_description">main action button</string>
@@ -97,5 +97,5 @@
     <string name="toast_refreshed">Refreshed.</string>
     <string name="toast_refresh_fail">Refresh failed.</string>
     <string name="map_toast_location_access_not_granted">Location access not granted.</string>
-    
+
 </resources>

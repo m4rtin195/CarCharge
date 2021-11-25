@@ -147,7 +147,7 @@ public class HistoryFragment extends Fragment
     View.OnClickListener onLoadClickListener = view ->
     {
         /**/ timestampFrom = new Timestamp(1612371300000L); timestampTo = new Timestamp(1614061813000L);
-        /**/ if(timestampFrom == null || timestampTo == null) return;
+        if(timestampFrom == null || timestampTo == null) return;
         
         edit_periodFrom.clearFocus();
         edit_periodTo.clearFocus();
@@ -158,13 +158,13 @@ public class HistoryFragment extends Fragment
         else
             formatter.applyLocalizedPattern("HH:mm");
     
-        List<VehicleStatus> localList = vm.getVehicleStatuses(vm.getActualVehicleId(), timestampFrom, timestampTo);
+        List<VehicleStatus> localList = vm.getVehicleStatuses(vm.getCurrentVehicle(), timestampFrom, timestampTo);
         graph.newChart(localList);
         
         //network part
         progressbar.setVisibility(View.VISIBLE);
         ((MainActivity)requireActivity()).getDownloader()
-                .downloadRange(vm.getActualVehicleId(), timestampFrom, timestampTo, new Downloader.RangeListener()
+                .downloadRange(vm.getCurrentVehicle(), timestampFrom, timestampTo, new Downloader.RangeListener()
                 {
                     @Override
                     public void onSuccess(@NonNull List<VehicleStatus> remoteList)
@@ -186,7 +186,7 @@ public class HistoryFragment extends Fragment
                 });
     
     
-        G.debug(requireContext(), "Found " + localList.size() + " local entries.");
+        //G.debug(requireContext(), "Found " + localList.size() + " local entries.");
         /*Snackbar snack = Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), "Found " + localList.size() + " local entries.", Snackbar.LENGTH_SHORT)
                 .setAnchorView(R.id.fab_action);
         View snackView = snack.getView();

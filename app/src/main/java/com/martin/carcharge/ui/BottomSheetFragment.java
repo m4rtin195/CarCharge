@@ -23,6 +23,7 @@ import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BottomSheetFragment extends BottomSheetDialogFragment
@@ -47,7 +48,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         vm = App.getViewModel();
     
         vm.user().observe(this, this::updateUserFields);
-        //vm.vehicles().observe(this, this::updateVehiclesRecycler);
+        vm.vehiclesRepo().observe(this, this::updateVehiclesRecycler);
         
         image_userIcon = binding.imageUserIcon;
         text_nickname = binding.textNickname;
@@ -61,13 +62,17 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
-        //vehiclesAdapter = new VehiclesAdapter(requireContext(), db.dao().getAllVehicles());
+        vehiclesAdapter = new VehiclesAdapter(requireContext(), new ArrayList<>());
         vehiclesAdapter = new VehiclesAdapter(requireContext(), vm.getAllVehicles());
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
-                Vehicle currentVehicle = vehiclesAdapter.get(position);
-                vm.updateVehicle(currentVehicle);
-                ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
+                Vehicle selectedVehicle = vehiclesAdapter.get(position);
+                vm.changeVehicle(selectedVehicle); //internally change status too
+                
+                //download new one
+                MainActivity mAct = ((MainActivity)requireActivity());
+                mAct.getDownloader().downloadLast(selectedVehicle, mAct.autoNewDataListener);
+                mAct.setBottomSheetExpanded(false);
             });
         
         recycler_vehicles = binding.recyclerVehicles;
@@ -93,5 +98,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
     }
     
     private void updateVehiclesRecycler(List<Vehicle> vehicles)
-    {}
+    {
+        vehiclesAdapter.fill(vehicles);
+    }
 }

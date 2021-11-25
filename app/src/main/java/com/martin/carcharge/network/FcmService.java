@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
@@ -13,7 +14,6 @@ import com.google.gson.reflect.TypeToken;
 import com.martin.carcharge.G;
 import com.martin.carcharge.models.VehicleStatus;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
@@ -31,7 +31,7 @@ public class FcmService extends FirebaseMessagingService
     }
     
     @Override
-    public void onNewToken(@NotNull String token)
+    public void onNewToken(@NonNull String token)
     {
         Log.d(G.tag, "Refreshed token: " + token);
     
@@ -56,7 +56,7 @@ public class FcmService extends FirebaseMessagingService
             //VehicleStatus vs = new Gson().fromJson(object.toString(), type);
     
             Intent intent = new Intent(G.ACTION_BROAD_UPDATE);
-            intent.putExtra("json", object.toString());
+            intent.putExtra(G.EXTRA_JSON, object.toString());
             lbm.sendBroadcast(intent);
         }
     }

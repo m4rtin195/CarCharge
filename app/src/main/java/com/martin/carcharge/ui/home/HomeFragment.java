@@ -1,5 +1,6 @@
 package com.martin.carcharge.ui.home;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -30,10 +31,10 @@ import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public class HomeFragment extends Fragment
 {
-    //private SharedPreferences pref;
     private MainViewModel vm;
     
     FragmentHomeBinding binding;
@@ -51,7 +52,6 @@ public class HomeFragment extends Fragment
     {
         ((MainActivity)requireActivity()).setBottomBarVisible(true, true);
     
-        //pref = App.getPreferences();
         vm = App.getViewModel();
         
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -70,7 +70,7 @@ public class HomeFragment extends Fragment
                 aa.setPadding(32,32,32,32);
                 aa.setGravity(Gravity.END);
                 aa.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END); //todo co z toho?
-                aa.setText("Connected via Wi-Fi \nUpdated: 16:32:05");
+                aa.setText("Connected via Sigfox \nUpdated: 14:32:05");
                 PopupWindow popupWindow = new PopupWindow(aa, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
     
                 popupWindow.setTouchable(true);
@@ -94,52 +94,61 @@ public class HomeFragment extends Fragment
         binding = null;
     }
     
-    void updateVehicleFields(Vehicle vehicle)
+    private void updateVehicleFields(Vehicle vehicle)
     {
         Log.d(G.tag, "observed vehicle change.");
         
         text_vehicleName.setText(vehicle.getName());
         text_regNumber.setText(vehicle.getRegNumber());
         image_vehicle.setImageBitmap(vehicle.getImage());
-        updateStatusFields(vm.getActualVehicleStatus(vehicle.getId()));
     }
     
-    void updateStatusFields(VehicleStatus vs)
+    private void updateStatusFields(VehicleStatus vs)
     {
-        Log.d(G.tag, "observed status change.");
+        Log.d(G.tag, "observed status change. " + vs.getState());
         
+        if(vs.getState() == VehicleStatus.State.Unknown)
+        {
+            clearStatusFields();
+            text_state.setText(getString(R.string.home_state_unknown));
+            return;
+        }
         if(vs.getState() == VehicleStatus.State.Loading)
         {
-            loading();
+            clearStatusFields();
+            text_state.setText(getString(R.string.home_state_loading));
+            progress_charge.setIndeterminate(true);
             return;
         }
         
         Locale l = ((BaseActivity)requireActivity()).getCurrentLocale();
-        Vehicle v = vm.getVehicleByStatus(vs);
-        int maxVoltage = getMaxVoltage();
+        int maxVoltage = 700; //Objects.requireNonNull(vm.getVehicleByStatus(vs)).getMaxVoltage();
         
         //topscreen
-        if(vs.getState() != null) text_state.setText(vs.getState().asString(requireContext(), true));
+        text_state.setText(vs.getState().asString(requireContext(), true));
+        text_charge.setVisibility(View.VISIBLE);
         text_charge.setText(String.format(l, "%d%%", vs.getCurrent_charge()));
         progress_charge.setIndeterminate(false);
         progress_charge.setProgress(vs.getCurrent_charge(),true);
         progress_charge.setSecondaryProgress(vs.getTarget_charge());
         
         //tiles
-        text_voltage.setText(String.format(l, "%.1fV", (vs.getCurrent_charge()/100f)*maxVoltage));
-        text_tVoltage.setText(String.format(l, "%.0fV", (vs.getTarget_charge()/100f)*maxVoltage));
+        text_voltage.setText(String.format(l, "%.1fV", ((vs.getCurrent_charge()/100f)*(maxVoltage-600)+600)));
+        text_tVoltage.setText(String.format(l, "%.0fV", ((vs.getTarget_charge()/100f)*(maxVoltage-600)+600)));
         text_current.setText(String.format(l, "%+dA", vs.getCurrent()));
         text_maxCurrent.setText(vs.getMax_current() != Integer.MIN_VALUE ?
                 String.format(l, "%dA", vs.getMax_current()) : "-");
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
         text_approach.setText(String.format(l, "%dkm", vs.getRange()));
-        text_location.setText(Converters.LocationToFormattedString(vs.getLocation()));
+        //text_location.setText(Converters.LocationToFormattedString(vs.getLocation()));
         text_outdoorTemp.setText(String.format(l, "%.1f°C", vs.getOutdoor_temperature()));
-        text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
+        //text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
+        text_indoorTemp.setText(String.format(l, "26.4°C", vs.getIndoor_temperature()));
         text_desiredTemp.setText(vs.getDesired_temperature() != Float.MIN_VALUE ?
                 String.format(l, "%.1f°C", vs.getDesired_temperature()) : "-");
         
+        image_connectivity.setVisibility(View.VISIBLE);
         switch(vs.getConnectivity())
         {
             case Unknown:  /*image_connectivity.setImageResource(R.drawable.ic_offline3);*/ break;
@@ -149,10 +158,29 @@ public class HomeFragment extends Fragment
         }
     }
     
-    public void loading()
+    private void clearStatusFields()
     {
-        text_state.setText(getString(R.string.home_state_loading));
-        //progress_charge.setIndeterminate(true);
+        String dash = "-";
+        
+        text_state.setText(dash);
+        text_charge.setVisibility(View.INVISIBLE);
+        text_charge.setText(dash);
+        progress_charge.setIndeterminate(false);
+        progress_charge.setProgress(0);
+        progress_charge.setSecondaryProgress(0);
+        image_connectivity.setVisibility(View.INVISIBLE);
+        
+        text_voltage.setText(dash);
+        text_tVoltage.setText(dash);
+        text_current.setText(dash);
+        text_maxCurrent.setText(dash);
+        text_chargingTime.setText(dash);
+        text_remainTime.setText(dash);
+        text_approach.setText(dash);
+        text_location.setText(dash);
+        text_outdoorTemp.setText(dash);
+        text_indoorTemp.setText(dash);
+        text_desiredTemp.setText(dash);
     }
     
     private void findViews()
@@ -193,11 +221,13 @@ public class HomeFragment extends Fragment
         @Override
         public void onClick(View v)
         {
-            if(vm.getActualVehicleStatus(vm.getActualVehicleId()).getLocation() != null)
+            if(true /*vm.getCurrentVehicleStatus().getLocation() != null*/)
             {
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
                 navController.navigate(R.id.navigation_action_home_to_map);
             }
+            else
+                G.debug(requireContext(), "Location is null");
         }
     };
 }

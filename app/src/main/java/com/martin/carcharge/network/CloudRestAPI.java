@@ -13,18 +13,19 @@ import retrofit2.http.Query;
 
 public interface CloudRestAPI
 {
-    //@POST("android/actual")
-    @GET("https://run.mocky.io/v3/d8ed5987-8166-4939-9eab-46f89687be57")
+    @GET("android/actual")
+    //@GET("https://run.mocky.io/v3/94e7b516-0c12-4d59-923c-608d4a97ed18")
     @Headers("User-Agent: com.martin.carharge")
-    Call<VehicleStatus> getActualStatus(@Query("vehicleId") long vehicleId);
+    Call<VehicleStatus> getActualStatus(@Query("vehicleId") String vehicleId);
     
     //@POST("android/full")
-    Call<VehicleStatus> getFullStatus();
+    //Call<VehicleStatus> getFullStatus();
     
-    //@POST("android/range")
+    @POST("android/range")
     @Headers("User-Agent: com.martin.carharge")
-    @GET("/")
-    Call<List<VehicleStatus>> getStatuses(@Query("vehicleId") long vehicleId,
+    //@Headers("x-api-key: 3N9CgQlJxX5RJOIUjhLpy1q9cxxaTWIo8n0IfYtA")
+    @GET("android/range")
+    Call<List<VehicleStatus>> getStatuses(@Query("vehicleId") String vehicleId,
                                           @Query("from") Timestamp timestampFrom,
-                                          @Query("to")Timestamp timestampTo);
+                                          @Query("to") Timestamp timestampTo);
 }

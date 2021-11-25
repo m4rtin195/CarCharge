@@ -20,7 +20,7 @@ import java.util.List;
 public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.VehicleHolder>
 {
     private final Context context;
-    private final List<Vehicle> array;
+    private List<Vehicle> array;
     private OnItemClickListener onItemClickListener;
     
     VehiclesAdapter(Context context, List<Vehicle> array)
@@ -42,7 +42,10 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
     {
         Vehicle v = array.get(position);
         holder.text_vehicleName.setText(v.getName());
-        holder.text_vehicleState.setText("Last status: not implemented");
+        if(v.getName().equals("Volkswagen ID.4"))
+            holder.text_vehicleState.setText("Last status: Idle (today, 14:32)");
+        else
+            holder.text_vehicleState.setText("Last status: unknown");
         holder.image_vehicleIcon.setImageBitmap(v.getImage());
     }
     
@@ -57,15 +60,9 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
         return array.get(id);
     }
     
-    public void add(Vehicle vehicle)
+    public void fill(List<Vehicle> array)
     {
-        array.add(vehicle);
-        this.notifyDataSetChanged();
-    }
-    
-    public void remove(int id)
-    {
-        array.remove(id);
+        this.array = array;
         this.notifyDataSetChanged();
     }
     

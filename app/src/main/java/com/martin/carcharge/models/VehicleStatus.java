@@ -1,10 +1,7 @@
 package com.martin.carcharge.models;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
@@ -16,8 +13,6 @@ import androidx.room.PrimaryKey;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.martin.carcharge.R;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -33,7 +28,7 @@ public class VehicleStatus
     private String id;
     
     @ColumnInfo(index = true)
-    private long vehicleId;
+    private String vehicleId;
     
     @Expose
     private Timestamp timestamp;
@@ -117,39 +112,47 @@ public class VehicleStatus
     
     public VehicleStatus()
     {
-        id = UUID.randomUUID().toString().replace("-",""); //todo preco
+        id = UUID.randomUUID().toString().replace("-","").substring(0, 10);; //todo preco
         state = State.Unknown;
         connectivity = Connectivity.Unknown;
-        //timestamp = new Timestamp(0);
+        timestamp = new Timestamp(0); //normalna init atributu
         
         location = null;
         max_current = Integer.MIN_VALUE;
         desired_temperature = Float.MIN_VALUE;
-        vehicleId = 1; //todo prec ked bude api
+        //vehicleId = "1"; //todo prec ked bude api
     }
     
     @Ignore
-    public VehicleStatus(@NotNull State state)
+    public VehicleStatus(@NonNull State s)
     {
         this();
-        this.state = state;
+        this.state = s;
     }
     
-    @NotNull
+    @Ignore
+    public VehicleStatus(@NonNull Vehicle v, @NonNull State s)
+    {
+        this();
+        this.vehicleId = v.getId();
+        this.state = s;
+    }
+
+    @NonNull
     public String getId()
     {
         return id;
     }
-    public void setId(String id)
+    public void setId(@NonNull String id)
     {
         this.id = id;
     }
     
-    public long getVehicleId()
+    public String getVehicleId()
     {
         return vehicleId;
     }
-    public void setVehicleId(long vehicleId)
+    public void setVehicleId(String vehicleId)
     {
         this.vehicleId = vehicleId;
     }
@@ -172,11 +175,12 @@ public class VehicleStatus
         this.connectivity = connectivity;
     }
     
+    @NonNull
     public State getState()
     {
         return state;
     }
-    public void setState(State state)
+    public void setState(@NonNull State state)
     {
         this.state = state;
     }
@@ -262,7 +266,7 @@ public class VehicleStatus
     public float getDesired_temperature() {return desired_temperature;}
     public void setDesired_temperature(float desired_temperature) {this.desired_temperature = desired_temperature;}
     
-    @NotNull
+    @NonNull
     @Override
     public String toString()
     {

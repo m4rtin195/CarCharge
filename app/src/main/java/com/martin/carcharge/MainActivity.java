@@ -1,6 +1,5 @@
 package com.martin.carcharge;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -43,8 +42,6 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.Downloader;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 import retrofit2.Response;
@@ -67,10 +64,8 @@ public class MainActivity extends BaseActivity
     
     Downloader downloader;
     BroadcastReceiver fcmReceiver;
-    boolean appJustLaunched;
     
     
-    @SuppressLint("ClickableViewAccessibility")
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -109,10 +104,8 @@ public class MainActivity extends BaseActivity
         downloader = new Downloader(this);
         fcmReceiver = new FcmReceiver();
     
-        //todo tu alebo v onStart?
-        
-        
-        appJustLaunched = true;
+        //vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading)); //v oncreate aby sa spustil len raz
+    
     } //onCreate
     
     @Override
@@ -126,19 +119,21 @@ public class MainActivity extends BaseActivity
             Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
                     Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
         
-        vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading));
-    
         new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
-            vm.updateVehicleStatus(vm.getActualVehicleStatus(vm.getActualVehicleId()));
+            //vm.updateVehicleStatus(vm.requireActualVehicleStatus(vm.getCurrentVehicle()));      //load last status //todo prec
             
-            if(!pref.getBoolean(G.PREF_FCM_ENABLED, false))                           //automatic downloading
-                if(!downloader.start(vm.getActualVehicleId(), autoNewDataListener))               //is not enabled
-                    downloader.downloadLast(vm.getActualVehicleId(), autoNewDataListener);
-        
+            /*if(!pref.getBoolean(G.PREF_FCM_ENABLED, false))                       // FCM disabled, start downloader
+            {
+                if(!downloader.start(vm.getCurrentVehicle(), autoNewDataListener))           // if downloader not started (interval 0)
+                    downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);  // download once
+            }
+            else
+                downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);      // FCM is enabled, download once*/
         }, 1000);
         
         lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
+        //navController.navigate(R.id.navigation_action_home_to_map); //todo prec
     }
     
     
@@ -181,18 +176,18 @@ public class MainActivity extends BaseActivity
         
         if(item.getItemId() == R.id.menu_refresh)
         {
-            downloader.downloadLast(vm.getActualVehicleId(), manualNewDataListener);
+            downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);
         }
     
         return true;
     }
     
-    public Downloader.Listener autoNewDataListener = new Downloader.Listener()
+    public Downloader.Listener autoNewDataListener = new Downloader.Listener() //quiet one
     {
         @Override
-        public void onSuccess(@NotNull VehicleStatus vs)
+        public void onSuccess(@NonNull VehicleStatus vs)
         {
-            if(vs.getVehicleId() == vm.getActualVehicleId())
+            if(true)//vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
                 vm.updateVehicleStatus(vs);
             else
             {
@@ -203,16 +198,16 @@ public class MainActivity extends BaseActivity
         @Override
         public void onFail(Response<?> response)
         {
-            G.debug(getApplication(), getString(R.string.toast_refresh_fail));
+            G.debug(getApplication(), getString(R.string.toast_refresh_fail), true);
         }
     };
     
-    public Downloader.Listener manualNewDataListener = new Downloader.Listener()
+    public Downloader.Listener manualNewDataListener = new Downloader.Listener() //talky one
     {
         @Override
-        public void onSuccess(@NotNull VehicleStatus vs)
+        public void onSuccess(@NonNull VehicleStatus vs)
         {
-            if(vs.getVehicleId() == vm.getActualVehicleId())
+            if(true)//vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
             {
                 vm.updateVehicleStatus(vs);
                 showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
@@ -226,32 +221,20 @@ public class MainActivity extends BaseActivity
         @Override
         public void onFail(Response<?> response)
         {
-            if(appJustLaunched)
-            {
-                appJustLaunched = false;
-                if(vm.getActualVehicleStatus())
-                vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Unknown));
-            }
-            else
-                showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
+            if(vm.getCurrentVehicleStatus().getState() == VehicleStatus.State.Loading)
+                vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Unknown));
+            
+            showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
         }
     };
     
     /**********/
     
     
-    public void updateStatus()
-    {
-        Log.i(G.tag, "updateStatus()");
-        //Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show();
-        Snackbar.make(getWindow().getDecorView().getRootView(), "Updating...", Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).setAction("Znova!!", null).show();
-    }
-    
-    
     View.OnClickListener onActionClickListener_flash = (View view) ->
     {
         Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
-        downloader.downloadLast(vm.getActualVehicleId(), null);
+        downloader.downloadLast(vm.getCurrentVehicle(), null);
     };
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->

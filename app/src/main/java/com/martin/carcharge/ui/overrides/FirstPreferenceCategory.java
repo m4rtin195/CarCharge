@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceViewHolder;
+import androidx.viewpager.widget.ViewPager;
 
 public class FirstPreferenceCategory extends PreferenceCategory
 {
@@ -32,12 +33,13 @@ public class FirstPreferenceCategory extends PreferenceCategory
     @Override
     public void onBindViewHolder(PreferenceViewHolder holder)
     {
-        Log.i("daco", "onFirstPreferenceBintViewHolder()");
         super.onBindViewHolder(holder);
         
         TextView textView = (TextView) holder.findViewById(android.R.id.title);
-        LinearLayout root = (LinearLayout) textView.getRootView().getRootView();
+        if(!(textView.getRootView().getRootView() instanceof LinearLayout)) return;
+        //pri zmene visibility uplne ineho preferencu sa zavola tato metoda ale riadok nizsie nevrati LL ale widget.decorview wtf
         
+        LinearLayout root = (LinearLayout) textView.getRootView().getRootView();
         if(root != null)
         {
             LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);

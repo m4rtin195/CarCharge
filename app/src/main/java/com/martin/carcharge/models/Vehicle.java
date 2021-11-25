@@ -4,34 +4,43 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.martin.carcharge.R;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
+
 @Entity(tableName = "vehicles")
 public class Vehicle
 {
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @NonNull
+    @PrimaryKey
+    private String id;
     private String name;
     private String regNumber;
     private int maxVoltage;
-    private String imageFile;
+    private String imageFilename;
     
     @Ignore
     private Bitmap image;
     
     public Vehicle()
     {
+        id = "386625"; //UUID.randomUUID().toString().replace("-","").substring(0, 10);
         name = "";
         regNumber = "";
         maxVoltage = 0;
-        imageFile = "";
+        imageFilename = "";
     }
-    public long getId() {return id;}
-    public void setId(long id) {this.id = id;}
+    
+    @NonNull
+    public String getId() {return id;}
+    public void setId(@NotNull String id) {this.id = id;}
     
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}
@@ -42,8 +51,8 @@ public class Vehicle
     public int getMaxVoltage() {return maxVoltage;}
     public void setMaxVoltage(int maxVoltage) {this.maxVoltage = maxVoltage;}
     
-    public String getImageFile() {return imageFile;}
-    public void setImageFile(String imageFile) {this.imageFile = imageFile;}
+    public String getImageFilename() {return imageFilename;}
+    public void setImageFilename(String imageFilename) {this.imageFilename = imageFilename;}
     
     public Bitmap getImage() {return image;}
     public void setImage(Bitmap image) {this.image = image;}
@@ -51,14 +60,14 @@ public class Vehicle
     
     public boolean loadVehicleImage(Context context)
     {
-        if(imageFile.isEmpty())
+        if(imageFilename.isEmpty())
         {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.bm_vehicle_placeholder);
             return false;
         }
         else
         {
-            image = BitmapFactory.decodeFile(context.getFilesDir().toString() + "/media/" + imageFile);
+            image = BitmapFactory.decodeFile(context.getFilesDir().toString() + "/media/" + imageFilename);
             return true;
         }
     }

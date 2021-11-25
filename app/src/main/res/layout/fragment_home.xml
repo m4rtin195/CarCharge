@@ -22,7 +22,7 @@
             android:fontFamily="sans-serif-black"
             android:text="Unknown"
             android:textSize="@dimen/tile_textsize_title"
-            app:layout_constraintEnd_toStartOf="@+id/image_connection"
+            app:layout_constraintEnd_toStartOf="@+id/image_connectivity"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Tesla Model 3" />
@@ -50,9 +50,11 @@
             android:contentDescription="@string/home_connection_icon_desc"
             android:src="@drawable/ic_offline2"
             android:tooltipText="aaaaa"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/text_vehicleName"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/text_vehicleName" />
+            app:layout_constraintTop_toTopOf="@+id/text_vehicleName"
+            tools:visibility="visible" />
     
         <ImageView
             android:id="@+id/image_vehicle"
@@ -73,7 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:text="@string/uninitialized"
+            android:text="Idle"
             android:textColor="@color/white_shade"
             android:textSize="@dimen/tile_textsize_normal"
             app:layout_constraintStart_toStartOf="@+id/progress_charge"
@@ -139,13 +141,13 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:paddingStart="@dimen/tiles_padding"
                         android:paddingTop="@dimen/tiles_padding"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding_between"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -172,13 +174,13 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:paddingStart="@dimen/tiles_padding"
                         android:paddingTop="@dimen/tiles_padding"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding_between"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -205,13 +207,13 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:paddingStart="@dimen/tiles_padding"
                         android:paddingTop="@dimen/tiles_padding_between"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -238,13 +240,13 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:paddingStart="@dimen/tiles_padding"
                         android:paddingTop="@dimen/tiles_padding_between"
                         android:paddingEnd="@dimen/tiles_padding"
                         android:paddingBottom="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -282,17 +284,17 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="fill_horizontal"
                     android:layout_weight="1"
-                    android:elevation="50dp"
                     android:background="@drawable/home_tile_div"
+                    android:elevation="50dp"
                     app:columnCount="2">
             
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -319,10 +321,10 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -381,7 +383,7 @@
                             android:text="-"
                             android:textSize="@dimen/tile_textsize_big"
                             tools:text="570km" />
-                    
+    
                         <TextView
                             android:id="@+id/text_approachLabel"
                             android:layout_width="match_parent"
@@ -420,7 +422,7 @@
                             android:text="-"
                             android:textSize="@dimen/tile_textsize_big"
                             tools:text="-" />
-                    
+    
                         <TextView
                             android:id="@+id/text_fuelLabel"
                             android:layout_width="match_parent"
@@ -497,10 +499,10 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -527,10 +529,10 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView
@@ -557,10 +559,10 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
                         android:orientation="vertical"
                         android:padding="@dimen/tiles_padding"
-                        android:clickable="true"
-                        android:background="?attr/selectableItemBackground"
                         app:layout_columnWeight="1">
     
                         <TextView

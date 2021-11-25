@@ -91,7 +91,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         auth = FirebaseAuth.getInstance();
         
         user = vm.getUser();
-        vehicle = vm.getActualVehicle();
+        vehicle = vm.getCurrentVehicle();
         
         toolbar = binding.toolbarPreferences;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
@@ -171,13 +171,15 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             preference_logout.setOnPreferenceClickListener(onLogout);
     
         preference_vehicleName = findPreference(G.PREF_VEHICLE_NAME);
-            //preference_vehicleName.setSummary(vehicle.getName());
+            preference_vehicleName.setSummaryProvider(vehiclePrefsSummaryProvider);
             preference_vehicleName.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleName).setText(vehicle.getName());
             ((EditTextPreference)preference_vehicleName).setOnBindEditTextListener(TextView::setSingleLine);
     
         preference_vehicleRegplate = findPreference(G.PREF_VEHICLE_REGPLATE);
-            //preference_vehicleRegplate.setSummary(vehicle.getRegNumber());
+            preference_vehicleRegplate.setSummaryProvider(vehiclePrefsSummaryProvider);
             preference_vehicleRegplate.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleRegplate).setText(vehicle.getRegNumber());
             ((EditTextPreference)preference_vehicleRegplate).setOnBindEditTextListener(edit_regplate ->
             {
                 edit_regplate.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
@@ -185,13 +187,14 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             });
     
         preference_vehicleMaxVoltage = findPreference(G.PREF_VEHICLE_MAX_VOLTAGE);
-            //preference_vehicleMaxVoltage.setSummary(vehicle.getMaxVoltage());
+            preference_vehicleMaxVoltage.setSummaryProvider(vehiclePrefsSummaryProvider);
             preference_vehicleMaxVoltage.setOnPreferenceChangeListener(onVehicleModified);
+            ((EditTextPreference)preference_vehicleMaxVoltage).setText(String.valueOf(vehicle.getMaxVoltage()));
             ((EditTextPreference)preference_vehicleMaxVoltage).setOnBindEditTextListener(editText ->
-                editText.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL));
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER));
     
         preference_vehicleImage = findPreference(G.PREF_VEHICLE_IMAGE);
-            String summary = vehicle.getImageFile().isEmpty() ?
+            String summary = vehicle.getImageFilename().isEmpty() ?
                     getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
             preference_vehicleImage.setSummary(summary);
             preference_vehicleImage.setOnPreferenceClickListener(onVehicleImageClick);
@@ -224,7 +227,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                     File newFile = File.createTempFile("vehicleimage_", ".aaa", path); //todo zistit priponu
                     Files.copy(is, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     
-                    File oldFile = new File(requireActivity().getFilesDir().toString() + "/media/" + vehicle.getImageFile());
+                    File oldFile = new File(requireActivity().getFilesDir().toString() + "/media/" + vehicle.getImageFilename());
                     if(oldFile.exists())
                         oldFile.delete();
                     
@@ -291,7 +294,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         List<Vehicle> vehicles = vm.getAllVehicles();
         for(Vehicle v : vehicles)
         {
-            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + v.getImageFile());
+            File file = new File(requireActivity().getFilesDir().toString() + "/media/" + v.getImageFilename());
             if(file.exists())
                 file.delete();
         }
@@ -334,21 +337,36 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             if(preference.equals(preference_vehicleRegplate))
             {
                 vehicle.setRegNumber((String) newValue);
-                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
+                ((EditTextPreference) preference_vehicleRegplate).setText(newValue.toString());
             }
             if(preference.equals(preference_vehicleMaxVoltage))
             {
                 vehicle.setMaxVoltage(Integer.parseInt((String) newValue));
-                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
+                ((EditTextPreference) preference_vehicleMaxVoltage).setText(newValue.toString());
             }
             if(preference.equals(preference_vehicleImage))
             {
-                vehicle.setImageFile((String) newValue);
+                vehicle.setImageFilename((String) newValue);
+                vehicle.loadVehicleImage(requireContext());
                 preference_vehicleImage.setSummary(getString(R.string.preferences_set));
             }
+            
+            vm.updateVehicle(vehicle);
         }
-        vm.updateVehicle(vehicle);
         return true;
+    };
+    
+    Preference.SummaryProvider<?> vehiclePrefsSummaryProvider = new Preference.SummaryProvider<Preference>()
+    {
+        @Override
+        public CharSequence provideSummary(Preference preference)
+        {
+            if(preference.equals(preference_vehicleName)) return (vehicle.getName().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getName());
+            if(preference.equals(preference_vehicleRegplate)) return (vehicle.getRegNumber().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getRegNumber());
+            if(preference.equals(preference_vehicleMaxVoltage)) return (vehicle.getMaxVoltage()==0 ?
+                    getString(R.string.preferences_not_set) : vehicle.getMaxVoltage() + " " + getString(R.string.preferences_volts));
+            return new String();
+        }
     };
     
     OnPreferenceClickListener onInvalidateCache = preference ->

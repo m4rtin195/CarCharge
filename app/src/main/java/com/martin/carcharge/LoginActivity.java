@@ -203,7 +203,7 @@ public class LoginActivity extends BaseActivity
     
                     inStream = new URL(user.getPhotoUrl().toString()).openStream();
                     Bitmap raw = BitmapFactory.decodeStream(inStream, null, options);
-                    assert raw != null; //todo over
+                    assert raw != null;
                     
                     Bitmap out = Bitmap.createBitmap(raw.getWidth(), raw.getHeight(), Bitmap.Config.ARGB_8888);
     
@@ -235,7 +235,13 @@ public class LoginActivity extends BaseActivity
                 }
                 finally
                 {
-                    try {inStream.close(); outStream.close();} //todo treba??
+                    try
+                    {
+                        assert outStream != null;
+                        assert inStream != null;
+                        inStream.close();
+                        outStream.close();
+                    }
                     catch(NullPointerException | IOException e) {e.printStackTrace();}
                 }
             });

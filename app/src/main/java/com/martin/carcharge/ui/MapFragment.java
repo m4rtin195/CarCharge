@@ -6,11 +6,13 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +35,6 @@ import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
 
-import org.jetbrains.annotations.NotNull;
-
 public class MapFragment extends Fragment implements OnMapReadyCallback
 {
     private MainViewModel vm;
@@ -48,11 +48,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     Marker vehicleMarker;
     
     @Override
-    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         ((MainActivity) requireActivity()).setBottomBarVisible(false, true);
         vm = App.getViewModel();
-        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation);
         
         binding = FragmentMapBinding.inflate(inflater, container, false);
         root = binding.getRoot();
@@ -96,16 +95,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         markerOptions.visible(false);
     
         vehicleMarker = gMap.addMarker(markerOptions);
+        assert vehicleMarker != null : "dpc preco";
+        Log.i("daco", "aaaa");
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPoint, 1));
     
-        updateVehicleLocation(vm.getActualVehicleStatus(vm.getActualVehicleId()));
+        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation);
+        updateVehicleLocation(vm.getCurrentVehicleStatus());
     }
     
     private void updateVehicleLocation(VehicleStatus vs)
     {
-        if(vs.getLocation() != null)
+        if(true /*vs.getLocation() != null*/)
         {
-            Location location = vs.getLocation();
+            Log.i("daco", "bbbbb");
+    
+            //Location location = vs.getLocation();
+            Location location = new Location("mock"); location.setLatitude(49.20464); location.setLongitude(18.75509); //todo aaaaa
             LatLng location2 = new LatLng(location.getLatitude(), location.getLongitude());
             
             vehicleMarker.setVisible(true);

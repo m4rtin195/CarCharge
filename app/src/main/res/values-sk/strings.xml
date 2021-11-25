@@ -28,7 +28,7 @@
     <string name="home_indoor_temperature">Vnútorná\nteplota</string>
     <string name="home_desired_temperature">Želaná\nteplota</string>
     <string name="history_title">História nabíjania</string>
-    <string name="home_state_loading">Načítavam…</string>
+    <string name="home_state_loading">Načítavam</string>
     <string name="history_period_from">Obdobie od:</string>
     <string name="history_period_to">Obdobie do:</string>
     <string name="history_button_load">Načítať</string>
@@ -69,7 +69,7 @@
     <string name="login_email">E-mail:</string>
     <string name="toast_refresh_fail">Aktualizácia zlyhala.</string>
     <string name="uninitialized">Neinicializované</string>
-    <string name="home_state_charging">Nabíjanie…</string>
+    <string name="home_state_charging">Nabíjanie</string>
     <string name="home_state_off">Vypnuté</string>
     <string name="home_state_idle">Nečinné</string>
     <string name="home_state_driving">V jazde</string>
@@ -81,5 +81,6 @@
     <string name="app_map">Mapa</string>
     <string name="home_connection_icon_desc">ikona typu pripojenia</string>
     <string name="map_toast_location_access_not_granted">Prístup k polohe nebol udelený.</string>
+    <string name="preferences_volts">voltov</string>
 
 </resources>

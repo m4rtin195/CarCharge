@@ -31,7 +31,6 @@
         <clip>
             <shape android:shape="rectangle">
                 <corners android:radius="1dp"/>
-                <!--TODO check 1/2dp-->
                 <solid android:color="@color/design_default_color_primary"/>
             </shape>
         </clip>
