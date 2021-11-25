@@ -1,6 +1,6 @@
-# CarCharge [EV-IoT-Kit]
+# CarCharge
 
-### Client application for my EV-IoT-Kit project.
+### Client application for my [EV-IoT-Kit] project.
 For Android, written in `Java`, using `Firebase`.
 
 **> [Main repository](https://github.com/m4rtin195/EV-IoT-Kit)**  
