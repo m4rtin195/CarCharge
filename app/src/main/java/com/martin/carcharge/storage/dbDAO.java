@@ -11,6 +11,7 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @SuppressWarnings("DefaultAnnotationParam")
@@ -53,7 +54,7 @@ public interface dbDAO
     VehicleStatus getLastStatus(String vehicleId);
     
     @Query("SELECT * FROM vehicle_statuses WHERE vehicleId IN (:vehicleId) AND timestamp BETWEEN (:from) AND (:to)")
-    List<VehicleStatus> getStatuses(String vehicleId, Timestamp from, Timestamp to);
+    List<VehicleStatus> getStatuses(String vehicleId, Date from, Date to);
     
     @Query("DELETE FROM vehicle_statuses WHERE id IN (SELECT id FROM vehicle_statuses ORDER BY timestamp ASC LIMIT (:count))")
     void deleteStatusesCount(int count);

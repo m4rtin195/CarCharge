@@ -31,6 +31,7 @@ import com.martin.carcharge.ui.Graph;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,8 +54,9 @@ public class HistoryFragment extends Fragment
     FloatingActionButton fab_action;
     
     Graph graph;
-    SimpleDateFormat formatter;
-    Timestamp timestampFrom, timestampTo;
+    SimpleDateFormat formatter1, formatter2; //1 for editTexts, 2 for graph
+    
+    Date timeFrom, timeTo;
     
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -70,38 +72,47 @@ public class HistoryFragment extends Fragment
         //historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
         //historyViewModel.getText().observe(getViewLifecycleOwner(), s -> {});
         
-        formatter = new SimpleDateFormat(new String(), ((MainActivity)requireActivity()).getCurrentLocale());
+        formatter1 = new SimpleDateFormat("MMM d, yyyy HH:mm", ((MainActivity)requireActivity()).getCurrentLocale());
+        formatter2 = new SimpleDateFormat(new String(), ((MainActivity)requireActivity()).getCurrentLocale());
 
+        timeFrom = new Date(System.currentTimeMillis()-(1000*60*60*24*7)); //-1 week
+        timeTo = new Date(System.currentTimeMillis()); //now
+       
         toolbar = binding.toolbarHistory;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
     
-        progressbar = binding.progressHistory;
-            
+        progressbar = binding.progressbarHistory;
+        
         edit_periodFrom = binding.editPeriodFrom;
+            edit_periodFrom.setText(formatter1.format(timeFrom));
             edit_periodFrom.setShowSoftInputOnFocus(false);
-            edit_periodFrom.setOnFocusChangeListener((view1, b) ->
+            edit_periodFrom.setOnFocusChangeListener((view1, hasFocus) ->
             {
-                if(!b) return;
+                if(!hasFocus) return;
                 edit_periodFrom.clearFocus();
                 new SingleDateAndTimePickerDialog.Builder(requireContext())
                         .title("Period from")
                         .mainColor(getResources().getColor(R.color.tint_blue_variant, requireActivity().getTheme()))
                         .backgroundColor(getResources().getColor(R.color.tile_gray, requireActivity().getTheme()))
+                        .defaultDate(timeFrom)
                         .listener(datetimeFromPickerListener)
                         .build()
                         .display();
             });
             
         edit_periodTo = binding.editPeriodTo;
+            edit_periodTo.setText(formatter1.format(timeTo));
             edit_periodTo.setShowSoftInputOnFocus(false);
-            edit_periodTo.setOnFocusChangeListener((view1, b) ->
+            edit_periodTo.setOnFocusChangeListener((view1, hasFocus) ->
             {
-                if(!b) return;
+                if(!hasFocus) return;
                 edit_periodTo.clearFocus();
                 new SingleDateAndTimePickerDialog.Builder(requireContext())
                         .title("Period to")
                         .mainColor(getResources().getColor(R.color.tint_blue_variant, requireActivity().getTheme()))
                         .backgroundColor(getResources().getColor(R.color.tile_gray, requireActivity().getTheme()))
+                        .defaultDate(timeTo)
+                        .maxDateRange(new Date(System.currentTimeMillis()))
                         .listener(datetimeToPickerListener)
                         .build()
                         .display();
@@ -130,41 +141,40 @@ public class HistoryFragment extends Fragment
     
     SingleDateAndTimePickerDialog.Listener datetimeFromPickerListener = date ->
     {
-        timestampFrom = new Timestamp(date.getTime());
+        timeFrom = new Timestamp(date.getTime());
         DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
-        String string = df.format(timestampFrom);
+        String string = df.format(timeFrom);
         edit_periodFrom.setText(string);
     };
     
     SingleDateAndTimePickerDialog.Listener datetimeToPickerListener = date ->
     {
-        timestampTo = new Timestamp(date.getTime());
+        timeTo = new Timestamp(date.getTime());
         DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
-        String string = df.format(timestampTo);
+        String string = df.format(timeTo);
         edit_periodTo.setText(string);
     };
     
     View.OnClickListener onLoadClickListener = view ->
     {
-        /**/ timestampFrom = new Timestamp(1612371300000L); timestampTo = new Timestamp(1614061813000L);
-        if(timestampFrom == null || timestampTo == null) return;
+        if(timeFrom == null || timeTo == null) return;
         
         edit_periodFrom.clearFocus();
         edit_periodTo.clearFocus();
         
         SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
-        if(f.format(timestampFrom).equals(f.format(timestampTo))) //is the same day
-            formatter.applyLocalizedPattern("MMM d, HH:mm");
+        if(f.format(timeFrom).equals(f.format(timeTo))) //is the same day
+            formatter2.applyLocalizedPattern("MMM d, HH:mm");
         else
-            formatter.applyLocalizedPattern("HH:mm");
-    
-        List<VehicleStatus> localList = vm.getVehicleStatuses(vm.getCurrentVehicle(), timestampFrom, timestampTo);
+            formatter2.applyLocalizedPattern("HH:mm");
+        
+        List<VehicleStatus> localList = vm.getVehicleStatuses(vm.getCurrentVehicle(), timeFrom, timeTo);
         graph.newChart(localList);
         
         //network part
         progressbar.setVisibility(View.VISIBLE);
         ((MainActivity)requireActivity()).getDownloader()
-                .downloadRange(vm.getCurrentVehicle(), timestampFrom, timestampTo, new Downloader.RangeListener()
+                .downloadRange(vm.getCurrentVehicle(), timeFrom, timeTo, new Downloader.RangeListener()
                 {
                     @Override
                     public void onSuccess(@NonNull List<VehicleStatus> remoteList)
@@ -178,26 +188,23 @@ public class HistoryFragment extends Fragment
                     public void onFail(@Nullable Response<?> response)
                     {
                         progressbar.setVisibility(View.INVISIBLE);
-                        Snackbar.make(((MainActivity)requireActivity()).getRootLayout(),
-                                "Server request failed.\nShowing local only (" + localList.size() + " entries)",
-                                Snackbar.LENGTH_SHORT)
+                        
+                        String message;
+                        if(response != null && response.code() == 204)
+                            message = "No data from the selected time range.";
+                        else
+                            message = "Server request failed.\nShowing local only (" + localList.size() + " entries)";
+                            
+                        Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), message, Snackbar.LENGTH_SHORT)
                                 .setAnchorView(R.id.fab_action).show();
                     }
                 });
-    
-    
-        //G.debug(requireContext(), "Found " + localList.size() + " local entries.");
-        /*Snackbar snack = Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), "Found " + localList.size() + " local entries.", Snackbar.LENGTH_SHORT)
-                .setAnchorView(R.id.fab_action);
-        View snackView = snack.getView();
-        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) snackView.getLayoutParams();
-        layoutParams.setMargins(layoutParams.leftMargin + 20,layoutParams.topMargin + 20,layoutParams.rightMargin + 20,layoutParams.bottomMargin + 20);
-        snackView.setLayoutParams(layoutParams);
-        snack.show();*/
+        
+        G.debug(requireContext(), "Found " + localList.size() + " local entries.");
     };
     
-    public DateFormat getDateFormatter()
+    public DateFormat getGraphDateFormatter()
     {
-        return formatter;
+        return formatter2;
     }
 }

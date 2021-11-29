@@ -8,7 +8,7 @@
     tools:context=".ui.history.HistoryFragment">
     
     <ProgressBar
-        android:id="@+id/progress_login"
+        android:id="@+id/progressbar_login"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

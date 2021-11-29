@@ -1,5 +1,5 @@
 <resources>
-  <string name="style_json" translatable="false">
+  <string name="googlemap_style_json" translatable="false">
   [
   {
     \"elementType\": \"geometry\",

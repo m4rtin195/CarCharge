@@ -1,6 +1,5 @@
 package com.martin.carcharge.ui.home;
 
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -30,6 +29,7 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
 
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -44,7 +44,7 @@ public class HomeFragment extends Fragment
     ProgressBar progress_charge;
     TextView text_voltage, text_tVoltage, text_current, text_maxCurrent,
             text_chargingTime, text_remainTime,
-            text_approach, text_fuel, text_location,
+            text_range, text_fuel, text_location,
             text_indoorTemp, text_outdoorTemp, text_desiredTemp;
     
     @Override
@@ -70,7 +70,13 @@ public class HomeFragment extends Fragment
                 aa.setPadding(32,32,32,32);
                 aa.setGravity(Gravity.END);
                 aa.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END); //todo co z toho?
-                aa.setText("Connected via Sigfox \nUpdated: 14:32:05");
+                
+                Log.i("daco", "teraz");
+                VehicleStatus vs = vm.getCurrentVehicleStatus(); // todo preco pada?
+                assert vs != null;
+                String str = "Connected via " + vs.getConnectivity().toString() + "\n" + "Updated: " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(vs.getTimestamp());
+                
+                aa.setText(str);
                 PopupWindow popupWindow = new PopupWindow(aa, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
     
                 popupWindow.setTouchable(true);
@@ -140,20 +146,19 @@ public class HomeFragment extends Fragment
                 String.format(l, "%dA", vs.getMax_current()) : "-");
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
-        text_approach.setText(String.format(l, "%dkm", vs.getRange()));
-        //text_location.setText(Converters.LocationToFormattedString(vs.getLocation()));
+        text_range.setText(String.format(l, "%dkm", vs.getRange()));
+        text_location.setText(Converters.LocationToAddressOrFormattedString(vs.getLocation(), getContext()).split(",")[0]);
         text_outdoorTemp.setText(String.format(l, "%.1f°C", vs.getOutdoor_temperature()));
-        //text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
-        text_indoorTemp.setText(String.format(l, "26.4°C", vs.getIndoor_temperature()));
+        text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
         text_desiredTemp.setText(vs.getDesired_temperature() != Float.MIN_VALUE ?
                 String.format(l, "%.1f°C", vs.getDesired_temperature()) : "-");
         
         image_connectivity.setVisibility(View.VISIBLE);
         switch(vs.getConnectivity())
         {
-            case Unknown:  /*image_connectivity.setImageResource(R.drawable.ic_offline3);*/ break;
+            case Unknown: image_connectivity.setImageDrawable(null); break;
             case NotConnected: image_connectivity.setImageResource(R.drawable.ic_offline2); break;
-            case Sigfox: /*image_connectivity.setImageResource(R.drawable.ic_iot);*/ break;
+            case Sigfox: image_connectivity.setImageResource(R.drawable.ic_plus); break;
             case WiFi: image_connectivity.setImageResource(R.drawable.ic_wifi); break;
         }
     }
@@ -176,7 +181,7 @@ public class HomeFragment extends Fragment
         text_maxCurrent.setText(dash);
         text_chargingTime.setText(dash);
         text_remainTime.setText(dash);
-        text_approach.setText(dash);
+        text_range.setText(dash);
         text_location.setText(dash);
         text_outdoorTemp.setText(dash);
         text_indoorTemp.setText(dash);
@@ -191,14 +196,14 @@ public class HomeFragment extends Fragment
         image_connectivity = binding.imageConnectivity;
         text_state = binding.textState;
         text_charge = binding.textCharge;
-        progress_charge = binding.progressCharge;
+        progress_charge = binding.progressbarCharge;
         text_voltage = binding.textVoltage;
         text_tVoltage = binding.textTVoltage;
         text_current = binding.textCurrent;
         text_maxCurrent = binding.textMaxCurrent;
         text_chargingTime = binding.textChargingTime;
         text_remainTime = binding.textRemainTime;
-        text_approach = binding.textApproach;
+        text_range = binding.textRange;
         text_fuel = binding.textFuel;
         text_location = binding.textLocation;
         text_indoorTemp = binding.textIndoorTemp;
@@ -221,7 +226,7 @@ public class HomeFragment extends Fragment
         @Override
         public void onClick(View v)
         {
-            if(true /*vm.getCurrentVehicleStatus().getLocation() != null*/)
+            if(true /*vm.getCurrentVehicleStatus().getLocation() != null*/) //todo odistit + NULLABLE!!!
             {
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
                 navController.navigate(R.id.navigation_action_home_to_map);

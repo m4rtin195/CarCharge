@@ -10,11 +10,13 @@ import androidx.annotation.Nullable;
 
 import com.martin.carcharge.App;
 import com.martin.carcharge.G;
+import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,6 +30,7 @@ public class Downloader
 {
     private final Context context;
     
+    private final MainViewModel vm;
     private final SharedPreferences pref;
     private final CloudRestAPI api;
     
@@ -38,6 +41,7 @@ public class Downloader
     {
         this.context = context;
         
+        vm = App.getViewModel();
         pref = App.getPreferences();
         api = App.getApi();
         
@@ -84,56 +88,72 @@ public class Downloader
     //one time actions
     public void downloadLast(Vehicle v, Listener listener)
     {
-        executor.submit(runnableCreator(v.getId(), listener));
+        String userId = vm.getUser().getUid();
+        executor.submit(runnableLastCreator(userId, v.getId(), listener));
     }
     
-    public boolean downloadRange(Vehicle v, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
+    public boolean downloadRange(Vehicle v, Date timestampFrom, Date timestampTo, RangeListener listener)
     {
-        executor.submit(runnableRangeCreator(v.getId(), timestampFrom, timestampTo, listener));
+        String userId = vm.getUser().getUid();
+        executor.submit(runnableRangeCreator(userId, v.getId(), timestampFrom, timestampTo, listener));
         return true;
     }
     
     
-    //internal
-    private Runnable runnableCreator(String vehicleId, Listener listener)
+    
+    //internal, runnables are needed for executor
+    private Runnable runnableLastCreator(String userId, String vehicleId, @Nullable Listener listener)
     {
         return () ->
         {
-            Call<VehicleStatus> call = api.getActualStatus(vehicleId);
+            Call<VehicleStatus> call = api.getLastStatus(userId, vehicleId);
             try
             {
                 Response<VehicleStatus> response = call.execute();
                 ((Activity)context).runOnUiThread(() ->
                 {
                     if(response.body() != null)
-                        listener.onSuccess(response.body());
+                    {
+                        if(listener != null)
+                            listener.onSuccess(response.body());
+                    }
                     else
-                        listener.onFail(response);
+                    {
+                        if(listener != null)
+                            listener.onFail(response);
+                    }
                 });
             }
             catch(IOException e)
             {
-                listener.onFail(null);
+                if(listener != null)
+                    listener.onFail(null);
                 Log.e(G.tag, "Error in Retrofit callback: " + e.getMessage());
                 e.printStackTrace();
             }
         };
     }
     
-    private Runnable runnableRangeCreator(String vehicleId, Timestamp timestampFrom, Timestamp timestampTo, RangeListener listener)
+    private Runnable runnableRangeCreator(String userId, String vehicleId, Date timestampFrom, Date timestampTo, RangeListener listener)
     {
         return () ->
         {
-            Call<List<VehicleStatus>> call = api.getStatuses(vehicleId, timestampFrom, timestampTo);
+            Call<List<VehicleStatus>> call = api.getStatuses(userId, vehicleId, Long.toString(timestampFrom.getTime()), Long.toString(timestampTo.getTime()));
             try
             {
                 Response<List<VehicleStatus>> response = call.execute();
                 ((Activity)context).runOnUiThread(() ->
                 {
                     if(response.body() != null)
-                        listener.onSuccess(response.body());
+                    {
+                        if(listener != null)
+                            listener.onSuccess(response.body());
+                    }
                     else
-                        listener.onFail(response);
+                    {
+                        if(listener != null)
+                            listener.onFail(response);
+                    }
                 });
             }
             catch(IOException e)
@@ -168,9 +188,11 @@ public class Downloader
         
         ScheduledDownloaderTask(Vehicle vehicle, Listener listener)
         {
+            String userId = vm.getUser().getUid();
             this.vehicle = vehicle;
-            this.listener = listener;
-            runnable = runnableCreator(vehicle.getId(), listener);
+            this.listener = listener;   //todo naco su ako atributy?
+            
+            runnable = runnableLastCreator(userId, vehicle.getId(), listener);
         }
     }
 }

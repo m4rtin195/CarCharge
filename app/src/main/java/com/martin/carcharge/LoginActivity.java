@@ -84,7 +84,7 @@ public class LoginActivity extends BaseActivity
         root = binding.getRoot();
         setContentView(root);
         
-        progressbar = binding.progressLogin;
+        progressbar = binding.progressbarLogin;
         edit_username = binding.editUsername;
         edit_password = binding.editPassword;
         button_signin_mail = binding.buttonSigninMail;
@@ -265,6 +265,7 @@ public class LoginActivity extends BaseActivity
         }
         
         User user = new User();
+        user.setUid(u.getUid());
         user.setNickname(u.getDisplayName());
         user.setEmail(u.getEmail());
         user.setIcon(loadCachedUserIcon(pref.getString(G.PREF_USER_ICON, "")));

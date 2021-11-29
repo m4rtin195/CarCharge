@@ -174,7 +174,7 @@ public class Graph
         @Override
         public String getFormattedValue(float value)
         {
-            return context.getDateFormatter().format(new Date((long)value+timestampBase));
+            return context.getGraphDateFormatter().format(new Date((long)value+timestampBase));
         }
     };
     

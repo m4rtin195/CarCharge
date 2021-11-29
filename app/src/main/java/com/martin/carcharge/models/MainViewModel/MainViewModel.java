@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainViewModel extends AndroidViewModel
@@ -110,7 +111,7 @@ public class MainViewModel extends AndroidViewModel
     }
     
     @Nullable
-    public Vehicle getVehicleByStatus(@NonNull VehicleStatus vs)
+    public Vehicle getVehicleByStatus(@NonNull VehicleStatus vs)  //wtf toto je naco dobre
     {
         return _getVehicle(vs.getVehicleId());
     }
@@ -168,11 +169,12 @@ public class MainViewModel extends AndroidViewModel
         return vehicleStatus;
     }
     
-    @NonNull
+    @Nullable
     public VehicleStatus getCurrentVehicleStatus()
     {
-        Log.i("daco",db.dao().getLastStatus("386625").getId());
-        return db.dao().getLastStatus("386625");
+        return null;
+        //Log.i("daco",db.dao().getLastStatus("386625").getId());
+        //return db.dao().getLastStatus("386625");
 //        assert vehicleStatus.getValue() != null;
 //        return vehicleStatus.getValue();
     }
@@ -187,7 +189,7 @@ public class MainViewModel extends AndroidViewModel
     }
     
     @NonNull //todo ale isto????
-    public List<VehicleStatus> getVehicleStatuses(@NonNull Vehicle v, @NonNull Timestamp from, @NonNull Timestamp to)
+    public List<VehicleStatus> getVehicleStatuses(@NonNull Vehicle v, @NonNull Date from, @NonNull Date to)
     {
         return db.dao().getStatuses(v.getId(), from, to);
     }

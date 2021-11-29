@@ -22,7 +22,7 @@
     <string name="home_charging_time">Čas nabíjania</string>
     <string name="home_remaining_time">Zostávajúci čas</string>
     <string name="home_location">Poloha vozidla</string>
-    <string name="home_approach">Dojazd</string>
+    <string name="home_range">Dojazd</string>
     <string name="home_fuel">Palivo</string>
     <string name="home_outdoor_temperature">Vonkajšia\nteplota</string>
     <string name="home_indoor_temperature">Vnútorná\nteplota</string>

@@ -31,7 +31,7 @@ public class Vehicle
     
     public Vehicle()
     {
-        id = "386625"; //UUID.randomUUID().toString().replace("-","").substring(0, 10);
+        id = "386625"; //UUID.randomUUID().toString().replace("-","").substring(0, 10); //todo mock
         name = "";
         regNumber = "";
         maxVoltage = 0;

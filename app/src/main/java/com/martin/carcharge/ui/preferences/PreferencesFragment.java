@@ -95,7 +95,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         
         toolbar = binding.toolbarPreferences;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
-        progressbar = binding.progressPreferences;
+        progressbar = binding.progressbarPreferences;
         
         configPreferences();
         return root;

@@ -1,9 +1,13 @@
 package com.martin.carcharge.storage;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.room.TypeConverter;
 
@@ -17,12 +21,16 @@ import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.martin.carcharge.G;
 import com.martin.carcharge.models.VehicleStatus.State;
 import com.martin.carcharge.models.VehicleStatus.Connectivity;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class Converters
 {
@@ -53,15 +61,15 @@ public class Converters
     
     
     @TypeConverter
-    public static long TimestampToLong(Timestamp value)
+    public static long DateToLong(Date value)
     {
         return value.getTime();
     }
     
     @TypeConverter
-    public static Timestamp LongToTimestamp(long value)
+    public static Date LongToDate(long value)
     {
-        return new Timestamp(value);
+        return new Date(value);
     }
     
     
@@ -90,20 +98,45 @@ public class Converters
         return l;
     }
     
+    public static String LocationToAddressOrFormattedString(Location l)
+    {
+        return LocationToAddressOrFormattedString(l, null);
+    }
+    
+    //must provide context for geocoding
     @SuppressLint("DefaultLocale")
-    public static String LocationToFormattedString(Location l)
+    public static String LocationToAddressOrFormattedString(Location l, Context context)
     {
         if(l != null)
         {
-            //String[] lat = Location.convert(l.getLatitude(), Location.FORMAT_SECONDS).split(":");
-            //String[] lng = Location.convert(l.getLongitude(), Location.FORMAT_SECONDS).split(":");
-            return "49°12'16\"N  18°45'18\"E";
-            /*return String.format("%d°%02d'%02.0f\"N  %d°%02d'%02.0f\"E",
+            if(context != null)
+            {
+                String address = null;
+                try{
+                    address = Geocoder(l, context);
+                } catch(IOException e) {
+                    Log.w(G.tag, e.toString());}
+                if(address != null) return address;
+            }
+            
+            String[] lat = Location.convert(l.getLatitude(), Location.FORMAT_SECONDS).split(":");
+            String[] lng = Location.convert(l.getLongitude(), Location.FORMAT_SECONDS).split(":");
+            //return "49°12'16\"N  18°45'18\"E";
+            return String.format("%d°%02d'%02.0f\"N  %d°%02d'%02.0f\"E",
                     Integer.parseInt(lat[0]), Integer.parseInt(lat[1]), Float.parseFloat(lat[2]),
-                    Integer.parseInt(lng[0]), Integer.parseInt(lng[1]), Float.parseFloat(lng[2]));*/
+                    Integer.parseInt(lng[0]), Integer.parseInt(lng[1]), Float.parseFloat(lng[2]));
         }
-        else
+        else // location is null
             return "-";
+    }
+    
+    private static String Geocoder(Location l, Context context) throws IOException
+    {
+        List<Address> addresses = null;
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault()); //todo locale
+        addresses = geocoder.getFromLocation(l.getLatitude(), l.getLongitude(), 1);
+        if(addresses != null) return addresses.get(0).getAddressLine(0);
+        else return null;
     }
     
     
@@ -112,17 +145,17 @@ public class Converters
     public static Gson getGsonConverter()
     {
         return new GsonBuilder()
-                .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
+                .registerTypeAdapter(Date.class, new DateAdapter())
                 .registerTypeAdapter(Location.class, new LocationAdapter())
                 .create();
     }
     
-    static class TimestampAdapter implements JsonDeserializer<Timestamp>
+    static class DateAdapter implements JsonDeserializer<Date>
     {
         @Override
-        public Timestamp deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+        public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
         {
-            return new Timestamp(json.getAsJsonPrimitive().getAsLong());
+            return new Date(json.getAsJsonPrimitive().getAsLong());
         }
     }
     

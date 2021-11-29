@@ -15,6 +15,7 @@ import com.google.gson.annotations.SerializedName;
 import com.martin.carcharge.R;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity(tableName = "vehicle_statuses",
@@ -31,7 +32,7 @@ public class VehicleStatus
     private String vehicleId;
     
     @Expose
-    private Timestamp timestamp;
+    private Date timestamp;
     
     @Expose
     private Connectivity connectivity;
@@ -157,11 +158,11 @@ public class VehicleStatus
         this.vehicleId = vehicleId;
     }
     
-    public Timestamp getTimestamp()
+    public Date getTimestamp()
     {
         return timestamp;
     }
-    public void setTimestamp(Timestamp timestamp)
+    public void setTimestamp(Date timestamp)
     {
         this.timestamp = timestamp;
     }
@@ -272,9 +273,9 @@ public class VehicleStatus
     {
         return "VehicleStatus{" +
                 "id=" + id +
-                ", _id='" + id + '\'' +
                 ", vehicleId=" + vehicleId +
-                ", timestamp=" + timestamp +
+                ", timestamp=" + timestamp.toString() +
+                ", connectivity=" + connectivity +
                 ", state=" + state +
                 ", current_charge=" + current_charge +
                 ", target_charge=" + target_charge +
@@ -282,8 +283,11 @@ public class VehicleStatus
                 ", elapsed_time=" + elapsed_time +
                 ", remain_time=" + remain_time +
                 ", range=" + range +
-                ", elec_consumption=" + outdoor_temperature +
+                ", outdoor_temperature=" + outdoor_temperature +
                 ", indoor_temperature=" + indoor_temperature +
+                ", desired_temperature=" + desired_temperature +
+                ", location=" + location.toString() +
+                ", max_current=" + max_current +
                 '}';
     }
 }

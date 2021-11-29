@@ -78,7 +78,7 @@
             android:text="Idle"
             android:textColor="@color/white_shade"
             android:textSize="@dimen/tile_textsize_normal"
-            app:layout_constraintStart_toStartOf="@+id/progress_charge"
+            app:layout_constraintStart_toStartOf="@+id/progressbar_charge"
             app:layout_constraintTop_toBottomOf="@+id/image_vehicle"
             tools:text="Charging..." />
     
@@ -91,11 +91,11 @@
             android:textColor="@color/white_shade"
             android:textSize="@dimen/tile_textsize_big"
             app:layout_constraintBottom_toBottomOf="@+id/text_state"
-            app:layout_constraintEnd_toEndOf="@+id/progress_charge"
+            app:layout_constraintEnd_toEndOf="@+id/progressbar_charge"
             tools:text="85%" />
     
         <ProgressBar
-            android:id="@+id/progress_charge"
+            android:id="@+id/progressbar_charge"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="16dp"
@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="12dp"
-            app:layout_constraintTop_toBottomOf="@+id/progress_charge"
+            app:layout_constraintTop_toBottomOf="@+id/progressbar_charge"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
     
@@ -375,7 +375,7 @@
                         app:layout_columnWeight="1">
     
                         <TextView
-                            android:id="@+id/text_approach"
+                            android:id="@+id/text_range"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
@@ -385,12 +385,12 @@
                             tools:text="570km" />
     
                         <TextView
-                            android:id="@+id/text_approachLabel"
+                            android:id="@+id/text_rangeLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_horizontal"
-                            android:labelFor="@id/text_approach"
-                            android:text="@string/home_approach"
+                            android:labelFor="@id/text_range"
+                            android:text="@string/home_range"
                             android:textColor="@color/white_shade"
                             android:textSize="@dimen/tile_textsize_normal" />
                     </LinearLayout>

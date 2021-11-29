@@ -22,6 +22,7 @@
         <item name="android:windowBackground">@color/background</item>
         <item name="android:textColor">@color/white</item>
         <item name="preferenceTheme">@style/Theme.CarCharge.PreferenceThemeOverlay</item>
+        <item name="snackbarStyle">@style/MySnackbar</item>
         <!--<item name="android:forceDarkAllowed">false</item>-->
 
     </style>
@@ -34,6 +35,10 @@
     
     <style name="Theme.CarCharge.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
         <item name="android:layout">@layout/fragment_preferences</item>
+    </style>
+    
+    <style name="MySnackbar" parent="Widget.MaterialComponents.Snackbar">
+        <item name="android:layout_margin">32dp</item>
     </style>
     
 </resources>

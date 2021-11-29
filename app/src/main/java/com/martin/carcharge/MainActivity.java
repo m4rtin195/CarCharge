@@ -182,12 +182,13 @@ public class MainActivity extends BaseActivity
         return true;
     }
     
-    public Downloader.Listener autoNewDataListener = new Downloader.Listener() //quiet one
+    //Download listener for automatic refresh requests  //quiet one
+    public Downloader.Listener autoNewDataListener = new Downloader.Listener()
     {
         @Override
         public void onSuccess(@NonNull VehicleStatus vs)
         {
-            if(true)//vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
+            if(vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
                 vm.updateVehicleStatus(vs);
             else
             {
@@ -202,26 +203,29 @@ public class MainActivity extends BaseActivity
         }
     };
     
-    public Downloader.Listener manualNewDataListener = new Downloader.Listener() //talky one
+    //Download listener for manual refresh requests  //talky one
+    public Downloader.Listener manualNewDataListener = new Downloader.Listener()
     {
         @Override
         public void onSuccess(@NonNull VehicleStatus vs)
         {
-            if(true)//vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
+            if(vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
             {
                 vm.updateVehicleStatus(vs);
                 showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
+                Log.i("daco",vs.toString());
             }
             else
             {
-                Log.w(G.tag, "Received status is not for current selected vehicle!");
+                Log.w(G.tag, "Received status is not for currently selected vehicle!");
                 onFail(null);
             }
         }
         @Override
         public void onFail(Response<?> response)
         {
-            if(vm.getCurrentVehicleStatus().getState() == VehicleStatus.State.Loading)
+            //prvotne nacitavanie pri spusteni aplikacie
+            if(vm.getCurrentVehicleStatus() != null && vm.getCurrentVehicleStatus().getState() == VehicleStatus.State.Loading)
                 vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Unknown));
             
             showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
@@ -234,7 +238,10 @@ public class MainActivity extends BaseActivity
     View.OnClickListener onActionClickListener_flash = (View view) ->
     {
         Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
-        downloader.downloadLast(vm.getCurrentVehicle(), null);
+        
+        Vehicle fake = new Vehicle();
+        fake.setId("dajakeID");
+        downloader.downloadLast(fake, manualNewDataListener);
     };
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->

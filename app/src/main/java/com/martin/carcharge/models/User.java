@@ -1,19 +1,27 @@
 package com.martin.carcharge.models;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class User implements Parcelable
 {
+    private String uid;
     private String nickname;
     private String email;
-    private String imageFile;
+    private String imageFilename;
     private Bitmap icon;
     
     public User() {}
+    
+    public String getUid()
+    {
+        return uid;
+    }
+    public void setUid(String uid)
+    {
+        this.uid = uid;
+    }
     
     public String getNickname()
     {
@@ -33,13 +41,13 @@ public class User implements Parcelable
         this.email = email;
     }
     
-    public String getImageFile()
+    public String getImageFilename()
     {
-        return imageFile;
+        return imageFilename;
     }
-    public void setImageFile(String imageFile)
+    public void setImageFilename(String imageFilename)
     {
-        this.imageFile = imageFile;
+        this.imageFilename = imageFilename;
     }
     
     public void setIcon(Bitmap icon)
@@ -61,17 +69,19 @@ public class User implements Parcelable
     @Override
     public void writeToParcel(Parcel parcel, int flags)
     {
+        parcel.writeString(uid);
         parcel.writeString(nickname);
         parcel.writeString(email);
-        parcel.writeString(imageFile);
+        parcel.writeString(imageFilename);
         parcel.writeParcelable(icon, flags);
     }
     
     public User(Parcel parcel)
     {
+        uid = parcel.readString();
         nickname = parcel.readString();
         email = parcel.readString();
-        imageFile = parcel.readString();
+        imageFilename = parcel.readString();
         icon = parcel.readParcelable(getClass().getClassLoader());
     }
     

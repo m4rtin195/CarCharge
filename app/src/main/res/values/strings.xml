@@ -28,7 +28,7 @@
     <string name="home_charging_time">Charging Time</string>
     <string name="home_remaining_time">Remaining Time</string>
     <string name="home_location">Vehicle Location</string>
-    <string name="home_approach">Approach</string>
+    <string name="home_range">Range</string>
     <string name="home_fuel">Fuel</string>
     <string name="home_outdoor_temperature">Outdoor\nTemperature</string>
     <string name="home_indoor_temperature">Indoor\nTemperature</string>
@@ -53,7 +53,7 @@
     <!-- Preferences -->
     <string name="not_set" msgid="6573031135582639649">Not set</string>
     <string name="preferences_language">Language</string>
-    <string name="preferences_about" translatable="false">This application is a client side for eCar IoT Kit\nMartin Timko\nGlobalLogic Slovakia s.r.o.\nKMIKT FEIT UNIZA\n© 2021</string>
+    <string name="preferences_about" translatable="false">This application is a client for EV-IoT-Kit project. \nMartin Timko\nGlobalLogic Slovakia s.r.o.\nKMIKT FEIT UNIZA\n© 2021</string>
     <string name="preferences_version">Version</string>
     <string name="preferences_unloaded">unloaded</string>
     <string name="preferences_set">Set</string>

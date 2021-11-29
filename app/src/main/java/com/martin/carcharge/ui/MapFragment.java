@@ -2,20 +2,30 @@ package com.martin.carcharge.ui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,6 +44,9 @@ import com.martin.carcharge.databinding.FragmentMapBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
+
+import java.util.List;
+import java.util.Locale;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback
 {
@@ -75,17 +88,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         binding = null;
     }
     
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission") //todo ask permission
     @SuppressWarnings("ConstantConditions")
     @Override
-    public void onMapReady(GoogleMap googleMap)
+    public void onMapReady(@NonNull GoogleMap googleMap)
     {
-        LatLng defaultPoint = new LatLng(36.0, 8.0);
+        LatLng defaultPoint = new LatLng(36.0, 8.0); //center world
         
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         gMap.setPadding(50, 50, 50, 50);
-        gMap.setMapStyle(new MapStyleOptions(getResources().getString(R.string.style_json)));
+        gMap.setMapStyle(new MapStyleOptions(getResources().getString(R.string.googlemap_style_json)));
+        gMap.setInfoWindowAdapter(infoWindowAdapter);
         if(askLocationAccess()) gMap.setMyLocationEnabled(true);
         
         MarkerOptions markerOptions = new MarkerOptions();
@@ -95,31 +109,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         markerOptions.visible(false);
     
         vehicleMarker = gMap.addMarker(markerOptions);
-        assert vehicleMarker != null : "dpc preco";
-        Log.i("daco", "aaaa");
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPoint, 1));
     
-        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation);
+        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation); //todo funguje?
         updateVehicleLocation(vm.getCurrentVehicleStatus());
     }
     
-    private void updateVehicleLocation(VehicleStatus vs)
+    private void updateVehicleLocation(@Nullable VehicleStatus vs)
     {
-        if(true /*vs.getLocation() != null*/)
+        if(vs != null && vs.getLocation() != null)
         {
-            Log.i("daco", "bbbbb");
-    
-            //Location location = vs.getLocation();
-            Location location = new Location("mock"); location.setLatitude(49.20464); location.setLongitude(18.75509); //todo aaaaa
+            Location location = vs.getLocation();
+            //Location location = new Location("mock"); location.setLatitude(49.20464); location.setLongitude(18.75509); //uniza
             LatLng location2 = new LatLng(location.getLatitude(), location.getLongitude());
             
-            vehicleMarker.setVisible(true);
             vehicleMarker.setPosition(location2);
-            vehicleMarker.setSnippet(Converters.LocationToFormattedString(location));
+            vehicleMarker.setVisible(true);
+            vehicleMarker.setSnippet(Converters.LocationToAddressOrFormattedString(location, getContext()).replaceFirst(",","\n"));
             gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, 15));
         }
-        else
-            if(vehicleMarker != null) vehicleMarker.setVisible(false);
+        else;
+            //if(vehicleMarker != null) vehicleMarker.setVisible(false); //todo aaa
     }
     
     public boolean askLocationAccess()
@@ -128,9 +138,39 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             return true;
         else
         {
-            ((MainActivity)requireActivity()).showSnack(getString(R.string.map_toast_location_access_not_granted), Snackbar.LENGTH_SHORT);
-            //Toast.makeText(requireContext(), getString(R.string.toast_location_access_not_granted), Toast.LENGTH_LONG).show();
+            //((MainActivity)requireActivity()).showSnack(getString(R.string.map_toast_location_access_not_granted), Snackbar.LENGTH_SHORT);
+            Toast.makeText(requireContext(), getString(R.string.map_toast_location_access_not_granted), Toast.LENGTH_SHORT).show();
             return false;
         }
     }
+    
+    GoogleMap.InfoWindowAdapter infoWindowAdapter = new GoogleMap.InfoWindowAdapter()
+    {
+        @Override
+        public View getInfoWindow(@NonNull Marker arg0) {return null;}
+    
+        @Override
+        public View getInfoContents(@NonNull Marker marker)
+        {
+            Context context = getContext();
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.VERTICAL);
+    
+            TextView title = new TextView(context);
+            title.setTextSize(18);
+            title.setTextColor(Color.BLACK);
+            title.setGravity(Gravity.CENTER);
+            title.setTypeface(null, Typeface.BOLD);
+            title.setText(marker.getTitle());
+    
+            TextView snippet = new TextView(context);
+            snippet.setTextColor(Color.GRAY);
+            snippet.setGravity(Gravity.CENTER);
+            snippet.setText(marker.getSnippet());
+    
+            layout.addView(title);
+            layout.addView(snippet);
+            return layout;
+        }
+    };
 }
