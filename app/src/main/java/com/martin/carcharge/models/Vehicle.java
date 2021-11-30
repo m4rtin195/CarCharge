@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -29,6 +30,10 @@ public class Vehicle
     @Ignore
     private Bitmap image;
     
+    @Ignore
+    private final MutableLiveData<VehicleStatus> vehicleStatus;
+  
+    
     public Vehicle()
     {
         id = "386625"; //UUID.randomUUID().toString().replace("-","").substring(0, 10); //todo mock
@@ -36,6 +41,8 @@ public class Vehicle
         regNumber = "";
         maxVoltage = 0;
         imageFilename = "";
+        
+        vehicleStatus = new MutableLiveData<>();
     }
     
     @NonNull
@@ -57,6 +64,10 @@ public class Vehicle
     public Bitmap getImage() {return image;}
     public void setImage(Bitmap image) {this.image = image;}
     
+    public MutableLiveData<VehicleStatus> vehicleStatus()
+    {
+        return vehicleStatus;
+    }
     
     public boolean loadVehicleImage(Context context)
     {

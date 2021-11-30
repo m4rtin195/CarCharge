@@ -93,7 +93,7 @@ public class VehicleStatus
                 if(state.value == value) return state;
             return null;
         }
-        public boolean isValid()
+        public boolean isNormal()
         {
             return (value >= 0);
         }

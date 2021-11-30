@@ -19,7 +19,6 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.AppDatabase;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class MainViewModel extends AndroidViewModel
     
     private final MutableLiveData<User> user;
     private final MutableLiveData<List<Vehicle>> vehiclesRepo;
-    private final MutableLiveData<Vehicle> vehicle;
+    private final MutableLiveData<Vehicle> currentVehicle;
     private final MutableLiveData<VehicleStatus> vehicleStatus;
     
     
@@ -50,7 +49,7 @@ public class MainViewModel extends AndroidViewModel
         user = new MutableLiveData<>();
         vehiclesRepo = new MutableLiveData<>();
         vehiclesRepo.setValue(new ArrayList<>());
-        vehicle = new MutableLiveData<>();
+        currentVehicle = new MutableLiveData<>();
         vehicleStatus = new MutableLiveData<>();
         
         _initRepositories();
@@ -104,7 +103,7 @@ public class MainViewModel extends AndroidViewModel
         return this.vehiclesRepo.getValue();
     }
     
-    public void addToVehiclesRepo(@NonNull List<Vehicle> bundle)
+    public void addToVehiclesRepo(@NonNull List<Vehicle> bundle) //todo treba to?
     {
         assert vehiclesRepo.getValue() != null;
         this.vehiclesRepo.getValue().addAll(bundle);
@@ -120,7 +119,7 @@ public class MainViewModel extends AndroidViewModel
     {
         db.dao().updateVehicle(v);
         _loadVehiclesRepo();
-        this.vehicle.setValue(v);
+        this.currentVehicle.setValue(v);
     }
     
     @NonNull
@@ -130,7 +129,8 @@ public class MainViewModel extends AndroidViewModel
         v.setName(name);
         //v.setId(id); //todo
         db.dao().insertVehicle(v);
-        _addToVehiclesRepo(v);
+        assert vehiclesRepo.getValue() != null;
+        this.vehiclesRepo.getValue().add(v);
         return v;
     }
     
@@ -142,19 +142,19 @@ public class MainViewModel extends AndroidViewModel
     @NonNull
     public LiveData<Vehicle> vehicle()
     {
-        return vehicle;
+        return currentVehicle;
     }
     
     @NonNull
     public Vehicle getCurrentVehicle()
     {
-        assert vehicle.getValue() != null;
-        return vehicle.getValue();
+        assert currentVehicle.getValue() != null;
+        return currentVehicle.getValue();
     }
     
     public void changeVehicle(@NonNull Vehicle v)
     {
-        this.vehicle.setValue(v);
+        this.currentVehicle.setValue(v);
         this.vehicleStatus.setValue(_reqireVehicleStatus(v));
     }
     
@@ -172,11 +172,10 @@ public class MainViewModel extends AndroidViewModel
     @Nullable
     public VehicleStatus getCurrentVehicleStatus()
     {
-        return null;
         //Log.i("daco",db.dao().getLastStatus("386625").getId());
         //return db.dao().getLastStatus("386625");
-//        assert vehicleStatus.getValue() != null;
-//        return vehicleStatus.getValue();
+        assert vehicleStatus.getValue() != null;
+        return vehicleStatus.getValue();
     }
     
     //status-db
@@ -184,7 +183,7 @@ public class MainViewModel extends AndroidViewModel
     public void updateVehicleStatus(@NonNull VehicleStatus vs)
     {
         this.vehicleStatus.setValue(vs);
-        if(vs.getState().isValid())
+        if(vs.getState().isNormal())
             _addToStatusesRepo(vs);
     }
     
@@ -208,12 +207,6 @@ public class MainViewModel extends AndroidViewModel
     
     /**********/
     //internal
-
-    private void _addToVehiclesRepo(@NonNull Vehicle v)
-    {
-        assert vehiclesRepo.getValue() != null;
-        this.vehiclesRepo.getValue().add(v);
-    }
     
     private void _loadLastVehicle()
     {
@@ -229,12 +222,12 @@ public class MainViewModel extends AndroidViewModel
         {
             Log.e(G.tag,"Last used vehicle not found in database. Clearing last flag.");
             pref.edit().remove(G.PREF_LAST_VEHICLE_ID).apply();
-            _loadLastVehicle();
+            _loadLastVehicle(); //to create new one
             return;
         }
         
         Vehicle v = _getVehicle(lastVehicleId); //valid load
-        this.vehicle.setValue(v);
+        this.currentVehicle.setValue(v);
     }
     
     private Vehicle _getVehicle(String id)
@@ -308,6 +301,7 @@ public class MainViewModel extends AndroidViewModel
     
     /**********/
     //viewmodel factory
+    //for crating app-wide viewmodel
     
     public static class Factory extends ViewModelProvider.NewInstanceFactory
     {

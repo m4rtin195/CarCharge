@@ -28,7 +28,6 @@ import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.Downloader;
 import com.martin.carcharge.ui.Graph;
 
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,7 +50,7 @@ public class HistoryFragment extends Fragment
     EditText edit_periodFrom, edit_periodTo;
     Button button_load;
     LineChart chart;
-    FloatingActionButton fab_action;
+    FloatingActionButton fab_button;
     
     Graph graph;
     SimpleDateFormat formatter1, formatter2; //1 for editTexts, 2 for graph
@@ -125,8 +124,8 @@ public class HistoryFragment extends Fragment
             graph = new Graph(this, chart);
             graph.initChart();
     
-        fab_action = ((MainActivity)requireActivity()).getFab();
-            fab_action.setOnClickListener(null);
+        fab_button = ((MainActivity)requireActivity()).getFab();
+            fab_button.setOnClickListener(null);
         
         return root;
     }
@@ -141,7 +140,7 @@ public class HistoryFragment extends Fragment
     
     SingleDateAndTimePickerDialog.Listener datetimeFromPickerListener = date ->
     {
-        timeFrom = new Timestamp(date.getTime());
+        timeFrom = date;
         DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
         String string = df.format(timeFrom);
         edit_periodFrom.setText(string);
@@ -149,7 +148,7 @@ public class HistoryFragment extends Fragment
     
     SingleDateAndTimePickerDialog.Listener datetimeToPickerListener = date ->
     {
-        timeTo = new Timestamp(date.getTime());
+        timeTo = date;
         DateFormat df = getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, ((BaseActivity)requireActivity()).getCurrentLocale());
         String string = df.format(timeTo);
         edit_periodTo.setText(string);
@@ -196,7 +195,7 @@ public class HistoryFragment extends Fragment
                             message = "Server request failed.\nShowing local only (" + localList.size() + " entries)";
                             
                         Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), message, Snackbar.LENGTH_SHORT)
-                                .setAnchorView(R.id.fab_action).show();
+                                .setAnchorView(R.id.fab_button).show();
                     }
                 });
         

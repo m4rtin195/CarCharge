@@ -35,7 +35,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.math.MathUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.databinding.ActivityMainBinding;
-import com.martin.carcharge.databinding.DialogEditBinding;
+import com.martin.carcharge.databinding.DialogEdittextBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
@@ -56,7 +56,7 @@ public class MainActivity extends BaseActivity
     ActivityMainBinding binding;
     View root;
     View scrim;
-    FloatingActionButton fab_action;
+    FloatingActionButton fab_button;
     BottomAppBar bottomBar;
     
     BottomSheetBehavior<FragmentContainerView> bottomSheetBehavior;
@@ -80,8 +80,8 @@ public class MainActivity extends BaseActivity
         vm = App.getViewModel();
         
         
-        fab_action = binding.fabAction;
-            fab_action.setOnClickListener(onActionClickListener_flash);
+        fab_button = binding.fabButton;
+            fab_button.setOnClickListener(onActionClickListener_flash);
     
         bottomBar = binding.bottombar;
             setSupportActionBar(bottomBar);
@@ -103,7 +103,7 @@ public class MainActivity extends BaseActivity
         
         downloader = new Downloader(this);
         fcmReceiver = new FcmReceiver();
-    
+       
         //vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading)); //v oncreate aby sa spustil len raz
     
     } //onCreate
@@ -117,7 +117,7 @@ public class MainActivity extends BaseActivity
         vm.setUser(user);
         if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
             Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
-                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_action).show();
+                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
         
         new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
@@ -159,12 +159,12 @@ public class MainActivity extends BaseActivity
             if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
             {
                 setBottomSheetExpanded(true);
-                setFabInternal(G.FAB_PLUS);
+                _setFabFunction(G.FAB_PLUS);
             }
             else
             {
                 setBottomSheetExpanded(false);
-                setFabInternal(G.FAB_FLASH);
+                _setFabFunction(G.FAB_FLASH);
             }
         }
         
@@ -182,7 +182,75 @@ public class MainActivity extends BaseActivity
         return true;
     }
     
-    //Download listener for automatic refresh requests  //quiet one
+    /**********/
+    
+    public Downloader getDownloader()
+    {
+        return downloader;
+    }
+    
+    public void setBottomSheetExpanded(boolean b)
+    {
+        if(b)
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        else
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+    
+    public void setBottomBarVisible(boolean bar, boolean fab)
+    {
+        if(bar) bottomBar.performShow();
+        else bottomBar.performHide();
+        bottomBar.setHideOnScroll(bar);
+        fab_button.setVisibility(fab ? View.VISIBLE : View.GONE);
+    }
+    
+    public View getRootLayout()
+    {
+        return root;
+    }
+    
+    public FloatingActionButton getFab()
+    {
+        return fab_button;
+    }
+    
+    public void showSnack(String text, int duration) //todo pouzit vsade
+    {
+        Snackbar.make(root, text, duration).setAnchorView(R.id.fab_button).show();
+    }
+    
+    @Override
+    public void onBackPressed()
+    {
+        //just hide bottomSheet
+        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED)
+        {
+            setBottomSheetExpanded(false);
+            return;
+        }
+        super.onBackPressed();
+    }
+    
+    private void _setFabFunction(int mode)
+    {
+        if(mode == G.FAB_FLASH)
+        {
+            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_CENTER);
+            fab_button.setImageResource(R.drawable.ic_flash);
+            fab_button.setOnClickListener(onActionClickListener_flash);
+        }
+        if(mode == G.FAB_PLUS)
+        {
+            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_END);
+            fab_button.setImageResource(R.drawable.ic_plus);
+            fab_button.setOnClickListener(onNewVehicleClickListener);
+        }
+    }
+    
+    /**********/
+    
+        //Download listener for automatic refresh requests  //quiet one
     public Downloader.Listener autoNewDataListener = new Downloader.Listener()
     {
         @Override
@@ -232,9 +300,6 @@ public class MainActivity extends BaseActivity
         }
     };
     
-    /**********/
-    
-    
     View.OnClickListener onActionClickListener_flash = (View view) ->
     {
         Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
@@ -259,87 +324,6 @@ public class MainActivity extends BaseActivity
         }
     };
     
-    void newVehicle()
-    {
-        View content = getLayoutInflater().inflate(R.layout.dialog_edit, null);
-        
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.pairing_new_vehicle));
-        builder.setView(content);
-        builder.setPositiveButton(getString(R.string.pairing_pair), (dialog2, which) -> {});
-        
-        {
-            AlertDialog newVehicleDialog = builder.create();
-            newVehicleDialog.show();
-            newVehicleDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-            
-            EditText edit_name = DialogEditBinding.bind(content).editName;
-            Button dialogPButton = newVehicleDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            
-            edit_name.addTextChangedListener(new TextWatcher()
-            {
-                @Override public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-                @Override public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-                @Override public void afterTextChanged(Editable editable) {dialogPButton.setEnabled(!editable.toString().isEmpty()); }
-            });
-            
-            dialogPButton.setEnabled(false);
-            dialogPButton.setOnClickListener(view ->
-            {
-                newVehicleDialog.dismiss();
-                Vehicle newVehicle = vm.createVehicle(edit_name.getText().toString());
-                //vehiclesAdapter.add(newVehicle); //todo
-            });
-        }
-    }
-    
-    public Downloader getDownloader()
-    {
-        return downloader;
-    }
-    
-    public void setBottomSheetExpanded(boolean b)
-    {
-        if(b)
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        else
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-    }
-    
-    private void setFabInternal(int state)
-    {
-        if(state == G.FAB_FLASH)
-        {
-            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_CENTER);
-            fab_action.setImageResource(R.drawable.ic_flash);
-            fab_action.setOnClickListener(onActionClickListener_flash);
-        }
-        if(state == G.FAB_PLUS)
-        {
-            bottomBar.setFabAlignmentMode(BottomAppBar.FAB_ALIGNMENT_MODE_END);
-            fab_action.setImageResource(R.drawable.ic_plus);
-            fab_action.setOnClickListener(v -> newVehicle());
-        }
-    }
-    
-    public void setBottomBarVisible(boolean bar, boolean fab)
-    {
-        if(bar) bottomBar.performShow();
-        else bottomBar.performHide();
-        bottomBar.setHideOnScroll(bar);
-        fab_action.setVisibility(fab ? View.VISIBLE : View.GONE);
-    }
-    
-    public View getRootLayout()
-    {
-        return root;
-    }
-    
-    public FloatingActionButton getFab()
-    {
-        return fab_action;
-    }
-    
     BottomSheetBehavior.BottomSheetCallback bottomSheetCallback = new BottomSheetBehavior.BottomSheetCallback()
     {
         int previousState = BottomSheetBehavior.STATE_HIDDEN;
@@ -347,7 +331,7 @@ public class MainActivity extends BaseActivity
         @Override public void onStateChanged(@NonNull View bottomSheet, int newState)
         {
             if(newState == BottomSheetBehavior.STATE_SETTLING && previousState == BottomSheetBehavior.STATE_EXPANDED)
-                setFabInternal(G.FAB_FLASH);
+                _setFabFunction(G.FAB_FLASH);
             if(newState == BottomSheetBehavior.STATE_SETTLING)
                 scrim.setVisibility(View.VISIBLE);
             if(newState == BottomSheetBehavior.STATE_HIDDEN)
@@ -359,7 +343,7 @@ public class MainActivity extends BaseActivity
         @Override public void onSlide(@NonNull View bottomSheet, float slideOffset)
         {
             float baseAlpha = ResourcesCompat.getFloat(getResources(), R.dimen.material_emphasis_high_type);
-            float offset = (slideOffset - (-1f)) / (1f - (-1f)) * (1f - 0f);
+            float offset = (slideOffset - (-1f)) / (1f - (-1f));
             int alpha = Math.round(MathUtils.lerp(0f, 255f, offset * baseAlpha));
             int color = Color.argb(alpha, 0, 0, 0);
             scrim.setBackgroundColor(color);
@@ -367,21 +351,44 @@ public class MainActivity extends BaseActivity
         }
     };
     
-    public void showSnack(String text, int duration)
+    View.OnClickListener onNewVehicleClickListener = new View.OnClickListener()
     {
-        Snackbar.make(root, text, duration).setAnchorView(R.id.fab_action).show();
-    }
-    
-    @Override
-    public void onBackPressed()
-    {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED)
+        @Override
+        public void onClick(View view)
         {
-            setBottomSheetExpanded(false);
-            return;
+            Toast.makeText(getApplicationContext(), "This is NOT implemented!", Toast.LENGTH_LONG).show();
+            View content = getLayoutInflater().inflate(R.layout.dialog_edittext, null);
+        
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle(getString(R.string.pairing_new_vehicle));
+            builder.setView(content);
+            builder.setPositiveButton(getString(R.string.pairing_pair), (dialog2, which) -> {});
+            
+            {
+                AlertDialog newVehicleDialog = builder.create();
+                newVehicleDialog.show();
+                newVehicleDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                
+                EditText edit_name = DialogEdittextBinding.bind(content).editName;
+                Button dialogPButton = newVehicleDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                
+                edit_name.addTextChangedListener(new TextWatcher()
+                {
+                    @Override public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                    @Override public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                    @Override public void afterTextChanged(Editable editable) {dialogPButton.setEnabled(!editable.toString().isEmpty()); }
+                });
+                
+                dialogPButton.setEnabled(false);
+                dialogPButton.setOnClickListener(view1 ->
+                {
+                    newVehicleDialog.dismiss();
+                    Vehicle newVehicle = vm.createVehicle(edit_name.getText().toString());
+                    //vehiclesAdapter.add(newVehicle); //todo
+                });
+            }
         }
-        super.onBackPressed();
-    }
+    };
 }
 
 //todo room livedata
