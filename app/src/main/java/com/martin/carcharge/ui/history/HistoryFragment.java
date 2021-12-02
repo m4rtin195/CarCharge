@@ -1,6 +1,7 @@
 package com.martin.carcharge.ui.history;
 
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,8 +75,8 @@ public class HistoryFragment extends Fragment
         formatter1 = new SimpleDateFormat("MMM d, yyyy HH:mm", ((MainActivity)requireActivity()).getCurrentLocale());
         formatter2 = new SimpleDateFormat(new String(), ((MainActivity)requireActivity()).getCurrentLocale());
 
-        timeFrom = new Date(System.currentTimeMillis()-(1000*60*60*24*7)); //-1 week
-        timeTo = new Date(System.currentTimeMillis()); //now
+        timeFrom = new Date(new Date().getTime() - DateUtils.WEEK_IN_MILLIS); //-1 week
+        timeTo = new Date(); //now
        
         toolbar = binding.toolbarHistory;
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
@@ -111,7 +112,7 @@ public class HistoryFragment extends Fragment
                         .mainColor(getResources().getColor(R.color.tint_blue_variant, requireActivity().getTheme()))
                         .backgroundColor(getResources().getColor(R.color.tile_gray, requireActivity().getTheme()))
                         .defaultDate(timeTo)
-                        .maxDateRange(new Date(System.currentTimeMillis()))
+                        .maxDateRange(new Date())
                         .listener(datetimeToPickerListener)
                         .build()
                         .display();

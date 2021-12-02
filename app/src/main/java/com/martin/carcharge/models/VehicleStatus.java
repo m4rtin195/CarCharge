@@ -24,7 +24,7 @@ import java.util.UUID;
 public class VehicleStatus
 {
     @PrimaryKey
-    @SerializedName("_id")
+    @SerializedName("id")
     @NonNull
     private String id;
     
@@ -113,7 +113,7 @@ public class VehicleStatus
     
     public VehicleStatus()
     {
-        id = UUID.randomUUID().toString().replace("-","").substring(0, 10);; //todo preco
+        id = "0"; //UUID.randomUUID().toString().replace("-","").substring(0, 10);;
         state = State.Unknown;
         connectivity = Connectivity.Unknown;
         timestamp = new Timestamp(0); //normalna init atributu
@@ -122,13 +122,6 @@ public class VehicleStatus
         max_current = Integer.MIN_VALUE;
         desired_temperature = Float.MIN_VALUE;
         //vehicleId = "1"; //todo prec ked bude api
-    }
-    
-    @Ignore
-    public VehicleStatus(@NonNull State s)
-    {
-        this();
-        this.state = s;
     }
     
     @Ignore

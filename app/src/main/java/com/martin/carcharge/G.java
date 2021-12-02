@@ -14,10 +14,12 @@ import java.util.Locale;
 public class G
 {
     public static final String tag = "daco";
-    public static final String ACTION_BROAD_UPDATE = "com.martin.carcharge.FcmReceiver.update";
+    public static final String NOTIFICATION_CHANNELID = "com.martin.carcharge";
+    public static final String ACTION_BROADCAST_UPDATE = "com.martin.carcharge.FcmReceiver.update";
     public static final String EXTRA_USER = "com.martin.carcharge.LoginActivity.user";
     public static final String EXTRA_USER_JUST_LOGGED = "com.martin.carcharge.LoginActivity.isNew";
     public static final String EXTRA_JSON = "json";
+    public static final int RC_FROM_NOTIF = 9000;
     public static final int RC_SIGN_IN = 9001;
     public static final int RC_FILE_PICKER = 9002;
     public static final int FAB_FLASH = 5001;

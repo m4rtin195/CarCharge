@@ -3,7 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_dashboard.xml" value="0.3921875" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_database_delete.xml" value="0.31296296296296294" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_home.xml" value="0.31296296296296294" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_iot.xml" value="0.3333333333333333" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_iot2.xml" value="0.3921875" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_language.xml" value="0.3861538461538462" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_language2.xml" value="0.23055555555555557" />
         <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_offline2.xml" value="0.34791666666666665" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_offline3.xml" value="0.23055555555555557" />
+        <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_vehicle.xml" value="0.31296296296296294" />
         <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/drawable/ic_wifi.xml" value="0.34791666666666665" />
         <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/layout/activity_login.xml" value="0.26975683890577506" />
         <entry key="..\:/Users/Martin/Desktop/CarCharge/app/src/main/res/layout/activity_main.xml" value="0.2418478260869565" />

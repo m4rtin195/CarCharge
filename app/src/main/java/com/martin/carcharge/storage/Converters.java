@@ -34,6 +34,8 @@ import java.util.Locale;
 
 public class Converters
 {
+    /** database **/
+    
     @TypeConverter
     public static int StateToInt(State value)
     {
@@ -98,6 +100,51 @@ public class Converters
         return l;
     }
     
+    
+    /** retrofit **/
+    
+    public static Gson getGsonConverter()
+    {
+        return new GsonBuilder()
+                .registerTypeAdapter(Date.class, new DateAdapter())
+                .registerTypeAdapter(Location.class, new LocationAdapter())
+                .create();
+    }
+    
+    static class DateAdapter implements JsonDeserializer<Date>
+    {
+        @Override
+        public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+        {
+            return new Date(json.getAsJsonPrimitive().getAsLong());
+        }
+    }
+    
+    static class LocationAdapter extends TypeAdapter<Location>
+    {
+        @Override
+        public Location read(JsonReader in) throws IOException
+        {
+            String[] loc = in.nextString().split(",");
+            Location l =  new Location(new String());
+            if(loc.length == 2)
+            {
+                l.setLatitude(Double.parseDouble(loc[0]));
+                l.setLongitude(Double.parseDouble(loc[1]));
+            }
+            return l;
+        }
+        
+        @Override
+        public void write(JsonWriter out, Location value) throws IOException
+        {
+            out.value(value.getLatitude() + ", " + value.getLongitude());
+        }
+    }
+    
+    
+    /** others **/
+    
     public static String LocationToAddressOrFormattedString(Location l)
     {
         return LocationToAddressOrFormattedString(l, null);
@@ -137,47 +184,5 @@ public class Converters
         addresses = geocoder.getFromLocation(l.getLatitude(), l.getLongitude(), 1);
         if(addresses != null) return addresses.get(0).getAddressLine(0);
         else return null;
-    }
-    
-    
-    /// retrofit
-    
-    public static Gson getGsonConverter()
-    {
-        return new GsonBuilder()
-                .registerTypeAdapter(Date.class, new DateAdapter())
-                .registerTypeAdapter(Location.class, new LocationAdapter())
-                .create();
-    }
-    
-    static class DateAdapter implements JsonDeserializer<Date>
-    {
-        @Override
-        public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
-        {
-            return new Date(json.getAsJsonPrimitive().getAsLong());
-        }
-    }
-    
-    static class LocationAdapter extends TypeAdapter<Location>
-    {
-        @Override
-        public Location read(JsonReader in) throws IOException
-        {
-            String[] loc = in.nextString().split(",");
-            Location l =  new Location(new String());
-            if(loc.length == 2)
-            {
-                l.setLatitude(Double.parseDouble(loc[0]));
-                l.setLongitude(Double.parseDouble(loc[1]));
-            }
-            return l;
-        }
-        
-        @Override
-        public void write(JsonWriter out, Location value) throws IOException
-        {
-            out.value(value.getLatitude() + ", " + value.getLongitude());
-        }
     }
 }

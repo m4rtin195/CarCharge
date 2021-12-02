@@ -97,5 +97,8 @@
     <string name="toast_refreshed">Refreshed.</string>
     <string name="toast_refresh_fail">Refresh failed.</string>
     <string name="map_toast_location_access_not_granted">Location access not granted.</string>
+    <string name="notification_charge_completed">Charging completed</string>
+    <string name="notification_charge_completed_cont">Your %1$s charge level has reached the desired level (%2$d%%).</string>
+    <string name="notification_charge_to_100">Charge to 100%</string>
 
 </resources>

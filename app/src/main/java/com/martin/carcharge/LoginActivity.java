@@ -111,10 +111,9 @@ public class LoginActivity extends BaseActivity
     public void onGoogleLoginClick(View view)
     {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestIdToken(getString(R.string.default_web_client_id)) //false warning!
                 .requestEmail()
                 .build();
-    
         GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     
         Intent intent = mGoogleSignInClient.getSignInIntent();
@@ -173,6 +172,7 @@ public class LoginActivity extends BaseActivity
             bundle.putParcelable(G.EXTRA_USER, user);
             bundle.putBoolean(G.EXTRA_USER_JUST_LOGGED, true);
             intent.putExtras(bundle);
+            //intent.putExtra(G.EXTRA_USER, user); //just one extra
             
             LoginActivity.this.startActivity(intent);
             LoginActivity.this.finish();

@@ -1,6 +1,7 @@
 package com.martin.carcharge.ui.home;
 
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
@@ -29,9 +31,10 @@ import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 
 public class HomeFragment extends Fragment
 {
@@ -47,6 +50,9 @@ public class HomeFragment extends Fragment
             text_range, text_fuel, text_location,
             text_indoorTemp, text_outdoorTemp, text_desiredTemp;
     
+    Vehicle currentVehicle;
+    Observer<VehicleStatus> currentVehicleStatusObserver = this::updateStatusFields;
+    
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -57,38 +63,14 @@ public class HomeFragment extends Fragment
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         root = binding.getRoot();
         
-        findViews();
+        bindViews();
         binding.layoutLocation.setOnClickListener(onLocationTileClickListener);
         
-        image_connectivity.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                Log.i("daco", "clicked");
-                TextView aa = new TextView(requireContext());
-                aa.setPadding(32,32,32,32);
-                aa.setGravity(Gravity.END);
-                aa.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END); //todo co z toho?
-                
-                Log.i("daco", "teraz");
-                VehicleStatus vs = vm.getCurrentVehicleStatus(); // todo preco pada?
-                assert vs != null;
-                String str = "Connected via " + vs.getConnectivity().toString() + "\n" + "Updated: " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(vs.getTimestamp());
-                
-                aa.setText(str);
-                PopupWindow popupWindow = new PopupWindow(aa, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        image_connectivity.setOnClickListener(onImageConnectivityClickListener);
     
-                popupWindow.setTouchable(true);
-                //popupWindow.
-                popupWindow.setOutsideTouchable(true);
-                popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.home_tile, requireActivity().getTheme()));
-                popupWindow.showAsDropDown(binding.imageConnectivity, -350, 50, Gravity.LEFT);
-            }
-        });
-    
-        vm.vehicle().observe(getViewLifecycleOwner(), this::updateVehicleFields);
-        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateStatusFields);
+        currentVehicle = vm.getCurrentVehicle();
+        vm.currentVehicle().observe(getViewLifecycleOwner(), vehicleSwitchedObserver);
+        vm.currentVehicleStatus().observe(getViewLifecycleOwner(), currentVehicleStatusObserver);
     
         return root;
     }
@@ -100,9 +82,21 @@ public class HomeFragment extends Fragment
         binding = null;
     }
     
-    private void updateVehicleFields(Vehicle vehicle)
+    
+    Observer<Vehicle> vehicleSwitchedObserver = new Observer<Vehicle>()
     {
-        Log.d(G.tag, "observed vehicle change.");
+        @Override
+        public void onChanged(Vehicle vehicle)
+        {
+            updateVehicleFields(vehicle);
+            currentVehicle.vehicleStatus().removeObserver(currentVehicleStatusObserver);
+            vm.currentVehicleStatus().observe(getViewLifecycleOwner(), currentVehicleStatusObserver);
+        }
+    };
+    
+    void updateVehicleFields(Vehicle vehicle)
+    {
+        Log.d(G.tag, "[observed vehicle change]");
         
         text_vehicleName.setText(vehicle.getName());
         text_regNumber.setText(vehicle.getRegNumber());
@@ -111,7 +105,7 @@ public class HomeFragment extends Fragment
     
     private void updateStatusFields(VehicleStatus vs)
     {
-        Log.d(G.tag, "observed status change. " + vs.getState());
+        Log.d(G.tag, "[observed status change: " + vs.getState() + "]");
         
         if(vs.getState() == VehicleStatus.State.Unknown)
         {
@@ -158,7 +152,7 @@ public class HomeFragment extends Fragment
         {
             case Unknown: image_connectivity.setImageDrawable(null); break;
             case NotConnected: image_connectivity.setImageResource(R.drawable.ic_offline2); break;
-            case Sigfox: image_connectivity.setImageResource(R.drawable.ic_plus); break;
+            case Sigfox: image_connectivity.setImageResource(R.drawable.ic_iot); break;
             case WiFi: image_connectivity.setImageResource(R.drawable.ic_wifi); break;
         }
     }
@@ -188,7 +182,7 @@ public class HomeFragment extends Fragment
         text_desiredTemp.setText(dash);
     }
     
-    private void findViews()
+    private void bindViews()
     {
         text_vehicleName = binding.textVehicleName;
         text_regNumber = binding.textRegNumber;
@@ -226,13 +220,38 @@ public class HomeFragment extends Fragment
         @Override
         public void onClick(View v)
         {
-            if(true /*vm.getCurrentVehicleStatus().getLocation() != null*/) //todo odistit + NULLABLE!!!
+            if(vm.getCurrentVehicleStatus() != null && vm.getCurrentVehicleStatus().getLocation() != null)
             {
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
                 navController.navigate(R.id.navigation_action_home_to_map);
             }
             else
                 G.debug(requireContext(), "Location is null");
+        }
+    };
+    
+    View.OnClickListener onImageConnectivityClickListener = new View.OnClickListener()
+    {
+        @Override
+        public void onClick(View view)
+        {
+            TextView textView = new TextView(requireContext());
+            textView.setPadding(32,32,32,32);
+            textView.setGravity(Gravity.END);
+            textView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END);
+            
+            VehicleStatus vs = vm.getCurrentVehicleStatus();
+            assert vs != null;
+            String str = "Connected via: " + vs.getConnectivity().toString() + "\n" +
+                    "Updated: " + DateUtils.formatSameDayTime(vs.getTimestamp().getTime(), new Date().getTime(), DateFormat.SHORT, DateFormat.MEDIUM);
+                    /*new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(vs.getTimestamp())*/ //TODO format dna?
+            
+            textView.setText(str);
+            
+            PopupWindow popupWindow = new PopupWindow(textView, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            popupWindow.setOutsideTouchable(true);
+            popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.home_tile, requireActivity().getTheme()));
+            popupWindow.showAsDropDown(binding.imageConnectivity, -350, 50, Gravity.LEFT);
         }
     };
 }

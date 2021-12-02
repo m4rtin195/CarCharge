@@ -351,7 +351,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 preference_vehicleImage.setSummary(getString(R.string.preferences_set));
             }
             
-            vm.updateVehicle(vehicle);
+            vm.updateVehicle(vehicle); //todo slucka!!!!
         }
         return true;
     };

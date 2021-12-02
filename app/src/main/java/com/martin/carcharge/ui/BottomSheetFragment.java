@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,9 +23,6 @@ import com.martin.carcharge.databinding.FragmentBottomsheetBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BottomSheetFragment extends BottomSheetDialogFragment
 {
@@ -48,7 +46,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         vm = App.getViewModel();
     
         vm.user().observe(this, this::updateUserFields);
-        vm.vehiclesRepo().observe(this, this::updateVehiclesRecycler);
+        for(MutableLiveData<Vehicle> m : vm.vehiclesRepo())
+            m.observe(this, this::updateVehiclesRecycler);
         
         image_userIcon = binding.imageUserIcon;
         text_nickname = binding.textNickname;
@@ -62,12 +61,11 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         
-        vehiclesAdapter = new VehiclesAdapter(requireContext(), new ArrayList<>());
-        vehiclesAdapter = new VehiclesAdapter(requireContext(), vm.getAllVehicles());
+        vehiclesAdapter = new VehiclesAdapter(requireContext(), getViewLifecycleOwner(), vm.getAllVehicles());
             vehiclesAdapter.setOnItemClickListener((view, position) ->
             {
                 Vehicle selectedVehicle = vehiclesAdapter.get(position);
-                vm.changeVehicle(selectedVehicle); //internally change status too
+                vm.switchCurrentVehicle(selectedVehicle); //internally change status too
                 
                 //download new one
                 MainActivity mAct = ((MainActivity)requireActivity());
@@ -77,7 +75,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         
         recycler_vehicles = binding.recyclerVehicles;
             recycler_vehicles.setAdapter(vehiclesAdapter);
-            
+        
         root.setOnClickListener(null); //chyti bottomsheet touches, inak by prepadli na scrim
         return root;
     }
@@ -97,8 +95,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
         text_email.setText(user.getEmail());
     }
     
-    private void updateVehiclesRecycler(List<Vehicle> vehicles)
+    private void updateVehiclesRecycler(Vehicle vehicle)
     {
-        vehiclesAdapter.fill(vehicles);
+        vehiclesAdapter.update(vehicle);
     }
 }

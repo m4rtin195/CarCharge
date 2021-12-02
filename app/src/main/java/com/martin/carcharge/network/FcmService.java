@@ -53,9 +53,7 @@ public class FcmService extends FirebaseMessagingService
             Type type = new TypeToken<VehicleStatus>() {}.getType();
             JSONObject object = new JSONObject(params);
             
-            //VehicleStatus vs = new Gson().fromJson(object.toString(), type);
-    
-            Intent intent = new Intent(G.ACTION_BROAD_UPDATE);
+            Intent intent = new Intent(G.ACTION_BROADCAST_UPDATE);
             intent.putExtra(G.EXTRA_JSON, object.toString());
             lbm.sendBroadcast(intent);
         }
@@ -70,7 +68,6 @@ public class FcmService extends FirebaseMessagingService
     
     void handle(Map<String, String> data)
     {
-        
         //return new Gson().fromJson(aa, listType);
     }
 }

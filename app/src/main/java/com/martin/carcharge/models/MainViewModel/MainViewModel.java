@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class MainViewModel extends AndroidViewModel
 {
@@ -33,9 +34,9 @@ public class MainViewModel extends AndroidViewModel
     public final Skuska skuska;
     
     private final MutableLiveData<User> user;
-    private final MutableLiveData<List<Vehicle>> vehiclesRepo;
-    private final MutableLiveData<Vehicle> currentVehicle;
-    private final MutableLiveData<VehicleStatus> vehicleStatus;
+    private final List<MutableLiveData<Vehicle>> vehiclesRepo;
+    private final MutableLiveData<Vehicle> currentVehicle; //just a copy of reference to vehicle in vehiclesRepo
+    private MutableLiveData<VehicleStatus> currentVehicleStatus; //just a reference
     
     
     public MainViewModel(@NonNull Application context)
@@ -47,10 +48,11 @@ public class MainViewModel extends AndroidViewModel
         pref = App.getPreferences();
     
         user = new MutableLiveData<>();
-        vehiclesRepo = new MutableLiveData<>();
-        vehiclesRepo.setValue(new ArrayList<>());
+        //vehiclesRepo = new MutableLiveData<>();
+        //vehiclesRepo.setValue(new ArrayList<>());
+        vehiclesRepo = new ArrayList<>();
         currentVehicle = new MutableLiveData<>();
-        vehicleStatus = new MutableLiveData<>();
+        currentVehicleStatus = null; //it will be only reference
         
         _initRepositories();
     }
@@ -59,7 +61,7 @@ public class MainViewModel extends AndroidViewModel
     {
         _loadVehiclesRepo();
         _loadLastVehicle();
-        _loadLastVehicleStatus();
+        //_loadLastVehicleStatus();
     }
     
     
@@ -82,6 +84,7 @@ public class MainViewModel extends AndroidViewModel
     
     public void setUser(User u)
     {
+        Log.i("daco", "setUser");
         this.user.setValue(u);
     }
     
@@ -89,37 +92,42 @@ public class MainViewModel extends AndroidViewModel
     
     /**********/
     //vehicles_repo
-
+    
     @NonNull
-    public LiveData<List<Vehicle>> vehiclesRepo()
+    public List<MutableLiveData<Vehicle>> vehiclesRepo()
     {
-        return vehiclesRepo;
+        return this.vehiclesRepo;
     }
     
     @NonNull
     public List<Vehicle> getAllVehicles()
     {
-        assert vehiclesRepo.getValue() != null;
-        return this.vehiclesRepo.getValue();
+        List<Vehicle> list = new ArrayList<>();
+        for(MutableLiveData<Vehicle> m : vehiclesRepo)
+            list.add(Objects.requireNonNull(m.getValue()));
+        return list;
     }
     
-    public void addToVehiclesRepo(@NonNull List<Vehicle> bundle) //todo treba to?
+    /*public void addToVehiclesRepo(@NonNull List<Vehicle> bundle) //todo treba to?
     {
         assert vehiclesRepo.getValue() != null;
         this.vehiclesRepo.getValue().addAll(bundle);
-    }
+    }*/
     
     @Nullable
-    public Vehicle getVehicleByStatus(@NonNull VehicleStatus vs)  //wtf toto je naco dobre
+    public Vehicle getVehicleByStatus(@NonNull VehicleStatus vs)
     {
-        return _getVehicle(vs.getVehicleId());
+        return _getVehicleFromRepo(vs.getVehicleId());
     }
     
     public void updateVehicle(@NonNull Vehicle v)
     {
         db.dao().updateVehicle(v);
-        _loadVehiclesRepo();
-        this.currentVehicle.setValue(v);
+        //_loadVehiclesRepo(); //clear repo and load again
+        //actually to je potrebne iba pre invoke observe, inak su data vehicle v repo uz zmenene (pass by value-reference)
+        //kotlin riesenie: https://stackoverflow.com/a/55537829/14629312
+        vehiclesRepo.get(_findVehicleInRepo(v)).setValue(v);
+        this.currentVehicle.setValue(v); //to invoke observation
     }
     
     @NonNull
@@ -129,18 +137,38 @@ public class MainViewModel extends AndroidViewModel
         v.setName(name);
         //v.setId(id); //todo
         db.dao().insertVehicle(v);
-        assert vehiclesRepo.getValue() != null;
-        this.vehiclesRepo.getValue().add(v);
+        this.vehiclesRepo.add(new MutableLiveData<>(v));
         return v;
     }
     
+    private int _findVehicleInRepo(Vehicle v)
+    {
+        int i = -1;
+        for(MutableLiveData<Vehicle> m : vehiclesRepo)
+        {
+            i++;
+            if(Objects.requireNonNull(m.getValue()).equals(v))
+                break;
+        }
+        return i;
+    }
     
+    @Nullable
+    private Vehicle _getVehicleFromRepo(String id)
+    {
+        for(MutableLiveData<Vehicle> m : vehiclesRepo)
+        {
+            if(Objects.requireNonNull(m.getValue()).getId().equals(id))
+                return m.getValue();
+        }
+        return null;
+    }
     
     /**********/
-    //vehicle
+    //current vehicle
 
     @NonNull
-    public LiveData<Vehicle> vehicle()
+    public LiveData<Vehicle> currentVehicle()
     {
         return currentVehicle;
     }
@@ -152,10 +180,11 @@ public class MainViewModel extends AndroidViewModel
         return currentVehicle.getValue();
     }
     
-    public void changeVehicle(@NonNull Vehicle v)
+    public void switchCurrentVehicle(@NonNull Vehicle v)
     {
-        this.currentVehicle.setValue(v);
-        this.vehicleStatus.setValue(_reqireVehicleStatus(v));
+        this.currentVehicleStatus = v.vehicleStatus(); //zalezi na poradi!!
+        this.currentVehicle.setValue(v); //observer v homefragment odregistruje observer na stary vehiclestatus
+        this.currentVehicleStatus.postValue(currentVehicleStatus.getValue()); //to invoke observation
     }
     
     
@@ -164,9 +193,11 @@ public class MainViewModel extends AndroidViewModel
     //status
     
     @NonNull
-    public LiveData<VehicleStatus> vehicleStatus()
+    public LiveData<VehicleStatus> currentVehicleStatus()
     {
-        return vehicleStatus;
+        //assert currentVehicle.getValue() != null;
+        //return currentVehicle.getValue().vehicleStatus();
+        return currentVehicleStatus;
     }
     
     @Nullable
@@ -174,20 +205,32 @@ public class MainViewModel extends AndroidViewModel
     {
         //Log.i("daco",db.dao().getLastStatus("386625").getId());
         //return db.dao().getLastStatus("386625");
-        assert vehicleStatus.getValue() != null;
-        return vehicleStatus.getValue();
+        assert currentVehicleStatus.getValue() != null;
+        return currentVehicleStatus.getValue();
     }
     
     //status-db
     
     public void updateVehicleStatus(@NonNull VehicleStatus vs)
     {
-        this.vehicleStatus.setValue(vs);
+        Vehicle v = getVehicleByStatus(vs);
+        if(v == null)
+        {
+            Log.e(G.tag, "Received status for vehicle not in database!");
+            return;
+        }
+        v.vehicleStatus().setValue(vs);
+        
+        //write to db
         if(vs.getState().isNormal())
-            _addToStatusesRepo(vs);
+            _addToStatusesDb(vs);
+        
+        //put notification if charging is complete
+        if(vs.getCurrent_charge() == vs.getTarget_charge()) //todo overit ci pride taka kombinacia
+            ((App)getApplication()).postChargeCompleteNotification(v,vs);
     }
     
-    @NonNull //todo ale isto????
+    @NonNull
     public List<VehicleStatus> getVehicleStatuses(@NonNull Vehicle v, @NonNull Date from, @NonNull Date to)
     {
         return db.dao().getStatuses(v.getId(), from, to);
@@ -208,6 +251,17 @@ public class MainViewModel extends AndroidViewModel
     /**********/
     //internal
     
+    private void _loadVehiclesRepo()
+    {
+        List<Vehicle> list = db.dao().getAllVehicles();
+        for(Vehicle v : list)
+        {
+            v.loadVehicleImage(getApplication().getApplicationContext());
+            v.vehicleStatus().setValue(_reqireVehicleStatus(v));
+            vehiclesRepo.add(new MutableLiveData<>(v));
+        }
+    }
+
     private void _loadLastVehicle()
     {
         String lastVehicleId = pref.getString(G.PREF_LAST_VEHICLE_ID, "");
@@ -218,7 +272,7 @@ public class MainViewModel extends AndroidViewModel
             lastVehicleId = v.getId();
             pref.edit().putString(G.PREF_LAST_VEHICLE_ID, lastVehicleId).apply();
         }
-        if(_getVehicle(lastVehicleId) == null) //not found
+        if(_getVehicleFromRepo(lastVehicleId) == null) //not found
         {
             Log.e(G.tag,"Last used vehicle not found in database. Clearing last flag.");
             pref.edit().remove(G.PREF_LAST_VEHICLE_ID).apply();
@@ -226,35 +280,10 @@ public class MainViewModel extends AndroidViewModel
             return;
         }
         
-        Vehicle v = _getVehicle(lastVehicleId); //valid load
+        Vehicle v = _getVehicleFromRepo(lastVehicleId); //valid load
+        assert v != null : "Toto by sa nikdy nemalo stat";
         this.currentVehicle.setValue(v);
-    }
-    
-    private Vehicle _getVehicle(String id)
-    {
-        List<Vehicle> list = getAllVehicles();
-        for(Vehicle v : list)
-            if(v.getId().equals(id))
-                return v;
-        
-        return null;
-    }
-    
-    private void _loadVehiclesRepo()
-    {
-        assert vehiclesRepo.getValue() != null;
-        vehiclesRepo.getValue().clear();
-       
-        List<Vehicle> list = db.dao().getAllVehicles();
-        for(Vehicle v : list)
-            v.loadVehicleImage(getApplication().getApplicationContext());
-        
-        vehiclesRepo.getValue().addAll(list);
-    }
-    
-    private void _loadLastVehicleStatus()
-    {
-        _reqireVehicleStatus(getCurrentVehicle());
+        this.currentVehicleStatus = v.vehicleStatus();
     }
     
     @NonNull
@@ -269,22 +298,22 @@ public class MainViewModel extends AndroidViewModel
     
         if(statusTime.isBefore(Instant.now().minus(actualityThr, ChronoUnit.MINUTES))) //is too old
         {
-            Log.i(G.tag, "Dont have actual status, creating unknown one");
+            Log.i(G.tag, "Dont have actual status for [" + v.getName() + "], creating unknown one");
             return new VehicleStatus(v, VehicleStatus.State.Unknown);
         }
         else //is actual
             return oldOne;
     }
     
-    private void _addToStatusesRepo(@NonNull VehicleStatus vs)
+    private void _addToStatusesDb(@NonNull VehicleStatus vs)
     {
         db.dao().insertStatus(vs);
-        _manageStatusesRepoSize();
+        _manageStatusesDbSize();
     }
     
-    private boolean _manageStatusesRepoSize()
+    private boolean _manageStatusesDbSize()
     {
-        final int cacheLimit = 10;
+        final int cacheLimit = 50;
         int count = db.dao().countStatuses();
         
         if(count > cacheLimit)

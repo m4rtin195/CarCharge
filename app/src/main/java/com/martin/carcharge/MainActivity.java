@@ -70,6 +70,7 @@ public class MainActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Log.i("daco", "MainActivity onCreate()");
         super.onCreate(savedInstanceState);
         this.setupUI();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -103,22 +104,21 @@ public class MainActivity extends BaseActivity
         
         downloader = new Downloader(this);
         fcmReceiver = new FcmReceiver();
-       
-        //vm.updateVehicleStatus(new VehicleStatus(VehicleStatus.State.Loading)); //v oncreate aby sa spustil len raz
-    
-    } //onCreate
-    
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-    
-        User user = (User) getIntent().getExtras().get(G.EXTRA_USER);
-        vm.setUser(user);
-        if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
-            Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
-                    Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
         
+        if(getIntent().hasExtra(G.EXTRA_USER))
+        {
+            User user = (User)getIntent().getExtras().get(G.EXTRA_USER);
+            vm.setUser(user);
+            if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
+                Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
+                        Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
+        }
+        
+        //FOR DEMO ONLY
+        //loading po spusteni app, onStart je volane aj po prepnuti do popredia???
+        vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Loading));
+        
+        //delay this by 1s
         new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
             //vm.updateVehicleStatus(vm.requireActualVehicleStatus(vm.getCurrentVehicle()));      //load last status //todo prec
@@ -132,16 +132,22 @@ public class MainActivity extends BaseActivity
                 downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);      // FCM is enabled, download once*/
         }, 1000);
         
-        lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
-        //navController.navigate(R.id.navigation_action_home_to_map); //todo prec
-    }
+    } //onCreate
     
+    @Override
+    public void onStart()
+    {
+        //Log.i("daco", "MainActivity onPause()");
+        super.onStart();
+        lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_UPDATE));
+    }
     
     /*@Override
     protected void onPause()
     {
+        Log.i("daco", "MainActivity onPause()");
         super.onPause();
-        //lbm.unregisterReceiver(fcmReceiver); //todo treba?? dokedy zostane zaregistrovany?
+        //lbm.unregisterReceiver(fcmReceiver); //todo overit ci treba
     }*/
     
     @Override
@@ -281,7 +287,6 @@ public class MainActivity extends BaseActivity
             {
                 vm.updateVehicleStatus(vs);
                 showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
-                Log.i("daco",vs.toString());
             }
             else
             {
@@ -318,7 +323,7 @@ public class MainActivity extends BaseActivity
         {
             Toast.makeText(this, "fcm enabled change", Toast.LENGTH_SHORT).show(); //todo prec
             if(pref.getBoolean(G.PREF_FCM_ENABLED, false))
-                lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROAD_UPDATE));
+                lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_UPDATE));
             else
                 lbm.unregisterReceiver(fcmReceiver);
         }

@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -18,7 +16,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +33,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.App;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
@@ -44,9 +40,6 @@ import com.martin.carcharge.databinding.FragmentMapBinding;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
-
-import java.util.List;
-import java.util.Locale;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback
 {
@@ -104,14 +97,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(defaultPoint);
-        markerOptions.title(vm.vehicle().getValue().getName());
+        markerOptions.title(vm.getCurrentVehicle().getName());
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         markerOptions.visible(false);
     
         vehicleMarker = gMap.addMarker(markerOptions);
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultPoint, 1));
     
-        vm.vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation); //todo funguje?
+        //todo zmen na nacitanie repa a sledovanie vsetkych vozidiel //zacni vyssie (treba viac markerov)
+        vm.getCurrentVehicle().vehicleStatus().observe(getViewLifecycleOwner(), this::updateVehicleLocation); //todo funguje?
         updateVehicleLocation(vm.getCurrentVehicleStatus());
     }
     

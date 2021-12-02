@@ -82,5 +82,8 @@
     <string name="home_connection_icon_desc">ikona typu pripojenia</string>
     <string name="map_toast_location_access_not_granted">Prístup k polohe nebol udelený.</string>
     <string name="preferences_volts">voltov</string>
+    <string name="notification_charge_completed">Nabíjanie dokončené</string>
+    <string name="notification_charge_completed_cont">Úroveň nabitia %1$s dosiahla požadovanú úroveň (%2$d%%).</string>
+    <string name="notification_charge_to_100">Nabiť na 100%</string>
 
 </resources>

@@ -1,7 +1,9 @@
 package com.martin.carcharge;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -13,12 +15,11 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 import java.util.StringTokenizer;
@@ -62,16 +63,27 @@ public class BaseActivity extends AppCompatActivity
     @Override
     protected void attachBaseContext(Context newBase)
     {
+        //Context configContext;
         super.attachBaseContext(newBase);
         String languageStr = PreferenceManager.getDefaultSharedPreferences(this).getString(G.PREF_LANGUAGE, "system");
         if(!languageStr.equals("system"))
-            applyOverrideConfiguration(updateConfigurationLanguage(new Configuration(), languageStr));
+        {
+            Configuration config = new Configuration(Resources.getSystem().getConfiguration()); //get default system config
+            //noinspection ConstantConditions
+            config = updateConfigurationLanguage(config, languageStr);
+            applyOverrideConfiguration(config);
+            //configContext = newBase.createConfigurationContext(config); //create new context with modified system language
+        }
+        
+        //super.attachBaseContext(configContext); //attach modified config
+        // this was proposed to override system language, to get DateUtils.getRelativeTimeSpanString work with set locale
+        // but it is not working idk why, and also crashes becase getDefaultSharedPreferences cannot be called without context
+        // set first to obtain user-set language, and vice versa we cannot change language if we dont know to which one.
+        // see: https://stackoverflow.com/a/68139358/14629312 for Kotlin solution (doesnt solve problem with sharedprefs).
     }
     
-    private Configuration updateConfigurationLanguage(@NotNull Configuration config, String language)
+    private Configuration updateConfigurationLanguage(@NonNull Configuration config, String language)
     {
-        if(!config.getLocales().isEmpty()) return config;
-        
         Locale newLocale = stringToLocale(language);
         config.setLocale(newLocale);
         return config;
@@ -80,13 +92,13 @@ public class BaseActivity extends AppCompatActivity
     private Locale stringToLocale(String s)
     {
         //Locale.forLanguageTag(); //todo ???
-        StringTokenizer tempStringTokenizer = new StringTokenizer(s,"_");
+        StringTokenizer st = new StringTokenizer(s,"_");
         String language = new String();
         String country = new String();
-        if(tempStringTokenizer.hasMoreTokens())
-            language = (String) tempStringTokenizer.nextElement();
-        if(tempStringTokenizer.hasMoreTokens())
-            country = (String) tempStringTokenizer.nextElement();
+        if(st.hasMoreTokens())
+            language = (String) st.nextElement();
+        if(st.hasMoreTokens())
+            country = (String) st.nextElement();
         return new Locale(language, country);
     }
     

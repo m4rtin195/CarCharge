@@ -12,8 +12,6 @@ import androidx.room.PrimaryKey;
 
 import com.martin.carcharge.R;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.UUID;
 
 @Entity(tableName = "vehicles")
@@ -36,7 +34,7 @@ public class Vehicle
     
     public Vehicle()
     {
-        id = "386625"; //UUID.randomUUID().toString().replace("-","").substring(0, 10); //todo mock
+        id = UUID.randomUUID().toString().replace("-","").substring(0, 10);
         name = "";
         regNumber = "";
         maxVoltage = 0;
@@ -47,7 +45,7 @@ public class Vehicle
     
     @NonNull
     public String getId() {return id;}
-    public void setId(@NotNull String id) {this.id = id;}
+    public void setId(@NonNull String id) {this.id = id;}
     
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}

@@ -1,8 +1,16 @@
 package com.martin.carcharge;
 
+import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 
@@ -17,6 +25,8 @@ import com.facebook.flipper.plugins.network.NetworkFlipperPlugin;
 import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
 import com.facebook.soloader.SoLoader;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
+import com.martin.carcharge.models.Vehicle;
+import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.CloudRestAPI;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.storage.Converters;
@@ -65,7 +75,8 @@ public class App extends android.app.Application
         pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         
         vm = new MainViewModel.Factory(this).create(MainViewModel.class); //( getApplicationContext()).get(MainViewModel.class);
-    
+        
+        createNotificationChannel();
         
         Interceptor interceptor = chain ->
         {
@@ -102,4 +113,36 @@ public class App extends android.app.Application
     public static SharedPreferences getPreferences() {return pref;}
     public static MainViewModel getViewModel() {return vm;}
     public static CloudRestAPI getApi() {return api;}
+    
+    @SuppressLint("ObsoleteSdkInt")
+    private void createNotificationChannel()
+    {
+        //must be checkeck for older apis, if minSdkVersion<26
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            String chname = "All CarCharge notifications";
+            NotificationChannel channel = new NotificationChannel(G.NOTIFICATION_CHANNELID, chname, NotificationManager.IMPORTANCE_DEFAULT);
+            // not possible to change the importance or other notification behaviors after this
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            nm.createNotificationChannel(channel);
+        }
+    }
+    
+    public void postChargeCompleteNotification(Vehicle v, VehicleStatus vs)
+    {
+        Intent openAppIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), G.RC_FROM_NOTIF, openAppIntent, PendingIntent.FLAG_IMMUTABLE);
+        
+        NotificationCompat.Builder notif = new NotificationCompat.Builder(getApplicationContext(), G.NOTIFICATION_CHANNELID)
+            .setSmallIcon(R.drawable.bm_appicon)
+            .setContentTitle(getApplicationContext().getString(R.string.notification_charge_completed))
+            .setContentText(getApplicationContext().getString(R.string.notification_charge_completed_cont, v.getName(), vs.getTarget_charge()))
+            .setContentIntent(pi)
+            .addAction(R.drawable.ic_flash, getApplicationContext().getString(R.string.notification_charge_to_100),
+                    PendingIntent.getActivity(getApplicationContext(), 0, new Intent(), 0))
+            .setAutoCancel(true);
+        
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+        notificationManager.notify(1, notif.build());
+    }
 }
