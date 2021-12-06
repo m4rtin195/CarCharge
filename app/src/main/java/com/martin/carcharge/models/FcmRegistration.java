@@ -4,9 +4,9 @@ import androidx.annotation.NonNull;
 
 public class FcmRegistration
 {
-    private String vehicleId;
-    private String fcmToken;
-    private boolean register;
+    private final String vehicleId;
+    private final String fcmToken;
+    private final boolean register;
     
     public enum Method
     {

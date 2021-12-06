@@ -96,6 +96,7 @@ public class HomeFragment extends Fragment
     
     void updateVehicleFields(Vehicle vehicle)
     {
+        if(vehicle == null) return;
         Log.d(G.tag, "[observed vehicle change]");
         
         text_vehicleName.setText(vehicle.getName());
@@ -105,6 +106,7 @@ public class HomeFragment extends Fragment
     
     private void updateStatusFields(VehicleStatus vs)
     {
+        if(vs == null) return;
         Log.d(G.tag, "[observed status change: " + vs.getState() + "]");
         
         if(vs.getState() == VehicleStatus.State.Unknown)
@@ -141,7 +143,7 @@ public class HomeFragment extends Fragment
         text_chargingTime.setText(minsToTime(vs.getElapsed_time()));
         text_remainTime.setText(minsToTime(vs.getRemain_time()));
         text_range.setText(String.format(l, "%dkm", vs.getRange()));
-        text_location.setText(Converters.LocationToAddressOrFormattedString(vs.getLocation(), getContext()).split(",")[0]);
+        text_location.setText(Converters.LocationToAddressOrFormattedString(vs.getLocation(), requireContext()).split(",")[0]);
         text_outdoorTemp.setText(String.format(l, "%.1f°C", vs.getOutdoor_temperature()));
         text_indoorTemp.setText(String.format(l, "%.1f°C", vs.getIndoor_temperature()));
         text_desiredTemp.setText(vs.getDesired_temperature() != Float.MIN_VALUE ?

@@ -1,15 +1,7 @@
 package com.martin.carcharge;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +10,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -36,19 +32,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.martin.carcharge.databinding.ActivityLoginBinding;
 import com.martin.carcharge.models.User;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.util.concurrent.atomic.AtomicReference;
+import com.martin.carcharge.storage.FileStorage;
+import com.martin.carcharge.storage.FirestoreDb;
 
 public class LoginActivity extends BaseActivity
 {
     private SharedPreferences pref;
     private FirebaseAuth auth;
+    private FirestoreDb fdb;
     
     ActivityLoginBinding binding;
     View root;
@@ -57,12 +48,20 @@ public class LoginActivity extends BaseActivity
     Button button_signin_mail;
     SignInButton button_signin_google;
     
+    ActivityResultLauncher<Intent> googleLoginLauncher;
+    
+    
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        super.onCreate(savedInstanceState);
         pref = App.getPreferences();
         auth = FirebaseAuth.getInstance();
+        fdb = App.getFirestoreDb();
+        
+        googleLoginLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), googleLoginCallback);
+        
         FirebaseUser firebaseUser = auth.getCurrentUser();
         if(firebaseUser != null) //already logged in
         {
@@ -74,23 +73,29 @@ public class LoginActivity extends BaseActivity
             bundle.putParcelable(G.EXTRA_USER, user);
             intent.putExtras(bundle);
             
-            startActivity(intent);
-            finish();
+            fdb.fetchFirestoreProfile((success) ->  //this also fetches CloudStorage images
+            {
+                Log.i(G.tag, "Starting MainActivity");
+                this.startActivity(intent);
+                this.finish();
+            });
         }
         
-        super.onCreate(savedInstanceState);
-        this.setupUI();
-        binding = ActivityLoginBinding.inflate(getLayoutInflater());
-        root = binding.getRoot();
-        setContentView(root);
-        
-        progressbar = binding.progressbarLogin;
-        edit_username = binding.editUsername;
-        edit_password = binding.editPassword;
-        button_signin_mail = binding.buttonSigninMail;
-            button_signin_mail.setOnClickListener(this::onLoginClick);
-        button_signin_google = binding.buttonSigninGoogle;
-            button_signin_google.setOnClickListener(this::onGoogleLoginClick);
+        else //not logged in
+        {
+            this.setupUI();
+            binding = ActivityLoginBinding.inflate(getLayoutInflater());
+            root = binding.getRoot();
+            setContentView(root);
+            
+            progressbar = binding.progressbarLogin;
+            edit_username = binding.editUsername;
+            edit_password = binding.editPassword;
+            button_signin_mail = binding.buttonSigninMail;
+                button_signin_mail.setOnClickListener(this::onLoginClick);
+            button_signin_google = binding.buttonSigninGoogle;
+                button_signin_google.setOnClickListener(this::onGoogleLoginClick);
+        }
     }
     
     public void onLoginClick(View view)
@@ -111,38 +116,40 @@ public class LoginActivity extends BaseActivity
     public void onGoogleLoginClick(View view)
     {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) //false warning!
+                .requestIdToken(getString(R.string.default_web_client_id)) //false warning
                 .requestEmail()
                 .build();
         GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     
         Intent intent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(intent, G.RC_SIGN_IN);
+        //startActivityForResult(intent, G.RC_SIGN_IN);
+        googleLoginLauncher.launch(intent);
     }
     
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    //public void onActivityResult(int requestCode, int resultCode, Intent data)
+    ActivityResultCallback<ActivityResult> googleLoginCallback = new ActivityResultCallback<ActivityResult>()
     {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if(requestCode == G.RC_SIGN_IN && resultCode == RESULT_OK)
+        @Override
+        public void onActivityResult(ActivityResult result)
         {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try
-            {   // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                assert account != null;
-                Log.d(G.tag, "Google sign-in success: " + account.getId());
-                firebaseAuthWithGoogle(account.getIdToken());
-            }
-            catch(ApiException e)
+            if(result.getResultCode() == RESULT_OK)
             {
-                Log.w(G.tag, "Google sign-in failed", e);
-            }
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                try
+                {   // Google Sign In was successful, authenticate with Firebase
+                    GoogleSignInAccount account = task.getResult(ApiException.class);
+                    assert account != null;
+                    Log.d(G.tag, "Google sign-in success: " + account.getId());
+                    firebaseAuthWithGoogle(account.getIdToken());
+                }
+                catch(ApiException e)
+                {
+                    Log.w(G.tag, "Google sign-in failed", e);
+                }
+            } else
+                Log.w(G.tag, "Google sign-in intent not-ok, resultcode: " + result.getResultCode());
         }
-        else
-            Log.w(G.tag, "Google sign-in intent not-ok, resultcode: " + resultCode);
-    }
+    };
     
     private void firebaseAuthWithGoogle(String idToken)
     {
@@ -162,7 +169,10 @@ public class LoginActivity extends BaseActivity
     {
         if(task.isSuccessful())
         {
-            Log.i(G.tag, "signInWithEmail: success");
+            Log.i(G.tag, "signIn: success");
+            App.getFirestoreDb().resetAuthUid(); //fdb.resetAuthUid()
+            App.getCloudStorage().resetAuthUid();
+            
             FirebaseUser firebaseUser = auth.getCurrentUser();
             assert firebaseUser != null;
             User user = prepareUser(firebaseUser, true);
@@ -172,95 +182,31 @@ public class LoginActivity extends BaseActivity
             bundle.putParcelable(G.EXTRA_USER, user);
             bundle.putBoolean(G.EXTRA_USER_JUST_LOGGED, true);
             intent.putExtras(bundle);
-            //intent.putExtra(G.EXTRA_USER, user); //just one extra
+            //intent.putExtra(G.EXTRA_USER, user); //if just one extra
             
-            LoginActivity.this.startActivity(intent);
-            LoginActivity.this.finish();
-        } else
+            fdb.fetchFirestoreProfile((success) ->
+            {
+                progressbar.setVisibility(View.INVISIBLE);
+                Log.i(G.tag, "Starting MainActivity");
+                this.startActivity(intent);
+                this.finish();
+            });
+        }
+        else //Authentication sign-in task unsuccessful
         {
-            Log.w(G.tag, "signInWithEmail: failure", task.getException());
+            progressbar.setVisibility(View.INVISIBLE);
+            Log.w(G.tag, "signIn: failure", task.getException());
             Snackbar.make(root, "Authentication failed.", Snackbar.LENGTH_LONG).show();
         }
-        progressbar.setVisibility(View.INVISIBLE);
     };
     
     
-    // returns filename
-    String downloadUserIcon(FirebaseUser user) //and make it round
-    {
-        if(user.getPhotoUrl() != null)
-        {
-            AtomicReference<String> filename = new AtomicReference<>();
-            
-            Thread thr = new Thread(() ->
-            {
-                InputStream inStream = null; //data from internet
-                OutputStream outStream = null; //file
-                try
-                {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inDensity = 24; options.inTargetDensity = 24; //todo preco nescaluje?
-    
-                    inStream = new URL(user.getPhotoUrl().toString()).openStream();
-                    Bitmap raw = BitmapFactory.decodeStream(inStream, null, options);
-                    assert raw != null;
-                    
-                    Bitmap out = Bitmap.createBitmap(raw.getWidth(), raw.getHeight(), Bitmap.Config.ARGB_8888);
-    
-                    Canvas canvas = new Canvas(out);
-                    final Paint paint = new Paint();
-                    final Rect rect = new Rect(0, 0, raw.getWidth(), raw.getHeight());
-    
-                    paint.setAntiAlias(true);
-                    canvas.drawCircle(raw.getWidth()/2.0f, raw.getHeight()/2.0f, raw.getWidth()/2.0f, paint);
-                    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN)); //clip
-                    canvas.drawBitmap(raw, rect, rect, paint);
-    
-                    File path = new File(getFilesDir().toString() + "/media");
-                    if(!path.exists())
-                        if(!path.mkdir())
-                            throw new IOException();
-                    
-                    File file = File.createTempFile("usericon_", ".png", path);
-                    outStream = new FileOutputStream(file);
-                    out.compress(Bitmap.CompressFormat.PNG, 0, outStream);
-                    
-                    Log.i(G.tag, "filename: " + file.getName());
-                    filename.set(file.getName());
-                }
-                catch(IOException e)
-                {
-                    Log.i(G.tag, "Streams fail");
-                    e.printStackTrace();
-                }
-                finally
-                {
-                    try
-                    {
-                        assert outStream != null;
-                        assert inStream != null;
-                        inStream.close();
-                        outStream.close();
-                    }
-                    catch(NullPointerException | IOException e) {e.printStackTrace();}
-                }
-            });
-            thr.start();
-            try {thr.join();} catch(InterruptedException e) {e.printStackTrace();}
-            
-            return filename.get();
-        }
-        
-        else return null;
-    }
-    
-    // Prepare icon and convert FirebaseUser to local User
-    @SuppressLint("ApplySharedPref")
+     // Prepare icon and convert FirebaseUser to local User
     private User prepareUser(FirebaseUser u, boolean isNew)
     {
         if(isNew)
         {
-            String filename = downloadUserIcon(u);
+            String filename = FileStorage.downloadUserImage(this, u);
             pref.edit().putString(G.PREF_USER_ICON, filename).apply();
         }
         
@@ -268,20 +214,8 @@ public class LoginActivity extends BaseActivity
         user.setUid(u.getUid());
         user.setNickname(u.getDisplayName());
         user.setEmail(u.getEmail());
-        user.setIcon(loadCachedUserIcon(pref.getString(G.PREF_USER_ICON, "")));
+        user.setIcon(FileStorage.loadCachedUserImage(this, pref.getString(G.PREF_USER_ICON, "")));
         
         return user;
-    }
-    
-    public Bitmap loadCachedUserIcon(String filename)
-    {
-        Bitmap icon = null;
-        
-        if(filename.isEmpty())
-            icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_user);
-        else
-            icon = BitmapFactory.decodeFile(getFilesDir().toString() + "/media/" + filename);
-        
-        return icon;
     }
 }

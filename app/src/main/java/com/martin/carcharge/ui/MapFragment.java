@@ -33,6 +33,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.snackbar.Snackbar;
 import com.martin.carcharge.App;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
@@ -82,7 +83,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     }
     
     @SuppressLint("MissingPermission") //todo ask permission
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap)
     {
@@ -119,7 +119,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             
             vehicleMarker.setPosition(location2);
             vehicleMarker.setVisible(true);
-            vehicleMarker.setSnippet(Converters.LocationToAddressOrFormattedString(location, getContext()).replaceFirst(",","\n"));
+            vehicleMarker.setSnippet(Converters.LocationToAddressOrFormattedString(location, requireContext()).replaceFirst(",","\n"));
             gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location2, 15));
         }
         else;
@@ -132,8 +132,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             return true;
         else
         {
-            //((MainActivity)requireActivity()).showSnack(getString(R.string.map_toast_location_access_not_granted), Snackbar.LENGTH_SHORT);
-            Toast.makeText(requireContext(), getString(R.string.map_toast_location_access_not_granted), Toast.LENGTH_SHORT).show();
+            Snackbar.make(root, getString(R.string.map_toast_location_access_not_granted), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
             return false;
         }
     }
@@ -146,7 +145,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         @Override
         public View getInfoContents(@NonNull Marker marker)
         {
-            Context context = getContext();
+            Context context = requireContext();
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
     

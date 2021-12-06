@@ -41,6 +41,7 @@ import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.Downloader;
+import com.martin.carcharge.storage.FileStorage;
 
 import java.util.Objects;
 
@@ -70,7 +71,7 @@ public class MainActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        Log.i("daco", "MainActivity onCreate()");
+        Log.i(G.tag, "MainActivity onCreate()");
         super.onCreate(savedInstanceState);
         this.setupUI();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -97,8 +98,7 @@ public class MainActivity extends BaseActivity
         //todo ten normalny sposob?
         //NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_navHost))).getNavController();
-    
-    
+        
         lbm = LocalBroadcastManager.getInstance(getApplicationContext());
         pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         
@@ -114,9 +114,18 @@ public class MainActivity extends BaseActivity
                         Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
         }
         
+        //current vehicle not set
+        if(vm.currentVehicle().getValue() == null)
+        {
+            if(!vm.getAllVehicles().isEmpty())
+                vm.switchCurrentVehicle(vm.getAllVehicles().get(0));
+            else
+                vm.switchCurrentVehicle(vm.createVehicle("New vehicle"));
+        }
+        
         //FOR DEMO ONLY
         //loading po spusteni app, onStart je volane aj po prepnuti do popredia???
-        vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Loading));
+        //vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Loading));
         
         //delay this by 1s
         new Handler(Looper.getMainLooper()).postDelayed(() ->
@@ -137,7 +146,7 @@ public class MainActivity extends BaseActivity
     @Override
     public void onStart()
     {
-        //Log.i("daco", "MainActivity onPause()");
+        //Log.i("daco", "MainActivity onStart()");
         super.onStart();
         lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_UPDATE));
     }
@@ -211,20 +220,20 @@ public class MainActivity extends BaseActivity
         fab_button.setVisibility(fab ? View.VISIBLE : View.GONE);
     }
     
-    public View getRootLayout()
+    /*public View getRootLayout()
     {
         return root;
-    }
+    }*/
     
     public FloatingActionButton getFab()
     {
         return fab_button;
     }
     
-    public void showSnack(String text, int duration) //todo pouzit vsade
+    /*public void showSnack(String text, int duration)
     {
         Snackbar.make(root, text, duration).setAnchorView(R.id.fab_button).show();
-    }
+    }*/
     
     @Override
     public void onBackPressed()
@@ -286,7 +295,8 @@ public class MainActivity extends BaseActivity
             if(vs.getVehicleId().equals(vm.getCurrentVehicle().getId()))
             {
                 vm.updateVehicleStatus(vs);
-                showSnack(getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT);
+                Snackbar.make(root, getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
+
             }
             else
             {
@@ -301,7 +311,7 @@ public class MainActivity extends BaseActivity
             if(vm.getCurrentVehicleStatus() != null && vm.getCurrentVehicleStatus().getState() == VehicleStatus.State.Loading)
                 vm.updateVehicleStatus(new VehicleStatus(vm.getCurrentVehicle(), VehicleStatus.State.Unknown));
             
-            showSnack(getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT);
+            Snackbar.make(root, getString(R.string.toast_refresh_fail), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
         }
     };
     

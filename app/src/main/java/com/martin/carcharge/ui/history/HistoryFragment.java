@@ -195,8 +195,7 @@ public class HistoryFragment extends Fragment
                         else
                             message = "Server request failed.\nShowing local only (" + localList.size() + " entries)";
                             
-                        Snackbar.make(((MainActivity)requireActivity()).getRootLayout(), message, Snackbar.LENGTH_SHORT)
-                                .setAnchorView(R.id.fab_button).show();
+                        Snackbar.make(root, message, Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
                     }
                 });
         

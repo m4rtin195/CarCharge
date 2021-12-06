@@ -79,6 +79,8 @@
     <string name="preferences_fcm_token" translatable="false">FCM token</string>
     <string name="preferences_toast_nickname_update_success">Nickname successfully updated online.</string>
     <string name="preferences_toast_nickname_update_failed">Updating nickname online failed.</string>
+    <string name="preferences_toast_vehicle_update_success">Vehicle successfully updated online.</string>
+    <string name="preferences_toast_vehicle_update_failed">Updating vehicle online failed.</string>
     <string name="preferences_logout_dialog">Are you sure you want to log-out?</string>
     <string name="preferences_invalidate_cache_dialog">Cache deleted successfully.</string>
     <string name="preferences_debug_enabled" translatable="false">Debug</string>

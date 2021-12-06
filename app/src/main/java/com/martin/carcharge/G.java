@@ -27,7 +27,7 @@ public class G
     public static final int FAB_REFRESH = 5003;
     
     //not binded with xml!!
-    public static final String PREF_DEBUG = "debug";
+    public static final String PREF_DEBUG_ENABLED = "debug";
     public static final String PREF_FCM_ENABLED = "fcm_enabled";
     public static final String PREF_FCM_TOKEN = "fcm_token";
     public static final String PREF_LANGUAGE = "language";
@@ -39,16 +39,27 @@ public class G
     public static final String PREF_VEHICLE_REGPLATE = "vehicle_regplate";
     public static final String PREF_VEHICLE_MAX_VOLTAGE = "vehicle_max_voltage";
     public static final String PREF_VEHICLE_IMAGE = "vehicle_image";
-    public static final String PREF_ACTUALITY_THRESHOLD = "actual_threshold";
+    public static final String PREF_ACTUALITY_THRESHOLD = "actuality_threshold";
     public static final String PREF_INVALIDATE_CACHE = "invalidate_cache";
     public static final String PREF_APP_VERSION = "app_version";
     public static final String PREF_CONTACT_DEVELOPER = "contact_developer";
     public static final String PREF_LOGOUT = "logout";
     
+    public static final String FIRESTORE_LAST_LOGGED_IN = "last_logged_in";
+    public static final String FIRESTORE_DEBUG_ENABLED = PREF_DEBUG_ENABLED;
+    public static final String FIRESTORE_FCM_ENABLED = PREF_FCM_ENABLED;
+    public static final String FIRESTORE_LANGUAGE = PREF_LANGUAGE;
+    public static final String FIRESTORE_UPDATE_INTERVAL = PREF_UPDATE_INTERVAL;
+    public static final String FIRESTORE_ACTUALITY_THRESHOLD = PREF_ACTUALITY_THRESHOLD;
+    public static final String FIRESTORE_VEHICLE_NAME = "name";
+    public static final String FIRESTORE_VEHICLE_REGPLATE = "regNumber";
+    public static final String FIRESTORE_VEHICLE_MAX_VOLTAGE = "maxVoltage";
+    public static final String FIRESTORE_VEHICLE_IMAGE = "imageFilename";
+    
     
     public static void debug(Context context, String string, Boolean... vibrate)
     {
-        if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(G.PREF_DEBUG, false))
+        if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean(G.PREF_DEBUG_ENABLED, false))
         {
             if((vibrate.length>0 && !vibrate[0]))
             {

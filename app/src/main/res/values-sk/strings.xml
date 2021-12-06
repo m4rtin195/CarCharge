@@ -53,6 +53,8 @@
     <string name="login_error_hint">Nemôže byť prázdne</string>
     <string name="preferences_toast_nickname_update_failed">Užívateľské meno úspešne zmenené online.</string>
     <string name="preferences_toast_nickname_update_success">Zmena užívateľského mena online zlyhala.</string>
+    <string name="preferences_toast_vehicle_update_failed">Vozidlo úspešne aktualizované online.</string>
+    <string name="preferences_toast_vehicle_update_success">Aktualizácia vozidla online zlyhala.</string>
     <string name="yes">Áno</string>
     <string name="no">Nie</string>
     <string name="preferences_logout_dialog">Naozaj sa chcete odhlásiť?</string>
