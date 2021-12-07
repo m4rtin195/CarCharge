@@ -11,7 +11,9 @@ For Android, written in `Java`, using `Firebase`.
  **Stack used:**  
 `Room` `Retrofit` `Gson` `ViewModels` `LiveData` `Fragments` `PreferenceScreen`  
 `Google Maps SDK` `SharedPreferences` `Navigation`   `localisation` `notifications`  
-`Flipper` `MPAndroidChart` `CoordinatorLayout` `Geocoder` `View-binding`
+`Flipper` `MPAndroidChart` `CoordinatorLayout` `Geocoder` `View-binding`  
+
+*Firebase:* &nbsp; `Authentication` `Cloud Firestore` `Cloud Storage` `App Check`
 
 Targeted on API 30 (Android 11).
 <br><br>
