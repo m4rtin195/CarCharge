@@ -9,9 +9,9 @@ For Android, written in `Java`, using `Firebase`.
 <br>
 
  **Stack used:**  
-`Fragments` `Room` `Retrofit` `Gson` `ViewModels` `View-binding` `PreferenceScreen`  
-`Google Maps SDK` `SharedPreferences` `localisation` `notification` `Navigation`  
-`Flipper` `MPAndroidChart` `CoordinatorLayout` `Geocoder`
+`Room` `Retrofit` `Gson` `ViewModels` `LiveData` `Fragments` `PreferenceScreen`  
+`Google Maps SDK` `SharedPreferences` `Navigation`   `localisation` `notifications`  
+`Flipper` `MPAndroidChart` `CoordinatorLayout` `Geocoder` `View-binding`
 
 Targeted on API 30 (Android 11).
 <br><br>
