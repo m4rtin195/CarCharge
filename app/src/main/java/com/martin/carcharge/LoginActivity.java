@@ -170,8 +170,9 @@ public class LoginActivity extends BaseActivity
         if(task.isSuccessful())
         {
             Log.i(G.tag, "signIn: success");
-            App.getFirestoreDb().resetAuthUid(); //fdb.resetAuthUid()
+            App.getFirestoreDb().resetAuthUid();
             App.getCloudStorage().resetAuthUid();
+            App.getApiClient().resetAuthUid();
             
             FirebaseUser firebaseUser = auth.getCurrentUser();
             assert firebaseUser != null;

@@ -29,5 +29,4 @@ public class FcmRegistration
                 ", operation=" + register +
                 "}";
     }
-    
 }

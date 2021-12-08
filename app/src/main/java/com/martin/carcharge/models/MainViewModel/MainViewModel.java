@@ -293,7 +293,7 @@ public class MainViewModel extends AndroidViewModel
         if(oldOne == null)
             return new VehicleStatus(v, VehicleStatus.State.Unknown);
     
-        long actualityThr = pref.getLong(G.PREF_ACTUALITY_THRESHOLD, 300);
+        int actualityThr = pref.getInt(G.PREF_ACTUALITY_THRESHOLD, 300);
         Instant statusTime = Instant.ofEpochMilli(oldOne.getTimestamp().getTime());
     
         if(statusTime.isBefore(Instant.now().minus(actualityThr, ChronoUnit.MINUTES))) //is too old

@@ -2,6 +2,7 @@ plugins
 {
     id 'com.android.application'
     id 'com.google.gms.google-services'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 def apikeyPropertiesFile = rootProject.file("app/backend-apikey.properties")
@@ -104,3 +105,5 @@ dependencies
     debugImplementation 'com.facebook.soloader:soloader:0.10.3'
     annotationProcessor 'androidx.room:room-compiler:2.3.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

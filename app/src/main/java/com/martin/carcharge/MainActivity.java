@@ -110,8 +110,10 @@ public class MainActivity extends BaseActivity
             User user = (User)getIntent().getExtras().get(G.EXTRA_USER);
             vm.setUser(user);
             if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
-                Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!",
-                        Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
+            {
+                Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!", Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
+                App.getApiClient().registerFcm(vm.getAllVehicles()); //register all vehicles to fcm token
+            }
         }
         
         //current vehicle not set
@@ -140,6 +142,8 @@ public class MainActivity extends BaseActivity
             else
                 downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);      // FCM is enabled, download once*/
         }, 1000);
+        
+        ((App)getApplication()).postChargeCompleteNotification(vm.getCurrentVehicle(), vm.getCurrentVehicleStatus());
         
     } //onCreate
     

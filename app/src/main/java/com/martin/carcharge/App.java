@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.NotificationCompat;
@@ -28,6 +27,7 @@ import com.facebook.soloader.SoLoader;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
+import com.martin.carcharge.network.ApiClient;
 import com.martin.carcharge.network.CloudRestAPI;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.storage.CloudStorage;
@@ -47,10 +47,10 @@ public class App extends android.app.Application
     static AppDatabase db;
     static SharedPreferences pref;
     static MainViewModel vm;
-    static CloudRestAPI api;
+    static ApiClient api;
     @SuppressLint("StaticFieldLeak") //its application context
     static FirestoreDb fdb;
-    @SuppressLint("StaticFieldLeak")
+    @SuppressLint("StaticFieldLeak") //its application context
     static CloudStorage cstrg;
     
     @Override
@@ -114,7 +114,7 @@ public class App extends android.app.Application
                 .client(okHttpClient)
                 .build();
         
-        api = retrofit.create(CloudRestAPI.class);
+        api = new ApiClient(retrofit.create(CloudRestAPI.class));
         cstrg = new CloudStorage(getApplicationContext()); //poradie!! fdb v konstruktore taha ref na cstrg
         fdb = new FirestoreDb(getApplicationContext());
         
@@ -125,7 +125,7 @@ public class App extends android.app.Application
     public static AppDatabase getDatabase() {return db;}
     public static SharedPreferences getPreferences() {return pref;}
     public static MainViewModel getViewModel() {return vm;}
-    public static CloudRestAPI getApi() {return api;}
+    public static ApiClient getApiClient() {return api;}
     public static FirestoreDb getFirestoreDb() {return fdb;}
     public static CloudStorage getCloudStorage() {return cstrg;}
     

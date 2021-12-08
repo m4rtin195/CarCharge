@@ -63,7 +63,7 @@ public class G
         {
             if((vibrate.length>0 && !vibrate[0]))
             {
-                ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE))
+                ((Vibrator)context.getSystemService(Context.VIBRATOR_SERVICE))
                         .vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
             }
     

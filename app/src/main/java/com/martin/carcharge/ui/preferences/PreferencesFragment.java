@@ -291,8 +291,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         FileStorage.deleteAllFiles(requireContext());
         
         //unregister vehicles from fcm token
-        unregisterAllVehicles();
-        //todo wait for finish
+        App.getApiClient().unregisterFcm(vm.getAllVehicles()); //blocking
         
         //remove shared-prefs
         pref.edit().remove(G.PREF_LAST_VEHICLE_ID).remove(G.PREF_USER_ICON).apply();
@@ -318,47 +317,6 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         });
     }
     
-    private void unregisterAllVehicles()
-    {
-        CloudRestAPI api = App.getApi();
-        String token = pref.getString(G.PREF_FCM_TOKEN, "");
-        
-        List<Vehicle> vehicles = vm.getAllVehicles();
-        for(Vehicle v : vehicles)
-        {
-            FcmRegistration request = new FcmRegistration(v.getId(), token, FcmRegistration.Method.UNREGISTER);
-            
-            /*
-            Call<Void> call = api.fcmUnregister(user.getUid(), vehicle.getId(), request);
-            try
-            {
-                Response<Void> response = call.execute();
-                ((Activity)context).runOnUiThread(() ->
-                {
-                    if(response.body() != null)
-                    {
-                        if(listener != null)
-                            listener.onSuccess(response.body());
-                    }
-                    else
-                    {
-                        if(listener != null)
-                            listener.onFail(response);
-                    }
-                });
-            }
-            catch(IOException e)
-            {
-                if(listener != null)
-                    listener.onFail(null);
-                Log.e(G.tag, "Error in Retrofit callback: " + e.getMessage());
-                e.printStackTrace();
-            }*/
-        }
-        
-
-    }
-
     
     //must be on top (forward reference)
     Preference.SummaryProvider<Preference> vehiclePrefsSummaryProvider = new Preference.SummaryProvider<Preference>()

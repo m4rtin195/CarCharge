@@ -27,13 +27,14 @@ public interface CloudRestAPI
                                           @Query("timeFrom") String timestampFrom,
                                           @Query("timeTo") String timestampTo);
     
-    @POST("fcm-register")
+    @POST("android/fcm-register")
     Call<Void> fcmRegister(@Header("userId") String userId,
                            @Query("vehicleId") String vehicleId,
                            @Body FcmRegistration body);
     
-    @POST("fcm-register") //same endpoint
+    @POST("android/fcm-register") //same endpoint
     Call<Void> fcmUnregister(@Header("userId") String userId,
                              @Query("vehicleId") String vehicleId,
                              @Body FcmRegistration body);
+    
 }

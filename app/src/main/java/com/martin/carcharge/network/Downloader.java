@@ -31,7 +31,7 @@ public class Downloader
     
     private final MainViewModel vm;
     private final SharedPreferences pref;
-    private final CloudRestAPI api;
+    private final CloudRestAPI rawAPI;
     
     ScheduledExecutorService executor;
     ScheduledDownloaderTask task;
@@ -42,7 +42,7 @@ public class Downloader
         
         vm = App.getViewModel();
         pref = App.getPreferences();
-        api = App.getApi();
+        rawAPI = App.getApiClient().getRawAPI();
         
         executor = Executors.newSingleThreadScheduledExecutor();
     }
@@ -105,7 +105,7 @@ public class Downloader
     {
         return () ->
         {
-            Call<VehicleStatus> call = api.getLastStatus(userId, vehicleId);
+            Call<VehicleStatus> call = rawAPI.getLastStatus(userId, vehicleId);
             try
             {
                 Response<VehicleStatus> response = call.execute();
@@ -137,7 +137,7 @@ public class Downloader
     {
         return () ->
         {
-            Call<List<VehicleStatus>> call = api.getStatuses(userId, vehicleId, Long.toString(timestampFrom.getTime()), Long.toString(timestampTo.getTime()));
+            Call<List<VehicleStatus>> call = rawAPI.getStatuses(userId, vehicleId, Long.toString(timestampFrom.getTime()), Long.toString(timestampTo.getTime()));
             try
             {
                 Response<List<VehicleStatus>> response = call.execute();
