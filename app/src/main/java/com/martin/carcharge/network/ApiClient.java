@@ -3,6 +3,7 @@ package com.martin.carcharge.network;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -65,7 +66,7 @@ public class ApiClient
                 else
                 {
                     //todo
-                    //Log.w(G.tag, "Error registering fcm token for vehicle: " + vehicleId + "\n" + response.errorBody());
+                    //Log.w(G.tag, "Error getting last status for vehicle: " + vehicleId + "\n" + response.errorBody());
                     future.complete(null);
                     future.completeExceptionally(new Throwable("aaa"));
                 }
@@ -126,10 +127,8 @@ public class ApiClient
                     future.complete(true);
                 else
                 {
-                    //todo log to user
-                    Context context = null;
-                    //((Activity)context).requireViewById() //how to get root layout
-                    Log.w(G.tag, "Error registering fcm token for vehicle: " + vehicleId + "\n" + response.errorBody());
+                    Log.w(G.tag, "Error registering fcm token for vehicle: " + vehicleId + "\n" +
+                            (response.errorBody() != null ? response.errorBody().string() : null));
                     future.complete(false);
                 }
             }

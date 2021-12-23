@@ -15,9 +15,10 @@ public class G
 {
     public static final String tag = "daco";
     public static final String NOTIFICATION_CHANNELID = "com.martin.carcharge";
-    public static final String ACTION_BROADCAST_UPDATE = "com.martin.carcharge.FcmReceiver.update";
+    public static final String ACTION_BROADCAST_FCMUPDATE = "com.martin.carcharge.FcmReceiver.update";
     public static final String EXTRA_USER = "com.martin.carcharge.LoginActivity.user";
-    public static final String EXTRA_USER_JUST_LOGGED = "com.martin.carcharge.LoginActivity.isNew";
+    public static final String EXTRA_USER_JUST_LOGGEDIN = "com.martin.carcharge.LoginActivity.isNew";
+    public static final String EXTRA_VEHICLEID = "com.martin.carcharge.MainActivity.vehicleId";
     public static final String EXTRA_JSON = "json";
     public static final int RC_FROM_NOTIF = 9000;
     public static final int RC_SIGN_IN = 9001;
@@ -51,6 +52,7 @@ public class G
     public static final String FIRESTORE_LANGUAGE = PREF_LANGUAGE;
     public static final String FIRESTORE_UPDATE_INTERVAL = PREF_UPDATE_INTERVAL;
     public static final String FIRESTORE_ACTUALITY_THRESHOLD = PREF_ACTUALITY_THRESHOLD;
+    public static final String FIRESTORE_VEHICLE_ID = "id";
     public static final String FIRESTORE_VEHICLE_NAME = "name";
     public static final String FIRESTORE_VEHICLE_REGPLATE = "regNumber";
     public static final String FIRESTORE_VEHICLE_MAX_VOLTAGE = "maxVoltage";

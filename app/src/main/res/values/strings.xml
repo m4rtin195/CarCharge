@@ -34,12 +34,14 @@
     <string name="home_indoor_temperature">Indoor\nTemperature</string>
     <string name="home_desired_temperature">Desired\nTemperature</string>
     <string name="home_state_loading">Loading</string>
-    <string name="home_state_unknown">Unknown</string>
+    <string name="home_state_unknown">Unknown state</string>
     <string name="home_state_charging">Charging</string>
     <string name="home_state_off">Off</string>
     <string name="home_state_idle">Idle</string>
     <string name="home_state_driving">Driving</string>
-    <string name="home_connection_icon_desc">connection type icon</string>
+    <string name="home_connectivity_icon_desc">connection type icon</string>
+    <string name="home_connectivity_connected_via">Connected via:</string>
+    <string name="home_connectivity_updated">Updated:</string>
     
     <!-- History -->
     <string name="history_title">Charging history</string>
@@ -102,5 +104,7 @@
     <string name="notification_charge_completed">Charging completed</string>
     <string name="notification_charge_completed_cont">Your %1$s charge level has reached the desired level (%2$d%%).</string>
     <string name="notification_charge_to_100">Charge to 100%</string>
+    <string name="bottomsheet_last_status">Last status:</string>
+    <string name="bottomsheet_last_status_unknown">unknown</string>
 
 </resources>

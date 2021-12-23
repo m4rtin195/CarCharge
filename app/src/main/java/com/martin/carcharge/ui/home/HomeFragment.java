@@ -32,7 +32,6 @@ import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.storage.Converters;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
@@ -65,7 +64,6 @@ public class HomeFragment extends Fragment
         
         bindViews();
         binding.layoutLocation.setOnClickListener(onLocationTileClickListener);
-        
         image_connectivity.setOnClickListener(onImageConnectivityClickListener);
     
         currentVehicle = vm.getCurrentVehicle();
@@ -135,7 +133,8 @@ public class HomeFragment extends Fragment
         progress_charge.setSecondaryProgress(vs.getTarget_charge());
         
         //tiles
-        text_voltage.setText(String.format(l, "%.1fV", ((vs.getCurrent_charge()/100f)*(maxVoltage-600)+600)));
+        //text_voltage.setText(String.format(l, "%.1fV", ((vs.getCurrent_charge()/100f)*(maxVoltage-600)+600)));
+        text_voltage.setText("449.2V");
         text_tVoltage.setText(String.format(l, "%.0fV", ((vs.getTarget_charge()/100f)*(maxVoltage-600)+600)));
         text_current.setText(String.format(l, "%+dA", vs.getCurrent()));
         text_maxCurrent.setText(vs.getMax_current() != Integer.MIN_VALUE ?
@@ -155,7 +154,7 @@ public class HomeFragment extends Fragment
             case Unknown: image_connectivity.setImageDrawable(null); break;
             case NotConnected: image_connectivity.setImageResource(R.drawable.ic_offline2); break;
             case Sigfox: image_connectivity.setImageResource(R.drawable.ic_iot); break;
-            case WiFi: image_connectivity.setImageResource(R.drawable.ic_wifi); break;
+            case WLAN: image_connectivity.setImageResource(R.drawable.ic_wlan); break;
         }
     }
     
@@ -225,7 +224,7 @@ public class HomeFragment extends Fragment
             if(vm.getCurrentVehicleStatus() != null && vm.getCurrentVehicleStatus().getLocation() != null)
             {
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
-                navController.navigate(R.id.navigation_action_home_to_map);
+                navController.navigate(R.id.navigation_action_to_map);
             }
             else
                 G.debug(requireContext(), "Location is null");
@@ -244,8 +243,8 @@ public class HomeFragment extends Fragment
             
             VehicleStatus vs = vm.getCurrentVehicleStatus();
             assert vs != null;
-            String str = "Connected via: " + vs.getConnectivity().toString() + "\n" +
-                    "Updated: " + DateUtils.formatSameDayTime(vs.getTimestamp().getTime(), new Date().getTime(), DateFormat.SHORT, DateFormat.MEDIUM);
+            String str = requireContext().getString(R.string.home_connectivity_connected_via) + " " + vs.getConnectivity().toString() + "\n" +
+                    requireContext().getString(R.string.home_connectivity_updated) + " " + DateUtils.formatSameDayTime(vs.getTimestamp().getTime(), new Date().getTime(), DateFormat.SHORT, DateFormat.MEDIUM);
                     /*new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(vs.getTimestamp())*/ //TODO format dna?
             
             textView.setText(str);

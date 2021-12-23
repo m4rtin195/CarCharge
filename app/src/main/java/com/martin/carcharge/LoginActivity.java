@@ -65,7 +65,8 @@ public class LoginActivity extends BaseActivity
         FirebaseUser firebaseUser = auth.getCurrentUser();
         if(firebaseUser != null) //already logged in
         {
-            Log.i(G.tag, "Already logged-in: " + firebaseUser.getEmail());
+            Log.i(G.tag, "Already logged-in: " + firebaseUser.getEmail() + " [" + firebaseUser.getUid() + "]");
+            App.getViewModel().init();
             
             User user = prepareUser(firebaseUser, false);
             Intent intent = new Intent(this, MainActivity.class);
@@ -170,6 +171,7 @@ public class LoginActivity extends BaseActivity
         if(task.isSuccessful())
         {
             Log.i(G.tag, "signIn: success");
+            App.getViewModel().init();
             App.getFirestoreDb().resetAuthUid();
             App.getCloudStorage().resetAuthUid();
             App.getApiClient().resetAuthUid();
@@ -181,7 +183,7 @@ public class LoginActivity extends BaseActivity
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             Bundle bundle = new Bundle();
             bundle.putParcelable(G.EXTRA_USER, user);
-            bundle.putBoolean(G.EXTRA_USER_JUST_LOGGED, true);
+            bundle.putBoolean(G.EXTRA_USER_JUST_LOGGEDIN, true);
             intent.putExtras(bundle);
             //intent.putExtra(G.EXTRA_USER, user); //if just one extra
             

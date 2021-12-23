@@ -53,12 +53,14 @@ public class MainViewModel extends AndroidViewModel
         vehiclesRepo = new ArrayList<>();
         currentVehicle = new MutableLiveData<>();
         currentVehicleStatus = null; //it will be only reference
-        
+    }
+    
+    public void init()
+    {
+        Log.i(G.tag, "repository init");
         _loadVehiclesRepo();
         _loadLastVehicle();
     }
-    
-    
     
     /**********/
     //user
@@ -101,25 +103,25 @@ public class MainViewModel extends AndroidViewModel
         return list;
     }
     
-    /*public void addToVehiclesRepo(@NonNull List<Vehicle> bundle) //todo treba to?
+    @NonNull
+    public Vehicle createVehicle(@NonNull String name)
     {
-        assert vehiclesRepo.getValue() != null;
-        this.vehiclesRepo.getValue().addAll(bundle);
-    }*/
-    
-    @Nullable
-    public Vehicle getVehicleByStatus(@NonNull VehicleStatus vs)
-    {
-        return _getVehicleFromRepo(vs.getVehicleId());
+        Vehicle v = new Vehicle();
+        v.setName(name);
+        v.loadVehicleImage(getApplication().getApplicationContext());
+        db.dao().insertVehicle(v);
+        this.vehiclesRepo.add(new MutableLiveData<>(v));
+        return v;
     }
     
     //update if exists, create if not
-    public void insertVehicle(@NonNull Vehicle v)
+    //need to be called to invoke observation of vehicle change and to update it in local db
+    public void insertOrUpdateVehicle(@NonNull Vehicle v)
     {
-        if(_findVehicleInRepo(v.getId()) >= 0) //found in local db, have index
+        if(_findVehicleIndex(v) >= 0) //found in local db, have index
         {
             db.dao().updateVehicle(v);
-            vehiclesRepo.get(_findVehicleInRepo(v.getId())).setValue(v);
+            vehiclesRepo.get(_findVehicleIndex(v)).setValue(v); //invoke observation
             //actually to je potrebne iba pre invoke observe, inak su data vehicle v repo uz zmenene (pass by value-reference)
             //kotlin riesenie: https://stackoverflow.com/a/55537829/14629312
         }
@@ -133,30 +135,8 @@ public class MainViewModel extends AndroidViewModel
             this.currentVehicle.setValue(v); //to invoke observation
     }
     
-    @NonNull
-    public Vehicle createVehicle(@NonNull String name)
-    {
-        Vehicle v = new Vehicle();
-        v.setName(name);
-        db.dao().insertVehicle(v);
-        this.vehiclesRepo.add(new MutableLiveData<>(v));
-        return v;
-    }
-    
-    private int _findVehicleInRepo(String id)
-    {
-        int i = 0;
-        for(MutableLiveData<Vehicle> m : vehiclesRepo)
-        {
-            if(Objects.requireNonNull(m.getValue()).getId().equals(id))
-                break;
-            i++;
-        }
-        return (i<=(vehiclesRepo.size()-1)) ? i : -1;
-    }
-    
     @Nullable
-    private Vehicle _getVehicleFromRepo(String id)
+    public Vehicle getVehicleFromRepo(String id)
     {
         for(MutableLiveData<Vehicle> m : vehiclesRepo)
         {
@@ -164,6 +144,18 @@ public class MainViewModel extends AndroidViewModel
                 return m.getValue();
         }
         return null;
+    }
+    
+    private int _findVehicleIndex(Vehicle v)
+    {
+        int i = 0;
+        for(MutableLiveData<Vehicle> m : vehiclesRepo)
+        {
+            if(Objects.requireNonNull(m.getValue()).equals(v))
+                break;
+            i++;
+        }
+        return (i<=(vehiclesRepo.size()-1)) ? i : -1;
     }
     
     
@@ -215,7 +207,8 @@ public class MainViewModel extends AndroidViewModel
     
     public void updateVehicleStatus(@NonNull VehicleStatus vs)
     {
-        Vehicle v = getVehicleByStatus(vs);
+        Log.i("daco", "status vid: " + vs.getVehicleId());
+        Vehicle v = getVehicleFromRepo(vs.getVehicleId());
         if(v == null)
         {
             Log.e(G.tag, "Received status for vehicle not in database!");
@@ -258,6 +251,7 @@ public class MainViewModel extends AndroidViewModel
         List<Vehicle> list = db.dao().getAllVehicles();
         for(Vehicle v : list)
         {
+            Log.i("daco", "- loading vehicle: " + v.getName() + " (" + v.hashCode() + ")");
             v.loadVehicleImage(getApplication().getApplicationContext());
             v.vehicleStatus().setValue(_reqireVehicleStatus(v));
             vehiclesRepo.add(new MutableLiveData<>(v));
@@ -273,14 +267,14 @@ public class MainViewModel extends AndroidViewModel
             Log.w(G.tag,"Last used vehicle not set.");
             return false;
         }
-        if(_getVehicleFromRepo(lastVehicleId) == null) //not found
+        if(getVehicleFromRepo(lastVehicleId) == null) //not found
         {
             Log.e(G.tag,"Last used vehicle not found in database. Clearing last flag.");
             pref.edit().remove(G.PREF_LAST_VEHICLE_ID).apply();
             return _loadLastVehicle(); //to create new one;
         }
         
-        Vehicle v = _getVehicleFromRepo(lastVehicleId); //valid load
+        Vehicle v = getVehicleFromRepo(lastVehicleId); //valid load
         assert v != null : "Toto by sa nikdy nemalo stat";
         switchCurrentVehicle(v);
         return true;

@@ -182,7 +182,7 @@ public class Converters
         List<Address> addresses = null;
         Geocoder geocoder = new Geocoder(context, Locale.getDefault()); //todo locale
         addresses = geocoder.getFromLocation(l.getLatitude(), l.getLongitude(), 1);
-        if(addresses != null) return addresses.get(0).getAddressLine(0);
+        if(!addresses.isEmpty()) return addresses.get(0).getAddressLine(0);
         else return null;
     }
 }

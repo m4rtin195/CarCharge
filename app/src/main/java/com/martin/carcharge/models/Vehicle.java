@@ -15,6 +15,7 @@ import com.martin.carcharge.G;
 import com.martin.carcharge.R;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity(tableName = "vehicles")
@@ -58,7 +59,7 @@ public class Vehicle
         if(map.get("imageFilename") != null) imageFilename = (String)map.get("imageFilename"); else corrupted = true;
         
         if(corrupted)
-            Log.e(G.tag, this.name + ": Vehicle_from_HashMap constructor - corrupted data! \n" + map.toString());
+            Log.w(G.tag, this.name + ": Vehicle_from_HashMap constructor - incomplete data! \n" + map.toString());
     }
     
     @NonNull
@@ -105,6 +106,21 @@ public class Vehicle
             else
                 return true;
         }
+    }
+    
+    @SuppressWarnings("ConstantConditions")
+    public void update(HashMap<String,Object> map)
+    {
+        if(map.get("id") != null && !Objects.equals(map.get("id"), this.id))
+            this.id = (String)map.get("id");
+        if(map.get("name") != null && !Objects.equals(map.get("name"), this.name))
+            this.name = (String)map.get("name");
+        if(map.get("regNumber") != null && !Objects.equals(map.get("regNumber"), this.regNumber))
+            this.regNumber = (String)map.get("regNumber");
+        if(map.get("maxVoltage") != null && !Objects.equals(map.get("maxVoltage"), this.maxVoltage))
+            this.maxVoltage = ((Number)map.get("maxVoltage")).intValue();
+        if(map.get("imageFilename") != null && !Objects.equals(map.get("imageFilename"), this.imageFilename))
+            this.imageFilename = (String)map.get("imageFilename");
     }
     
     @NonNull

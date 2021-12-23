@@ -27,7 +27,7 @@ public class CloudStorage
     
     public CloudStorage(Context context)
     {
-        this.context = context;
+        this.context = context.getApplicationContext();
         storage = FirebaseStorage.getInstance();
         uid = FirebaseAuth.getInstance().getUid();
         ref = storage.getReference("/user_files/" + uid);

@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -38,7 +39,7 @@ public class BaseActivity extends AppCompatActivity
             window.setNavigationBarDividerColor(getResources().getColor(R.color.tile_gray, getTheme()));
         }
     
-        //else
+        //todo hide nav buttons nizsie je?
         //View decorView = getWindow().getDecorView();
         //int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
         //decorView.setSystemUiVisibility(uiOptions);

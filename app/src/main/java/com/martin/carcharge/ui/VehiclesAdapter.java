@@ -99,9 +99,8 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
     
     public void update(Vehicle v)
     {
-        int index = array.indexOf(v);
-        //array.set(index, v); //todo treba???
-        this.notifyItemChanged(index);
+        int i = array.indexOf(v);
+        this.notifyItemChanged(i);
     }
     
     void setOnItemClickListener(OnItemClickListener listener)
@@ -119,16 +118,19 @@ public class VehiclesAdapter extends RecyclerView.Adapter<VehiclesAdapter.Vehicl
     
     private String _getLastStatusString(VehicleStatus vs)
     {
-        String ss;
+        String str;
         if(vs != null && vs.getState().isNormal())
-            ss = "Last status: " +
-                    vs.getState().asString(context, false) +
+        {
+            str = context.getString(R.string.bottomsheet_last_status) +
+                    " " + vs.getState().asString(context, false) +
                     " (" + DateUtils.getRelativeTimeSpanString(vs.getTimestamp().getTime(),
-                    new Date().getTime(), 0, /*DateUtils.FORMAT_ABBREV_RELATIVE*/0) + ")";
+                    new Date().getTime(), 0, /*DateUtils.FORMAT_ABBREV_RELATIVE*/0) + ")"; //todo resolution
+        }
         else
-            ss = "Last status: unknown";
-        return ss;
-        
+        {
+            str = context.getString(R.string.bottomsheet_last_status) + " " + context.getString(R.string.bottomsheet_last_status_unknown);
+        }
+        return str;
     }
     
     /**********/

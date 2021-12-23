@@ -58,7 +58,7 @@ public class VehicleStatus
         Unknown(-1),
         @SerializedName("0") NotConnected(0),
         @SerializedName("1") Sigfox(1),
-        @SerializedName("2") WiFi(2);
+        @SerializedName("2") WLAN(2);
         
         public final int value;
         Connectivity(int value)
@@ -267,7 +267,7 @@ public class VehicleStatus
         return "VehicleStatus{" +
                 "id=" + id +
                 ", vehicleId=" + vehicleId +
-                ", timestamp=" + timestamp.toString() +
+                ", timestamp=" + (timestamp == null ? null : timestamp.toString()) +
                 ", connectivity=" + connectivity +
                 ", state=" + state +
                 ", current_charge=" + current_charge +
@@ -279,7 +279,7 @@ public class VehicleStatus
                 ", outdoor_temperature=" + outdoor_temperature +
                 ", indoor_temperature=" + indoor_temperature +
                 ", desired_temperature=" + desired_temperature +
-                ", location=" + location.toString() +
+                ", location=" + (location == null ? null : location.toString()) +
                 ", max_current=" + max_current +
                 '}';
     }

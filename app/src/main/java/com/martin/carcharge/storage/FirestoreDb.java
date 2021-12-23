@@ -36,10 +36,11 @@ public class FirestoreDb
     
     public FirestoreDb(Context context)
     {
-        this.context = context;
+        this.context = context.getApplicationContext();
         
         firestore = FirebaseFirestore.getInstance();
         firestore.setFirestoreSettings(new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(false).build());
+        //firestore.disableNetwork();
         uid = FirebaseAuth.getInstance().getUid();
         
         vm = App.getViewModel();
@@ -108,20 +109,29 @@ public class FirestoreDb
                             
                             for(HashMap<String,Object> vehicleMap : vehicles)
                             {
-                                Vehicle v = new Vehicle(vehicleMap);
+                                String vid = (String)vehicleMap.get(G.FIRESTORE_VEHICLE_ID);
+                                Vehicle v;
+                                if(vm.getVehicleFromRepo(vid) != null) //vehicle already exists locally
+                                {
+                                    v = vm.getVehicleFromRepo(vid);
+                                    v.update(vehicleMap);
+                                }
+                                else //vehicle from firestore not found locally
+                                {
+                                    Log.i(G.tag, "vehicle from firestore not found locally, creating new one");
+                                    v = new Vehicle(vehicleMap);
+                                    vm.insertOrUpdateVehicle(v);
+                                }
+                                
                                 if(!FileStorage.checkFileExists(context, "/media/" + v.getImageFilename())) //image not found locally, download
                                 {
-                                    CompletableFuture<Void> future = cstrg.downloadVehicleImage(v.getImageFilename()).thenAccept((success) ->
-                                    {
-                                        v.loadVehicleImage(context);
-                                        vm.insertVehicle(v);
-                                    });
+                                    CompletableFuture<Void> future = cstrg.downloadVehicleImage(v.getImageFilename())
+                                        .thenAccept((success) -> v.loadVehicleImage(context));
                                     downloadings.add(future);
                                 }
                                 else //already have image locally
                                 {
                                     v.loadVehicleImage(context);
-                                    vm.insertVehicle(v);
                                 }
                             }//foreach
                             

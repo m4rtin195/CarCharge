@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.NotificationCompat;
@@ -24,6 +25,10 @@ import com.facebook.flipper.plugins.network.FlipperOkhttpInterceptor;
 import com.facebook.flipper.plugins.network.NetworkFlipperPlugin;
 import com.facebook.flipper.plugins.sharedpreferences.SharedPreferencesFlipperPlugin;
 import com.facebook.soloader.SoLoader;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.appcheck.FirebaseAppCheck;
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
+import com.google.firebase.appcheck.safetynet.SafetyNetAppCheckProviderFactory;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
@@ -48,14 +53,13 @@ public class App extends android.app.Application
     static SharedPreferences pref;
     static MainViewModel vm;
     static ApiClient api;
-    @SuppressLint("StaticFieldLeak") //its application context
     static FirestoreDb fdb;
-    @SuppressLint("StaticFieldLeak") //its application context
     static CloudStorage cstrg;
     
     @Override
     public void onCreate()
     {
+        Log.i(G.tag, "--init--");
         super.onCreate();
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO); // todo tu?????
         
@@ -114,6 +118,13 @@ public class App extends android.app.Application
                 .client(okHttpClient)
                 .build();
         
+        FirebaseApp.initializeApp(this);
+        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
+        if(BuildConfig.DEBUG)
+            firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance()); //debug provider
+        else
+            firebaseAppCheck.installAppCheckProviderFactory(SafetyNetAppCheckProviderFactory.getInstance()); //safetynet provider
+        
         api = new ApiClient(retrofit.create(CloudRestAPI.class));
         cstrg = new CloudStorage(getApplicationContext()); //poradie!! fdb v konstruktore taha ref na cstrg
         fdb = new FirestoreDb(getApplicationContext());
@@ -146,17 +157,23 @@ public class App extends android.app.Application
     
     public void postChargeCompleteNotification(Vehicle v, VehicleStatus vs)
     {
-        Intent openAppIntent = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), G.RC_FROM_NOTIF, openAppIntent, PendingIntent.FLAG_IMMUTABLE);
+        if(v==null || vs==null) return;
+        //Intent openAppIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(BuildConfig.APPLICATION_ID); //opens existing task
+        Intent openAppIntent = new Intent(getApplicationContext(), MainActivity.class); //creates new task and add it to backstack
+        openAppIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP); //dont start new activity activity if it is already running (app is in foreground) //nefunguje to nwm preco
+        openAppIntent.putExtra(G.EXTRA_VEHICLEID, v.getId());
+        
+        PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), G.RC_FROM_NOTIF, openAppIntent, PendingIntent.FLAG_IMMUTABLE);
         
         NotificationCompat.Builder notif = new NotificationCompat.Builder(getApplicationContext(), G.NOTIFICATION_CHANNELID)
             .setSmallIcon(R.drawable.bm_appicon)
             .setContentTitle(getApplicationContext().getString(R.string.notification_charge_completed))
             .setContentText(getApplicationContext().getString(R.string.notification_charge_completed_cont, v.getName(), vs.getTarget_charge()))
-            .setContentIntent(pi)
+            .setContentIntent(pIntent)
             .addAction(R.drawable.ic_flash, getApplicationContext().getString(R.string.notification_charge_to_100),
                     PendingIntent.getActivity(getApplicationContext(), 0, new Intent(), 0))
             .setAutoCancel(true);
+        
         
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         notificationManager.notify(1, notif.build());

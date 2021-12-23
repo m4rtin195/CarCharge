@@ -57,7 +57,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment
             ibutton_preferences.setOnClickListener(v ->
             {
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.fragment_navHost);
-                navController.navigate(R.id.navigation_action_home_to_preferences);
+                navController.navigate(R.id.navigation_action_to_preferences);
                 ((MainActivity)requireActivity()).setBottomSheetExpanded(false);
             });
         

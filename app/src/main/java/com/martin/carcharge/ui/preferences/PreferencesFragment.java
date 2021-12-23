@@ -33,6 +33,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -44,11 +45,9 @@ import com.martin.carcharge.LoginActivity;
 import com.martin.carcharge.MainActivity;
 import com.martin.carcharge.R;
 import com.martin.carcharge.databinding.FragmentPreferencesBinding;
-import com.martin.carcharge.models.FcmRegistration;
 import com.martin.carcharge.models.MainViewModel.MainViewModel;
 import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
-import com.martin.carcharge.network.CloudRestAPI;
 import com.martin.carcharge.storage.AppDatabase;
 import com.martin.carcharge.storage.CloudStorage;
 import com.martin.carcharge.storage.FileStorage;
@@ -59,7 +58,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Objects;
 
 public class PreferencesFragment extends PreferenceFragmentCompat
@@ -70,23 +68,25 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     private FirebaseAuth auth;
     private CloudStorage cstrg;
     
-    FragmentPreferencesBinding binding;
-    View root;
-    Toolbar toolbar;
-    ProgressBar progressbar;
+    private FragmentPreferencesBinding binding;
+    private View root;
+    private Toolbar toolbar;
+    private ProgressBar progressbar;
     
-    Preference preference_language, preference_fcmEnabled, preference_updateInterval, preference_invalidateCache,
-            preference_debugEnabled, preference_version, preference_fcmToken, preference_contactDeveloper;
-    Preference preference_user, preference_logout,
-            preference_vehicleName, preference_vehicleRegplate, preference_vehicleMaxVoltage, preference_vehicleImage;
+    private Preference
+                preference_language, preference_fcmEnabled, preference_updateInterval, preference_invalidateCache, preference_debugEnabled,  //app-prefs
+                preference_version, preference_fcmToken, preference_contactDeveloper;  //info
+    private Preference
+                preference_user, preference_logout,  //user-related
+                preference_vehicleName, preference_vehicleRegplate, preference_vehicleMaxVoltage, preference_vehicleImage;  //vehicle-related
     
-    User user;
-    Vehicle vehicle;
+    private User user;
+    private Vehicle vehicle;
     
-    ActivityResultLauncher<Intent> vehicleImagePickerLauncher;
+    private ActivityResultLauncher<Intent> vehicleImagePickerLauncher;
     
     /*
-        global settings are synced with firebase, but on fail there's no rollback
+        global settings are synced with firebase, but on fail, there's no rollback
         vehicle settings changes are sent to firestore, and are updated locally only if server update succeed
     */
     
@@ -119,7 +119,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             toolbar.setNavigationOnClickListener(view1 -> requireActivity().onBackPressed());
         progressbar = binding.progressbarPreferences;
         
-        configPreferences();
+        _configPreferences();
         return root;
     }
     
@@ -131,7 +131,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     }
     
     @SuppressWarnings("ConstantConditions")
-    private void configPreferences()
+    private void _configPreferences()
     {
         /***/
         //General & About
@@ -139,12 +139,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         preference_language = findPreference(G.PREF_LANGUAGE);
             preference_language.setOnPreferenceChangeListener((preference, newValue) ->
             {
-                requireActivity().recreate(); //todo preco nie
-                    /*Intent intent = new Intent(requireContext(), LoginActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    requireActivity().finish();*/
-                
+                requireActivity().recreate(); //activity is recreated, but not whole application
                 fdb.updateUserData(G.FIRESTORE_LANGUAGE, newValue);
                 return true;
             });
@@ -185,14 +180,13 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     
         preference_contactDeveloper = findPreference(G.PREF_CONTACT_DEVELOPER);
             preference_contactDeveloper.setOnPreferenceClickListener(onContactDeveloper);
-    
+            
             
         /***/
         //User & Vehicle
     
         preference_user = findPreference(G.PREF_USER_NICKNAME);
-            String nickname = user.getNickname().isEmpty() ?
-                    getString(R.string.preferences_nickname) : user.getNickname();
+            String nickname = user.getNickname().isEmpty() ? getString(R.string.preferences_nickname) : user.getNickname();
             preference_user.setTitle(nickname);
             preference_user.setSummary(user.getEmail());
             preference_user.setIcon(new BitmapDrawable(getResources(), user.getIcon()));
@@ -227,13 +221,69 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER));
     
         preference_vehicleImage = findPreference(G.PREF_VEHICLE_IMAGE);
-            String summary = vehicle.getImageFilename().isEmpty() ?
-                    getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
-            preference_vehicleImage.setSummary(summary);
+            //String summary = vehicle.getImageFilename().isEmpty() ? getString(R.string.preferences_not_set) : getString(R.string.preferences_set);
+            //preference_vehicleImage.setSummary(summary);
+            preference_vehicleImage.setSummaryProvider(vehiclePrefsSummaryProvider);
             preference_vehicleImage.setOnPreferenceClickListener(onVehicleImageClick);
-    }
+        
+    } //configPreferences
     
-    OnPreferenceClickListener onVehicleImageClick = preference ->
+    /**********/
+    
+    private final OnPreferenceChangeListener onNicknameChanged = (preference, newValue) ->
+    {
+        progressbar.setVisibility(View.VISIBLE);
+        FirebaseUser fUser = Objects.requireNonNull(auth.getCurrentUser());
+        fUser.updateProfile(new UserProfileChangeRequest.Builder().setDisplayName(newValue.toString()).build())
+                .addOnCompleteListener(task ->
+                {
+                    if(task.isSuccessful())
+                    {
+                        String title = (newValue.toString().isEmpty() ?
+                                getString(R.string.preferences_nickname) : newValue.toString());
+                        preference_user.setTitle(title);
+                        ((EditTextPreference) preference_user).setText(newValue.toString()); //save to shared
+                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_success), Snackbar.LENGTH_SHORT).show();
+                        this.user.setNickname((String)newValue);
+                        vm.setUser(this.user);
+                    }
+                    else
+                    {
+                        Log.e(G.tag, "Updating nickaneme failed: " + task.getException());
+                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_failed), Snackbar.LENGTH_LONG).show();
+                    }
+                    
+                    progressbar.setVisibility(View.INVISIBLE);
+                });
+        
+        return false;
+    };
+    
+    
+    //spolocny resolver pre summary pre vsetky vehicle-preferences
+    //volany pri kazdej zmene (.setText())
+    //alternativne sa da volat .setSummary rucne pri kazdej zmene preference
+    //must be on top (forward reference)
+    private final Preference.SummaryProvider<Preference> vehiclePrefsSummaryProvider = new Preference.SummaryProvider<Preference>()
+    {
+        @Override
+        public CharSequence provideSummary(Preference preference)
+        {
+            if(preference.equals(preference_vehicleName))
+                return (vehicle.getName().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getName());
+            if(preference.equals(preference_vehicleRegplate))
+                return (vehicle.getRegNumber().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getRegNumber());
+            if(preference.equals(preference_vehicleMaxVoltage))
+                return (vehicle.getMaxVoltage()==0 ? getString(R.string.preferences_not_set) : vehicle.getMaxVoltage() + " " + getString(R.string.preferences_volts));
+            if(preference.equals(preference_vehicleImage))
+                return (vehicle.getImageFilename().isEmpty() ? getString(R.string.preferences_not_set) : getString(R.string.preferences_set));
+            
+            return new String();
+        }
+    };
+    
+    
+    private final OnPreferenceClickListener onVehicleImageClick = preference ->
     {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -242,7 +292,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         return true;
     };
     
-    ActivityResultCallback<ActivityResult> vehicleImagePickerCallback = new ActivityResultCallback<ActivityResult>()
+    private final ActivityResultCallback<ActivityResult> vehicleImagePickerCallback = new ActivityResultCallback<ActivityResult>()
     {
         @Override
         public void onActivityResult(ActivityResult result)
@@ -263,7 +313,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
                     File newFile = File.createTempFile("vehicleimage_", extension, path);
                     Files.copy(is, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     
-                    onVehicleImageModified.onPreferenceChange(preference_vehicleImage, newFile.getName());
+                    onVehicleModified.onPreferenceChange(preference_vehicleImage, newFile.getName());
                 }
                 catch(IOException e)
                 {
@@ -273,18 +323,122 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         }
     };
     
-    OnPreferenceClickListener onLogout = preference ->
+    
+    //listener for common tasks for all preferences
+    //show snack, update in viewmodel, hide progressbar
+    //must be before onVehicleModified (forward reference)
+    private final OnCompleteListener<Void> finishVehicleUpdate = task ->
+    {
+        if(task.isSuccessful())
+        {
+            Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_success), Snackbar.LENGTH_SHORT).show();
+            vm.insertOrUpdateVehicle(vehicle); //to save to local db
+        }
+        else
+        {
+            Log.e(G.tag, "Updating in Firestore failed: " + task.getException());
+            Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_failed), Snackbar.LENGTH_LONG).show();
+        }
+        
+        progressbar.setVisibility(View.INVISIBLE);
+    };
+    
+    
+    private final OnPreferenceChangeListener onVehicleModified = (preference, newValue) ->
+    {
+        progressbar.setVisibility(View.VISIBLE);
+    
+        if(preference.equals(preference_vehicleName))
+        {
+            fdb.updateVehicleData(this.vehicle, G.FIRESTORE_VEHICLE_NAME, newValue)
+                .addOnCompleteListener(task ->
+                    {
+                        if(task.isSuccessful())
+                        {
+                            this.vehicle.setName((String) newValue);
+                            ((EditTextPreference)preference_vehicleName).setText(newValue.toString());
+                        }
+                    })
+                .addOnCompleteListener(finishVehicleUpdate);
+        }
+        
+        if(preference.equals(preference_vehicleRegplate))
+        {
+            fdb.updateVehicleData(this.vehicle, G.FIRESTORE_VEHICLE_REGPLATE, newValue)
+                .addOnCompleteListener(task ->
+                    {
+                        if(task.isSuccessful())
+                        {
+                            this.vehicle.setRegNumber((String) newValue);
+                            ((EditTextPreference)preference_vehicleRegplate).setText(newValue.toString());
+                        }
+                    })
+                .addOnCompleteListener(finishVehicleUpdate);
+        }
+        
+        if(preference.equals(preference_vehicleMaxVoltage))
+        {
+            fdb.updateVehicleData(this.vehicle, G.FIRESTORE_VEHICLE_MAX_VOLTAGE, Integer.parseInt((String)newValue))
+                .addOnCompleteListener(task ->
+                    {
+                        if(task.isSuccessful())
+                        {
+                            this.vehicle.setMaxVoltage(Integer.parseInt((String)newValue));
+                            ((EditTextPreference)preference_vehicleMaxVoltage).setText(newValue.toString());
+                        }
+                    })
+                .addOnCompleteListener(finishVehicleUpdate);
+        }
+        
+        if(preference.equals(preference_vehicleImage))
+        {
+            //upload image to CloudStorage
+            File file = new File(requireContext().getFilesDir().toString() + "/media/", (String)newValue);
+            cstrg.uploadVehicleImage(file)
+                .thenAccept((success) ->
+                {
+                    if(success)
+                    {
+                        //update filename in Firestore
+                        fdb.updateVehicleData(this.vehicle, G.FIRESTORE_VEHICLE_IMAGE, newValue)
+                                .addOnCompleteListener(task ->
+                                {
+                                    if(task.isSuccessful())
+                                    {
+                                        //delete old file
+                                        FileStorage.deleteFile(requireContext(), "/media/" + vehicle.getImageFilename());
+                                        cstrg.deleteVehicleImage(this.vehicle.getImageFilename());
+            
+                                        this.vehicle.setImageFilename((String) newValue);
+                                        this.vehicle.loadVehicleImage(requireContext());
+                                    }
+                                })
+                                .addOnCompleteListener(finishVehicleUpdate);
+                    }
+                    else //cloudstorage upload failed
+                    {
+                        Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_failed), Snackbar.LENGTH_LONG).show();
+                        progressbar.setVisibility(View.INVISIBLE);
+                    }
+                }); //cloudstorage update
+        } //preference_vehicleImage
+        
+        return false;
+    }; //onVehicleModified listener
+    
+    
+    private final OnPreferenceClickListener onLogout = preference ->
     {
         AlertDialog.Builder confirmDialog = new AlertDialog.Builder(requireContext());
         confirmDialog.setTitle(getString(R.string.preferences_logout_dialog));
-        confirmDialog.setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> logout());
+        confirmDialog.setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> _logout());
         confirmDialog.setNegativeButton(getString(R.string.no), null);
         confirmDialog.show();
         
         return true;
     };
     
-    private void logout()
+    private void _logout()
     {
         progressbar.setVisibility(View.VISIBLE);
         //remove user icon and vehicles files
@@ -301,190 +455,34 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         db.dao().deleteAllVehicles();
         db.dao().deleteAllStatuses();
         
+        //viewmodel is dropped because process will be recreated
+        
         //sign-out from google
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
         GoogleSignIn.getClient(requireContext(), gso).signOut().addOnCompleteListener(task ->
         {
-            //sign-out from firebase
+            //sign-out from firebase auth
             auth.signOut();
             Intent intent = new Intent(requireContext(), LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             requireActivity().finish();
-            //pockat na dokoncenie IO na persistent
+            //pockat na dokoncenie I/O na persistent storage
             try {Thread.sleep(100);} catch(InterruptedException e) {e.printStackTrace();}
             Runtime.getRuntime().exit(0);
         });
     }
     
     
-    //must be on top (forward reference)
-    Preference.SummaryProvider<Preference> vehiclePrefsSummaryProvider = new Preference.SummaryProvider<Preference>()
-    {
-        @Override
-        public CharSequence provideSummary(Preference preference)
-        {
-            Log.i("daco", "inProvideSummary");
-            if(preference.equals(preference_vehicleName)) return (vehicle.getName().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getName());
-            if(preference.equals(preference_vehicleRegplate)) return (vehicle.getRegNumber().isEmpty() ? getString(R.string.preferences_not_set) : vehicle.getRegNumber());
-            if(preference.equals(preference_vehicleMaxVoltage)) return (vehicle.getMaxVoltage()==0 ?
-                    getString(R.string.preferences_not_set) : vehicle.getMaxVoltage() + " " + getString(R.string.preferences_volts));
-            return new String();
-        }
-    };
-    
-    
-    OnPreferenceChangeListener onNicknameChanged = (preference, newValue) ->
-    {
-        progressbar.setVisibility(View.VISIBLE);
-        FirebaseUser fUser = Objects.requireNonNull(auth.getCurrentUser());
-        fUser.updateProfile(new UserProfileChangeRequest.Builder().setDisplayName(newValue.toString()).build())
-                .addOnCompleteListener(task ->
-                {
-                    if(task.isSuccessful())
-                    {
-                        String title = (newValue.toString().isEmpty() ?
-                                getString(R.string.preferences_nickname) : newValue.toString());
-                        preference_user.setTitle(title);
-                        ((EditTextPreference) preference_user).setText(newValue.toString()); //save to shared
-                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_success), Snackbar.LENGTH_SHORT).show();
-                        this.user.setNickname((String)newValue);
-                        vm.setUser(this.user);
-                    }
-                    else
-                        Snackbar.make(root, getString(R.string.preferences_toast_nickname_update_failed), Snackbar.LENGTH_LONG).show();
-                    
-                    progressbar.setVisibility(View.INVISIBLE);
-                });
-        
-        return false;
-    };
-    
-    /*OnPreferenceChangeListener onVehicleModified = (preference, newValue) ->
-    {
-        if(vehicle != null)
-        {
-            if(preference.equals(preference_vehicleName))
-            {
-                vehicle.setName((String) newValue);
-                ((EditTextPreference) preference_vehicleName).setText(newValue.toString());
-                fdb.updateVehicleData(vehicle,G.FIRESTORE_VEHICLE_NAME,newValue);
-            }
-            if(preference.equals(preference_vehicleRegplate))
-            {
-                vehicle.setRegNumber((String) newValue);
-                ((EditTextPreference) preference_vehicleRegplate).setText(newValue.toString());
-                fdb.updateVehicleData(vehicle,G.FIRESTORE_VEHICLE_REGPLATE,newValue);
-            }
-            if(preference.equals(preference_vehicleMaxVoltage))
-            {
-                vehicle.setMaxVoltage(Integer.parseInt((String) newValue));
-                ((EditTextPreference) preference_vehicleMaxVoltage).setText(newValue.toString());
-                fdb.updateVehicleData(vehicle,G.FIRESTORE_VEHICLE_MAX_VOLTAGE,newValue);
-            }
-            if(preference.equals(preference_vehicleImage))
-            {
-                vehicle.setImageFilename((String) newValue);
-                vehicle.loadVehicleImage(requireContext());
-                preference_vehicleImage.setSummary(getString(R.string.preferences_set));
-                fdb.updateVehicleData(vehicle,G.FIRESTORE_VEHICLE_IMAGE,newValue);
-            }
-            
-            vm.updateVehicle(vehicle); //todo slucka!!!!
-        }
-        return true;
-    };*/
-    
-    OnPreferenceChangeListener onVehicleModified = (preference, newValue) ->
-    {
-        progressbar.setVisibility(View.VISIBLE);
-        String preferenceKey = new String();
-        if(preference.equals(preference_vehicleName))
-            preferenceKey = G.FIRESTORE_VEHICLE_NAME;
-        if(preference.equals(preference_vehicleRegplate))
-            preferenceKey = G.FIRESTORE_VEHICLE_REGPLATE;
-        if(preference.equals(preference_vehicleMaxVoltage))
-        {
-            preferenceKey = G.FIRESTORE_VEHICLE_MAX_VOLTAGE;
-            newValue = Integer.parseInt((String) newValue);
-        }
-        
-        if(preferenceKey.isEmpty())
-        {
-            Log.e(G.tag, "unknown preference (onVehicleModified())");
-            return false;
-        }
-        Object finalNewValue = newValue; //must be final/efectively final
-        
-        fdb.updateVehicleData(vehicle, preferenceKey, newValue)
-            .addOnCompleteListener(task ->
-            {
-                if(task.isSuccessful())
-                {
-                    //preference_vehicleName.setSummary((String)newValue); //update view
-                    //vehiclePrefsSummaryProvider.provideSummary(preference);
-                    ((EditTextPreference)preference).setText(finalNewValue.toString()); //save string to shared
-                    Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_success), Snackbar.LENGTH_SHORT).show();
-                }
-                else
-                    Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_failed), Snackbar.LENGTH_LONG).show();
-                
-                progressbar.setVisibility(View.INVISIBLE);
-            });
-        
-        return false;
-    };
-    
-    OnPreferenceChangeListener onVehicleImageModified = (preference, newValue) ->
-    {
-        progressbar.setVisibility(View.VISIBLE);
-        
-        //upload image to CloudStorage
-        File file = new File(requireContext().getFilesDir().toString() + "/media/", (String)newValue);
-        cstrg.uploadVehicleImage(file).thenAccept((success) ->
-        {
-            if(success)
-            {
-                //update filename in Firestore
-                fdb.updateVehicleData(vehicle, G.FIRESTORE_VEHICLE_IMAGE, newValue)
-                    .addOnCompleteListener(task ->
-                    {
-                        if(task.isSuccessful())
-                        {
-                            //delete old file
-                            FileStorage.deleteFile(requireContext(), "/media/" + vehicle.getImageFilename());
-                            cstrg.deleteVehicleImage(vehicle.getImageFilename());
-                            
-                            vehicle.setImageFilename((String) newValue);
-                            vehicle.loadVehicleImage(requireContext());
-                            preference_vehicleImage.setSummary(getString(R.string.preferences_set));
-                            //vehiclePrefsSummaryProvider.provideSummary(preference);
-                            Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_success), Snackbar.LENGTH_SHORT).show();
-                        }
-                        else
-                            Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_failed), Snackbar.LENGTH_LONG).show();
-                        
-                        progressbar.setVisibility(View.INVISIBLE);
-                    });
-            }
-            else //cloudstorage upload failed
-            {
-                Snackbar.make(root, getString(R.string.preferences_toast_vehicle_update_failed), Snackbar.LENGTH_LONG).show();
-                progressbar.setVisibility(View.INVISIBLE);
-            }
-        });
-        
-        return false;
-    };
-    
-    OnPreferenceClickListener onInvalidateCache = preference ->
+    private final OnPreferenceClickListener onInvalidateCache = preference ->
     {
         vm.deleteAllVehicleStatuses();
         Snackbar.make(root, PreferencesFragment.this.getString(R.string.preferences_invalidate_cache_dialog), Snackbar.LENGTH_SHORT).show();
         return true;
     };
     
-    OnPreferenceClickListener onContactDeveloper = preference ->
+    
+    private final OnPreferenceClickListener onContactDeveloper = preference ->
     {
         String body =
                 "\n\n-----------------------------" +
@@ -500,12 +498,12 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Query from CarCharge app");
         emailIntent.putExtra(Intent.EXTRA_TEXT, body);
         startActivity(Intent.createChooser(emailIntent, getString(R.string.preferences_choose_email_client)));
-        
         return true;
     };
     
-    int eggCounter = 0;
-    OnPreferenceClickListener easterEgg = preference ->
+    
+    private int eggCounter = 0;
+    private final OnPreferenceClickListener easterEgg = preference ->
     {
         eggCounter++;
         if(eggCounter >= 5)

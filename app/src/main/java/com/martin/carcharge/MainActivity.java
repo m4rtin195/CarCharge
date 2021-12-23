@@ -41,7 +41,6 @@ import com.martin.carcharge.models.User;
 import com.martin.carcharge.models.Vehicle;
 import com.martin.carcharge.models.VehicleStatus;
 import com.martin.carcharge.network.Downloader;
-import com.martin.carcharge.storage.FileStorage;
 
 import java.util.Objects;
 
@@ -81,7 +80,6 @@ public class MainActivity extends BaseActivity
         pref = App.getPreferences();
         vm = App.getViewModel();
         
-        
         fab_button = binding.fabButton;
             fab_button.setOnClickListener(onActionClickListener_flash);
     
@@ -95,9 +93,10 @@ public class MainActivity extends BaseActivity
         scrim = binding.scrim;
             scrim.setOnClickListener(v -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN));
         
-        //todo ten normalny sposob?
-        //NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        navController = ((NavHostFragment) Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_navHost))).getNavController();
+        //bug v Navigation 2.3.x - musi sa obchadzat cez supportFragmentManager - pravdepodobne pernament
+        //https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
+        //navController = Navigation.findNavController(root);
+        navController = ((NavHostFragment)Objects.requireNonNull(getSupportFragmentManager().findFragmentById(R.id.fragment_navHost))).getNavController();
         
         lbm = LocalBroadcastManager.getInstance(getApplicationContext());
         pref.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
@@ -105,18 +104,29 @@ public class MainActivity extends BaseActivity
         downloader = new Downloader(this);
         fcmReceiver = new FcmReceiver();
         
+        
+        // resolve intent extras
         if(getIntent().hasExtra(G.EXTRA_USER))
         {
             User user = (User)getIntent().getExtras().get(G.EXTRA_USER);
             vm.setUser(user);
-            if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGED, false))
+            if(getIntent().getExtras().getBoolean(G.EXTRA_USER_JUST_LOGGEDIN, false)) // user just logged-in
             {
+                Log.i(G.tag, "(new user)");
                 Snackbar.make(root, getString(R.string.welcome_back) + ", " + user.getNickname() + "!", Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
-                App.getApiClient().registerFcm(vm.getAllVehicles()); //register all vehicles to fcm token
+                App.getApiClient().registerFcm(vm.getAllVehicles())
+                        .thenRun(() -> Log.i(G.tag, "FCM-vehicle registrations completed.")); //register all vehicles to fcm token
             }
         }
+        if(getIntent().hasExtra(G.EXTRA_VEHICLEID))
+        {
+            Vehicle v = vm.getVehicleFromRepo(getIntent().getStringExtra(G.EXTRA_VEHICLEID));
+            if(v != null)
+                vm.switchCurrentVehicle(v);
+        }
         
-        //current vehicle not set
+        
+        // current vehicle not set
         if(vm.currentVehicle().getValue() == null)
         {
             if(!vm.getAllVehicles().isEmpty())
@@ -124,6 +134,7 @@ public class MainActivity extends BaseActivity
             else
                 vm.switchCurrentVehicle(vm.createVehicle("New vehicle"));
         }
+        
         
         //FOR DEMO ONLY
         //loading po spusteni app, onStart je volane aj po prepnuti do popredia???
@@ -143,25 +154,37 @@ public class MainActivity extends BaseActivity
                 downloader.downloadLast(vm.getCurrentVehicle(), manualNewDataListener);      // FCM is enabled, download once*/
         }, 1000);
         
-        ((App)getApplication()).postChargeCompleteNotification(vm.getCurrentVehicle(), vm.getCurrentVehicleStatus());
-        
     } //onCreate
     
     @Override
     public void onStart()
     {
-        //Log.i("daco", "MainActivity onStart()");
+        Log.i("daco", "MainActivity onStart()");
         super.onStart();
-        lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_UPDATE));
+        lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_FCMUPDATE));
     }
     
-    /*@Override
+    @Override
+    public void onResume()
+    {
+        Log.i("daco", "MainActivity onResume()");
+        super.onResume();
+    }
+    
+    @Override
     protected void onPause()
     {
         Log.i("daco", "MainActivity onPause()");
         super.onPause();
         //lbm.unregisterReceiver(fcmReceiver); //todo overit ci treba
-    }*/
+    }
+    
+    @Override
+    protected void onStop()
+    {
+        Log.i("daco", "MainActivity onStop()");
+        super.onStop();
+    }
     
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu)
@@ -190,7 +213,7 @@ public class MainActivity extends BaseActivity
         if(item.getItemId() == R.id.menu_history)
         {
             setBottomSheetExpanded(false);
-            navController.navigate(R.id.navigation_action_home_to_history);
+            navController.navigate(R.id.navigation_action_to_history);
         }
         
         if(item.getItemId() == R.id.menu_refresh)
@@ -300,7 +323,6 @@ public class MainActivity extends BaseActivity
             {
                 vm.updateVehicleStatus(vs);
                 Snackbar.make(root, getString(R.string.toast_refreshed), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab_button).show();
-
             }
             else
             {
@@ -322,10 +344,6 @@ public class MainActivity extends BaseActivity
     View.OnClickListener onActionClickListener_flash = (View view) ->
     {
         Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
-        
-        Vehicle fake = new Vehicle();
-        fake.setId("dajakeID");
-        downloader.downloadLast(fake, manualNewDataListener);
     };
     
     OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = (sharedPreferences, key) ->
@@ -337,7 +355,7 @@ public class MainActivity extends BaseActivity
         {
             Toast.makeText(this, "fcm enabled change", Toast.LENGTH_SHORT).show(); //todo prec
             if(pref.getBoolean(G.PREF_FCM_ENABLED, false))
-                lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_UPDATE));
+                lbm.registerReceiver(fcmReceiver, new IntentFilter(G.ACTION_BROADCAST_FCMUPDATE));
             else
                 lbm.unregisterReceiver(fcmReceiver);
         }

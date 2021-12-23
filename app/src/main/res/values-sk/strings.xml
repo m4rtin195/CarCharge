@@ -51,10 +51,10 @@
     <string name="login_or">alebo</string>
     <string name="not_set" msgid="6573031135582639649">"nenastavené"</string>
     <string name="login_error_hint">Nemôže byť prázdne</string>
-    <string name="preferences_toast_nickname_update_failed">Užívateľské meno úspešne zmenené online.</string>
-    <string name="preferences_toast_nickname_update_success">Zmena užívateľského mena online zlyhala.</string>
-    <string name="preferences_toast_vehicle_update_failed">Vozidlo úspešne aktualizované online.</string>
-    <string name="preferences_toast_vehicle_update_success">Aktualizácia vozidla online zlyhala.</string>
+    <string name="preferences_toast_nickname_update_success">Užívateľské meno úspešne zmenené online.</string>
+    <string name="preferences_toast_nickname_update_failed">Zmena užívateľského mena online zlyhala.</string>
+    <string name="preferences_toast_vehicle_update_success">Vozidlo úspešne aktualizované online.</string>
+    <string name="preferences_toast_vehicle_update_failed">Aktualizácia vozidla online zlyhala.</string>
     <string name="yes">Áno</string>
     <string name="no">Nie</string>
     <string name="preferences_logout_dialog">Naozaj sa chcete odhlásiť?</string>
@@ -75,17 +75,21 @@
     <string name="home_state_off">Vypnuté</string>
     <string name="home_state_idle">Nečinné</string>
     <string name="home_state_driving">V jazde</string>
-    <string name="home_state_unknown">Neznámy</string>
+    <string name="home_state_unknown">Neznámy stav</string>
     <string name="preferences_vehicle_max_voltage">Maximálne napätie batérie</string>
     <string name="history_graph_charge_level">Úroveň nabitia</string>
     <string name="history_graph_current">Prúd</string>
     <string name="history_graph_nodata">Údaje niesú načítané.</string>
     <string name="app_map">Mapa</string>
-    <string name="home_connection_icon_desc">ikona typu pripojenia</string>
+    <string name="home_connectivity_icon_desc">ikona typu pripojenia</string>
     <string name="map_toast_location_access_not_granted">Prístup k polohe nebol udelený.</string>
     <string name="preferences_volts">voltov</string>
     <string name="notification_charge_completed">Nabíjanie dokončené</string>
     <string name="notification_charge_completed_cont">Úroveň nabitia %1$s dosiahla požadovanú úroveň (%2$d%%).</string>
     <string name="notification_charge_to_100">Nabiť na 100%</string>
+    <string name="home_connectivity_connected_via">Pripojené cez:</string>
+    <string name="home_connectivity_updated">Aktualizované:</string>
+    <string name="bottomsheet_last_status">Posledný stav:</string>
+    <string name="bottomsheet_last_status_unknown">neznámy</string>
 
 </resources>

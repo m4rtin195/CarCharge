@@ -143,7 +143,7 @@
             
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://github.com/m4rtin195/Reciper" />
+                android:data="https://github.com/m4rtin195/CarCharge" />
         </Preference>
         
         <Preference

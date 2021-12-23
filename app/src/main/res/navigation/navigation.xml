@@ -12,13 +12,13 @@
         android:label="@string/app_home"
         tools:layout="@layout/fragment_home" >
         <action
-            android:id="@+id/navigation_action_home_to_history"
+            android:id="@+id/navigation_action_to_history"
             app:destination="@id/navigation_history" />
         <action
-            android:id="@+id/navigation_action_home_to_preferences"
+            android:id="@+id/navigation_action_to_preferences"
             app:destination="@id/navigation_preferences" />
         <action
-            android:id="@+id/navigation_action_home_to_map"
+            android:id="@+id/navigation_action_to_map"
             app:destination="@id/navigation_map" />
     </fragment>
 
@@ -28,27 +28,19 @@
         android:label="@string/app_history"
         tools:layout="@layout/fragment_history" >
         <action
-            android:id="@+id/navigation_action_history_self"
-            app:destination="@id/navigation_history" />
+            android:id="@+id/navigation_action_to_preferences"
+            app:destination="@id/navigation_preferences" />
     </fragment>
     
     <fragment
         android:id="@+id/navigation_map"
         android:name="com.martin.carcharge.ui.MapFragment"
         android:label="@string/app_map"
-        tools:layout="@layout/fragment_map" >
-        <action
-            android:id="@+id/navigation_action_map_self"
-            app:destination="@id/navigation_map" />
-    </fragment>
+        tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/navigation_preferences"
         android:name="com.martin.carcharge.ui.preferences.PreferencesFragment"
         android:label="@string/app_preferences"
-        tools:layout="@layout/fragment_preferences" >
-        <action
-            android:id="@+id/navigation_action_preferences_self"
-            app:destination="@id/navigation_preferences" />
-    </fragment>
+        tools:layout="@layout/fragment_preferences" />
 </navigation>
